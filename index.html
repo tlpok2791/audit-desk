@@ -56,6 +56,19 @@ h1{font-size:clamp(27px,5.4vw,34px);font-weight:800;color:var(--ink);
 
 hr{border:0;border-top:1px solid var(--line);margin:44px 0}
 
+/* 실행 버튼 */
+.launch{display:flex;align-items:center;gap:15px;margin-top:24px;padding:17px 20px;
+  background:var(--ink);border-radius:var(--r);text-decoration:none;
+  transition:transform .16s,box-shadow .16s;box-shadow:0 4px 18px rgba(17,24,39,.14)}
+.launch:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(17,24,39,.2)}
+.launch-ico{width:34px;height:34px;flex:none;border-radius:50%;background:var(--indigo);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.launch-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.launch-txt b{color:#fff;font-size:15.5px;font-weight:700;letter-spacing:-.02em}
+.launch-txt em{color:#9CA3AF;font-size:12.5px;font-style:normal;line-height:1.45}
+.launch-arrow{color:#6B7280;font-size:17px;flex:none}
+.launch:hover .launch-arrow{color:#fff}
+
 /* ── 번호 붙은 절 ───────────────────────── */
 .sec{display:flex;align-items:center;gap:13px;margin-bottom:20px}
 .num{width:31px;height:31px;border-radius:50%;background:var(--indigo);color:#fff;
@@ -180,11 +193,20 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 
   <div class="pills">
     <span class="pill hi">로컬 전용</span>
-    <span class="pill">가동 3개</span>
-    <span class="pill">📊 xlsx · csv</span>
+    <span class="pill">가동 5개</span>
+    <span class="pill">📊 xlsx · xls · csv</span>
     <span class="pill">🧾 조서 자동생성</span>
     <span class="pill soft">🔒 외부 전송 없음</span>
   </div>
+
+  <a class="launch" href="./tool.html">
+    <span class="launch-ico">▶</span>
+    <span class="launch-txt">
+      <b>브라우저에서 바로 실행</b>
+      <em>설치 없이 열립니다 · 파일은 브라우저 밖으로 나가지 않습니다</em>
+    </span>
+    <span class="launch-arrow">→</span>
+  </a>
 
   <div class="callout">
     <h3>이 도구로 할 수 있는 것</h3>
@@ -199,6 +221,56 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 
   <!-- 1. 모듈 -->
   <div class="sec"><div class="num">1</div><h2>사용 가능한 모듈</h2></div>
+
+  <!-- LG -->
+  <div class="mod" id="m-lg">
+    <button class="mod-hd" data-t="m-lg">
+      <span class="mod-ico">📚</span>
+      <span class="mod-main">
+        <span class="mod-name">LG-100_계정별원장편집</span>
+        <span class="mod-desc">계정마다 나뉜 시트를 계정과목 열을 가진 하나의 통합 원장으로 합치고, 원장에 찍힌 [누계]와 대조해 검증합니다.</span>
+        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">.xls 지원</span><span class="tag">시트 통합</span></span>
+      </span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="mod-body">
+      <div class="flow"><span>원장 업로드</span><i>▸</i><span>시트 인식</span><i>▸</i><span>정리 기준</span><i>▸</i><span>통합·검증</span><i>▸</i><span>xlsx</span></div>
+      <div class="sublabel">실제 실행 결과 — 101개 시트</div>
+      <div class="tbl-wrap"><table>
+        <tr><th>단계</th><th>결과</th></tr>
+        <tr><td class="k">시트 인식</td><td>101개 · 119,275행</td></tr>
+        <tr><td class="k">통합 후</td><td>117,534행 (소계·머리글 1,741행 제외)</td></tr>
+        <tr><td class="k">원장 [누계] 대조</td><td>92개 계정 전부 일치</td></tr>
+        <tr class="flag"><td class="k">차대 검증</td><td>289,200원 불일치 — 원장에서 빠진 계정 적출</td></tr>
+      </table></div>
+      <p class="cap">계정과목이 시트 이름에만 있어도 열로 만듭니다. [전기이월]·[월계]·[누계]는 걷어내되, 적요에 쓰인 대괄호([잡코리아]유료서비스 등)는 건드리지 않습니다.</p>
+    </div>
+  </div>
+
+  <!-- JN -->
+  <div class="mod" id="m-jn">
+    <button class="mod-hd" data-t="m-jn">
+      <span class="mod-ico">🧾</span>
+      <span class="mod-main">
+        <span class="mod-name">JN-100_분개장편집</span>
+        <span class="mod-desc">서식이 어떻든 표준 형태로 펴고, 총계와 전표 단위 양쪽에서 차대 일치를 검증합니다.</span>
+        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">서식 무관</span><span class="tag">전표별 검증</span></span>
+      </span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="mod-body">
+      <div class="flow"><span>분개장 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>정규화</span><i>▸</i><span>검증</span><i>▸</i><span>xlsx</span></div>
+      <div class="sublabel">검증 항목</div>
+      <div class="tbl-wrap"><table>
+        <tr><th>항목</th><th>내용</th></tr>
+        <tr><td class="k">총 차변 = 총 대변</td><td>전체 합계 일치 여부</td></tr>
+        <tr class="flag"><td class="k">전표별 대차평형</td><td>총계가 맞아도 전표별로는 틀릴 수 있음</td></tr>
+        <tr><td class="k">차·대 동시 기재</td><td>한 행에 차변·대변이 모두 있는 경우</td></tr>
+        <tr><td class="k">회계기간 범위</td><td>결산기간 밖 일자</td></tr>
+      </table></div>
+      <p class="cap">병합셀로 빈 전표번호, 소계행, 반복 머리글, "1,234,000원" 같은 문자열 금액, 부호로만 구분된 금액을 모두 처리합니다. 합계는 <code>=SUM()</code>으로 들어가 전체 범위에 걸립니다.</p>
+    </div>
+  </div>
 
   <!-- WP -->
   <div class="mod" id="m-wp">
@@ -366,7 +438,8 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
   <p class="foot">
     모듈을 추가하려면 <code>modules/</code>에 파일을 만들고 <code>core/registry.py</code>에 한 줄만 등록하면
     메뉴와 홈 화면에 자동으로 나타납니다.<br>
-    업로드 파일은 실행 중인 PC 메모리에서만 처리되며 외부로 전송·저장되지 않습니다.
+    브라우저에서 실행할 때도 파이썬이 서버가 아니라 사용자의 브라우저 안에서 돌기 때문에,
+    올린 파일은 어디로도 전송되지 않습니다. 다만 10만 행이 넘는 큰 파일은 PC 설치본이 훨씬 빠릅니다.
   </p>
 </div>
 
