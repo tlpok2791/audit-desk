@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>감사 데스크</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+:root{
+  --indigo:#4F46E5; --indigo-d:#3730A3; --indigo-l:#EEF0FF; --indigo-b:#C7D2FE;
+  --ink:#111827; --body:#374151; --mute:#6B7280; --faint:#9CA3AF;
+  --bg:#F7F8FC; --card:#FFFFFF; --line:#E5E7EB; --line-l:#F0F1F5;
+  --amber:#FEF3C7; --amber-t:#92400E;
+  --rose:#FEE2E2; --rose-t:#B91C1C;
+  --mint:#D1FAE5; --mint-t:#065F46;
+  --sans:'Pretendard Variable',Pretendard,system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--body);font-family:var(--sans);font-size:15px;
+     line-height:1.65;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+
+.wrap{max-width:940px;margin:0 auto;padding:46px 24px 130px}
+
+/* ── 머리말 ─────────────────────────────── */
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;
+         color:var(--indigo);margin-bottom:14px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--indigo);border-radius:2px}
+h1{font-size:clamp(27px,5.4vw,34px);font-weight:800;color:var(--ink);
+   letter-spacing:-.035em;line-height:1.28}
+.sub{font-size:15px;color:var(--mute);margin-top:9px}
+
+/* 알약 배지 */
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+      padding:6px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+      color:var(--body);white-space:nowrap}
+.pill.hi{background:var(--amber);border-color:transparent;color:var(--amber-t)}
+.pill.soft{background:var(--indigo-l);border-color:transparent;color:var(--indigo-d)}
+
+/* 안내 상자 */
+.callout{background:var(--indigo-l);border-left:4px solid var(--indigo);
+         border-radius:0 var(--r) var(--r) 0;padding:20px 24px;margin-top:26px}
+.callout h3{font-size:14.5px;font-weight:700;color:var(--indigo-d);margin-bottom:12px}
+.callout ul{list-style:none}
+.callout li{position:relative;padding-left:17px;font-size:14.5px;color:var(--body);
+            margin-bottom:8px}
+.callout li:last-child{margin-bottom:0}
+.callout li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;
+            border-radius:50%;background:var(--indigo)}
+
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+
+/* ── 번호 붙은 절 ───────────────────────── */
+.sec{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.num{width:31px;height:31px;border-radius:50%;background:var(--indigo);color:#fff;
+     font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;
+     flex:none}
+.sec h2{font-size:21px;font-weight:800;color:var(--ink);letter-spacing:-.03em}
+
+/* ── 모듈 카드 ──────────────────────────── */
+.mod{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+     margin-bottom:14px;overflow:hidden;transition:border-color .16s,box-shadow .16s}
+.mod:hover{border-color:var(--indigo-b);box-shadow:0 2px 14px rgba(79,70,229,.07)}
+.mod-hd{width:100%;background:none;border:0;font:inherit;text-align:left;cursor:pointer;
+        padding:19px 22px;display:flex;gap:14px;align-items:flex-start}
+.mod-hd:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+.mod-ico{font-size:19px;line-height:1.3;flex:none}
+.mod-main{flex:1;min-width:0}
+.mod-name{font-family:var(--mono);font-size:15.5px;font-weight:600;color:var(--ink);
+          letter-spacing:-.02em}
+.mod-desc{font-size:14px;color:var(--mute);margin-top:5px}
+.mod-tags{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.tag{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+     background:var(--line-l);color:var(--mute)}
+.tag.on{background:var(--mint);color:var(--mint-t)}
+.tag.wait{background:var(--line-l);color:var(--faint)}
+.chev{color:var(--faint);font-size:13px;flex:none;margin-top:3px;transition:transform .2s}
+.mod.open .chev{transform:rotate(90deg)}
+
+.mod-body{display:none;padding:0 22px 22px;border-top:1px solid var(--line-l);margin-top:0}
+.mod.open .mod-body{display:block;animation:fade .2s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.sublabel{font-size:12.5px;font-weight:700;color:var(--faint);letter-spacing:.02em;
+          margin:20px 0 9px}
+
+/* 흐름 */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:18px}
+.flow span{font-size:12.5px;font-weight:500;padding:5px 12px;border-radius:8px;
+           background:var(--indigo-l);color:var(--indigo-d)}
+.flow i{color:var(--indigo-b);font-style:normal;font-size:12px}
+
+/* 표 */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;
+          border:1px solid var(--line);border-radius:11px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#FAFBFD;color:var(--mute);font-weight:600;font-size:12.5px;
+   padding:11px 14px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:10px 14px;border-bottom:1px solid var(--line-l);white-space:nowrap;color:var(--body)}
+tr:last-child td{border-bottom:0}
+td.n{text-align:right;font-family:var(--mono);font-size:12.5px}
+td.k{font-family:var(--mono);color:var(--indigo);font-size:12.5px}
+tr.flag td{background:#FFF7F7}
+tr.flag td.k{color:var(--rose-t)}
+tr.sum td{background:#FAFBFD;font-weight:700}
+.cap{font-size:12.5px;color:var(--faint);margin-top:9px;line-height:1.6}
+
+.bullets{list-style:none;margin-top:4px}
+.bullets li{position:relative;padding-left:16px;font-size:14px;color:var(--body);
+            margin-bottom:7px;line-height:1.6}
+.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;
+            border-radius:50%;background:var(--indigo-b)}
+
+.quote{background:#FAFBFD;border:1px solid var(--line);border-radius:11px;
+       padding:14px 17px;font-size:13.5px;color:var(--body);line-height:1.7;margin-bottom:9px}
+.quote b{color:var(--ink);font-weight:700}
+
+/* ── 기능 후보 ──────────────────────────── */
+.pick{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+      overflow:hidden}
+.row{display:flex;gap:13px;padding:15px 20px;border-bottom:1px solid var(--line-l);
+     cursor:pointer;align-items:flex-start;transition:background .13s}
+.row:last-child{border-bottom:0}
+.row:hover{background:#FBFCFE}
+.row:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+.box{width:19px;height:19px;border:1.5px solid var(--line);border-radius:6px;flex:none;
+     margin-top:2px;display:flex;align-items:center;justify-content:center;
+     font-size:11px;color:transparent;transition:.14s}
+.row[aria-checked="true"] .box{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.row[aria-checked="true"] .row-t{color:var(--indigo-d)}
+.row-t{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.row-d{font-size:13.5px;color:var(--mute);margin-top:3px}
+.row-m{display:inline-block;font-size:11.5px;font-weight:600;margin-top:8px;
+       padding:3px 10px;border-radius:999px;background:var(--indigo-l);color:var(--indigo-d)}
+
+/* ── 떠 있는 담기 버튼 ──────────────────── */
+.dock{position:fixed;right:20px;bottom:20px;z-index:40;display:flex;align-items:center;
+      gap:10px;background:var(--ink);color:#fff;border:0;font:inherit;font-size:14px;
+      font-weight:600;padding:13px 20px;border-radius:999px;cursor:pointer;
+      box-shadow:0 8px 26px rgba(17,24,39,.26);transition:transform .16s}
+.dock:hover{transform:translateY(-2px)}
+.dock-n{min-width:23px;height:23px;padding:0 7px;border-radius:999px;background:var(--indigo);
+        font-family:var(--mono);font-size:12.5px;font-weight:600;
+        display:flex;align-items:center;justify-content:center}
+.dock-sum{position:fixed;right:20px;bottom:76px;z-index:39;max-width:min(330px,calc(100vw - 40px));
+          background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+          padding:16px 18px;box-shadow:0 12px 34px rgba(17,24,39,.13);display:none}
+.dock-sum.on{display:block;animation:fade .18s ease-out}
+.dock-sum h4{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:9px}
+.dock-sum p{font-size:13px;color:var(--mute);line-height:1.65}
+.dock-sum .big{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--indigo);
+               display:block;margin:4px 0 8px;letter-spacing:-.02em}
+
+.foot{font-size:12.5px;color:var(--faint);line-height:1.75;margin-top:26px}
+code{font-family:var(--mono);font-size:12px;background:var(--line-l);
+     padding:2px 7px;border-radius:5px;color:var(--indigo-d)}
+
+@media(max-width:600px){
+  .wrap{padding:34px 17px 120px}
+  .mod-hd{padding:17px 17px}
+  .mod-body{padding:0 17px 18px}
+  .row{padding:14px 16px}
+  .dock{right:14px;bottom:14px;padding:12px 17px;font-size:13.5px}
+  .dock-sum{right:14px;bottom:68px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">내부 도구 · 감사본부</div>
+  <h1>감사 데스크</h1>
+  <p class="sub">엑셀을 올리면 조서가 나옵니다. 반복 작업만 골라 담은 개인 도구함입니다.</p>
+
+  <div class="pills">
+    <span class="pill hi">로컬 전용</span>
+    <span class="pill">가동 3개</span>
+    <span class="pill">📊 xlsx · csv</span>
+    <span class="pill">🧾 조서 자동생성</span>
+    <span class="pill soft">🔒 외부 전송 없음</span>
+  </div>
+
+  <div class="callout">
+    <h3>이 도구로 할 수 있는 것</h3>
+    <ul>
+      <li>시산표 한 장으로 표지와 계정그룹별 리드시트를 통째로 만든다</li>
+      <li>증감분석·비율분석을 돌리고 코멘트 초안까지 받는다</li>
+      <li>총계정원장에서 이상징후 전표를 골라내 조서로 남긴다</li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <!-- 1. 모듈 -->
+  <div class="sec"><div class="num">1</div><h2>사용 가능한 모듈</h2></div>
+
+  <!-- WP -->
+  <div class="mod" id="m-wp">
+    <button class="mod-hd" data-t="m-wp">
+      <span class="mod-ico">📋</span>
+      <span class="mod-main">
+        <span class="mod-name">WP-300_조서작성</span>
+        <span class="mod-desc">시산표를 올리면 표지와 계정그룹별 리드시트를 참조번호·검토표시란까지 갖춰 만듭니다.</span>
+        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 40초</span><span class="tag">시산표 입력</span></span>
+      </span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="mod-body">
+      <div class="flow"><span>시산표 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>표지 정보</span><i>▸</i><span>리드시트 선택</span><i>▸</i><span>xlsx</span></div>
+      <div class="sublabel">산출물 미리보기 — A 유동자산 리드시트</div>
+      <div class="tbl-wrap"><table>
+        <tr><th>조서참조</th><th>계정과목</th><th>전기금액</th><th>당기금액</th><th>증감률</th><th>검토</th></tr>
+        <tr class="flag"><td class="k">A-01</td><td>매출채권</td><td class="n">4,150,000,000</td><td class="n">5,893,000,000</td><td class="n">42.0%</td><td>✓</td></tr>
+        <tr class="flag"><td class="k">A-02</td><td>재고자산</td><td class="n">2,980,000,000</td><td class="n">4,112,400,000</td><td class="n">38.0%</td><td>③</td></tr>
+        <tr><td class="k">A-03</td><td>현금및현금성자산</td><td class="n">1,820,000,000</td><td class="n">1,934,801,000</td><td class="n">6.3%</td><td>②</td></tr>
+        <tr><td class="k">A-04</td><td>단기금융상품</td><td class="n">900,000,000</td><td class="n">1,064,140,000</td><td class="n">18.2%</td><td>②</td></tr>
+        <tr><td class="k">A-05</td><td>대손충당금</td><td class="n">(83,000,000)</td><td class="n">(87,150,000)</td><td class="n">5.0%</td><td>✓</td></tr>
+        <tr class="sum"><td></td><td>합계</td><td class="n">9,767,000,000</td><td class="n">12,917,191,000</td><td class="n">32.3%</td><td></td></tr>
+      </table></div>
+      <p class="cap">음영 = 수행중요성 초과 · 합계는 <code>=SUM()</code> 수식으로 들어가 숫자를 고치면 다시 계산됩니다.</p>
+      <div class="sublabel">같이 나오는 것</div>
+      <ul class="bullets">
+        <li>표지 — 회사명·대상기간·작성자·검토자·수행중요성·조서 목차</li>
+        <li>계정그룹별 리드시트 — A 유동자산부터 K 법인세까지</li>
+        <li>tick mark 범례 — 원장 대조, 전기조서 대조, 외부조회, 표본검사</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FS -->
+  <div class="mod" id="m-fs">
+    <button class="mod-hd" data-t="m-fs">
+      <span class="mod-ico">📈</span>
+      <span class="mod-main">
+        <span class="mod-name">FS-200_재무제표분석</span>
+        <span class="mod-desc">2개년 시산표로 증감분석·비율분석을 돌리고 유의적 변동 코멘트 초안까지 뽑습니다.</span>
+        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 30초</span><span class="tag">비율 10종</span></span>
+      </span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="mod-body">
+      <div class="flow"><span>시산표 업로드</span><i>▸</i><span>계정 분류 확인</span><i>▸</i><span>유의성 기준</span><i>▸</i><span>분석</span><i>▸</i><span>xlsx</span></div>
+      <div class="sublabel">비율분석 — 샘플 실행 결과</div>
+      <div class="tbl-wrap"><table>
+        <tr><th>지표</th><th>당기</th><th>전기</th><th>증감</th></tr>
+        <tr class="flag"><td class="k">매출채권회전율</td><td class="n">4.61회</td><td class="n">5.90회</td><td class="n">-1.29회</td></tr>
+        <tr class="flag"><td class="k">재고자산회전율</td><td class="n">4.68회</td><td class="n">5.92회</td><td class="n">-1.24회</td></tr>
+        <tr><td class="k">유동비율</td><td class="n">268.1%</td><td class="n">187.7%</td><td class="n">+80.5%p</td></tr>
+        <tr><td class="k">부채비율</td><td class="n">80.9%</td><td class="n">95.5%</td><td class="n">-14.7%p</td></tr>
+        <tr><td class="k">매출총이익률</td><td class="n">29.3%</td><td class="n">28.0%</td><td class="n">+1.3%p</td></tr>
+        <tr><td class="k">이자보상배율</td><td class="n">5.04배</td><td class="n">4.50배</td><td class="n">+0.54배</td></tr>
+      </table></div>
+      <div class="sublabel">코멘트 초안 — 자동 생성</div>
+      <div class="quote"><b>매출채권</b>이 전기 대비 +42.0%(1,743,000,000원) 변동하여 매출 증가율 +11.0%를 31%p 상회함. 회수기간 장기화 또는 기말 매출인식 시점 검토가 필요함.</div>
+      <div class="quote"><b>대손충당금 설정률</b>이 전기 2.00%에서 당기 1.48%로 하락함. 채권 연령분석표를 입수하여 설정률 산정근거의 타당성을 확인할 것.</div>
+      <p class="cap">단순 증감이 아니라 관련 계정 간 정합성을 봅니다 — 매출채권↔매출, 재고↔매출원가, 판관비↔매출, 차입금↔이자비용. 규칙이 만든 문장이므로 근거 확인 후 수정하여 사용합니다.</p>
+    </div>
+  </div>
+
+  <!-- JE -->
+  <div class="mod" id="m-je">
+    <button class="mod-hd" data-t="m-je">
+      <span class="mod-ico">🔍</span>
+      <span class="mod-main">
+        <span class="mod-name">JE-100_전표이상징후</span>
+        <span class="mod-desc">총계정원장에서 기말 심야전표·한도직하·중복계상·벤포드 편차를 적출합니다.</span>
+        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 25초</span><span class="tag">테스트 5종</span></span>
+      </span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="mod-body">
+      <div class="flow"><span>원장 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>적출 기준</span><i>▸</i><span>테스트</span><i>▸</i><span>xlsx</span></div>
+      <div class="sublabel">적출 결과 — 샘플 3,015건 / 69.3억</div>
+      <div class="tbl-wrap"><table>
+        <tr><th>테스트</th><th>건수</th><th>금액</th><th>비중</th></tr>
+        <tr class="flag"><td class="k">기말 심야 입력</td><td class="n">12</td><td class="n">806,000,000</td><td class="n">11.6%</td></tr>
+        <tr class="flag"><td class="k">승인한도 직하</td><td class="n">40</td><td class="n">390,670,000</td><td class="n">5.6%</td></tr>
+        <tr><td class="k">중복 계상</td><td class="n">32</td><td class="n">235,436,000</td><td class="n">3.4%</td></tr>
+        <tr><td class="k">금액 상위 10건</td><td class="n">10</td><td class="n">782,040,000</td><td class="n">11.3%</td></tr>
+      </table></div>
+      <div class="sublabel">조절 가능한 기준</div>
+      <ul class="bullets">
+        <li>기말 기준일 · 심야 기준시각 — 회사 결산 관행에 맞춰 조절</li>
+        <li>승인한도 금액 · 직하 구간 % — 내부통제 규정에 맞춰 조절</li>
+        <li>벤포드 카이제곱 검정 — 첫자리 분포의 자연발생 패턴 이탈 여부</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 2. 대기 -->
+  <div class="sec"><div class="num">2</div><h2>만드는 중</h2></div>
+  <div class="mod" style="opacity:.62">
+    <div class="mod-hd" style="cursor:default">
+      <span class="mod-ico">🔗</span>
+      <span class="mod-main">
+        <span class="mod-name">RC-400_계정대사</span>
+        <span class="mod-desc">총계정원장과 보조부·은행거래내역을 대사해 미일치 항목만 추립니다.</span>
+        <span class="mod-tags"><span class="tag wait">대기</span></span>
+      </span>
+    </div>
+  </div>
+  <div class="mod" style="opacity:.62">
+    <div class="mod-hd" style="cursor:default">
+      <span class="mod-ico">🎲</span>
+      <span class="mod-main">
+        <span class="mod-name">SM-500_표본추출</span>
+        <span class="mod-desc">금액가중(MUS) 또는 무작위 표본을 뽑고 추출 근거를 함께 기록합니다.</span>
+        <span class="mod-tags"><span class="tag wait">대기</span></span>
+      </span>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 3. 후보 -->
+  <div class="sec"><div class="num">3</div><h2>다음에 넣을 기능</h2></div>
+  <p class="sub" style="margin:-8px 0 18px;font-size:14px">눌러서 골라보세요. 오른쪽 아래에 절감 시간이 쌓입니다.</p>
+
+  <div class="pick" id="pick">
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="4">
+      <div class="box">✓</div><div>
+        <div class="row-t">계정 대사 (RC-400)</div>
+        <div class="row-d">원장과 은행거래내역·보조부를 대사해 미일치만 추립니다. 금액·일자 허용오차 조절.</div>
+        <span class="row-m">감사 1건당 약 4시간</span>
+      </div></div>
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="3">
+      <div class="box">✓</div><div>
+        <div class="row-t">전기 조서 대조</div>
+        <div class="row-d">전기 조서 엑셀과 당기 시산표를 붙여 기초잔액 불일치를 자동으로 잡아냅니다.</div>
+        <span class="row-m">감사 1건당 약 3시간</span>
+      </div></div>
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="3">
+      <div class="box">✓</div><div>
+        <div class="row-t">거래처 원장 표준화</div>
+        <div class="row-d">고객사마다 제각각인 원장 서식을 표준 형태로 정리해 다른 모듈에 넘깁니다.</div>
+        <span class="row-m">감사 1건당 약 3시간</span>
+      </div></div>
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
+      <div class="box">✓</div><div>
+        <div class="row-t">감사조정 분개 관리</div>
+        <div class="row-d">조정분개를 쌓으면 수정후시산표와 조정 총괄표가 자동으로 갱신됩니다.</div>
+        <span class="row-m">감사 1건당 약 2시간</span>
+      </div></div>
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
+      <div class="box">✓</div><div>
+        <div class="row-t">채권 연령분석</div>
+        <div class="row-d">거래처별 채권을 연령구간으로 나누고 대손충당금 설정률 적정성을 검토합니다.</div>
+        <span class="row-m">감사 1건당 약 2시간</span>
+      </div></div>
+    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
+      <div class="box">✓</div><div>
+        <div class="row-t">표본 추출 (SM-500)</div>
+        <div class="row-d">MUS·무작위 표본과 추출 근거·난수시드를 함께 기록해 재현 가능하게 남깁니다.</div>
+        <span class="row-m">감사 1건당 약 2시간</span>
+      </div></div>
+  </div>
+
+  <p class="foot">
+    모듈을 추가하려면 <code>modules/</code>에 파일을 만들고 <code>core/registry.py</code>에 한 줄만 등록하면
+    메뉴와 홈 화면에 자동으로 나타납니다.<br>
+    업로드 파일은 실행 중인 PC 메모리에서만 처리되며 외부로 전송·저장되지 않습니다.
+  </p>
+</div>
+
+<div class="dock-sum" id="sum">
+  <h4>고른 기능</h4>
+  <p id="sum-body">아직 없습니다. 위에서 눌러 골라보세요.</p>
+</div>
+<button class="dock" id="dock">
+  <span>🧺 담은 기능</span><span class="dock-n" id="dock-n">0</span>
+</button>
+
+<script>
+(function(){
+  // 모듈 펼침
+  document.querySelectorAll('.mod-hd[data-t]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var m = document.getElementById(b.dataset.t);
+      var was = m.classList.contains('open');
+      document.querySelectorAll('.mod').forEach(function(x){ x.classList.remove('open'); });
+      if(!was){ m.classList.add('open'); }
+    });
+  });
+
+  // 기능 담기
+  var rows = document.querySelectorAll('.row');
+  var n = document.getElementById('dock-n');
+  var sum = document.getElementById('sum');
+  var body = document.getElementById('sum-body');
+
+  function refresh(){
+    var names = [], hours = 0;
+    rows.forEach(function(r){
+      if(r.getAttribute('aria-checked') === 'true'){
+        names.push(r.querySelector('.row-t').textContent);
+        hours += parseInt(r.dataset.h, 10);
+      }
+    });
+    n.textContent = names.length;
+    if(!names.length){
+      body.innerHTML = '아직 없습니다. 위에서 눌러 골라보세요.';
+    } else {
+      body.innerHTML = '<span class="big">' + hours + '시간</span>감사 1건당 절감 예상 · '
+        + names.length + '개<br><span style="font-size:12.5px;color:#9CA3AF">'
+        + names.join(' · ') + '</span>';
+    }
+  }
+  rows.forEach(function(r){
+    function toggle(){
+      r.setAttribute('aria-checked', r.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+      refresh();
+      if(!sum.classList.contains('on')) sum.classList.add('on');
+    }
+    r.addEventListener('click', toggle);
+    r.addEventListener('keydown', function(e){
+      if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle(); }
+    });
+  });
+  document.getElementById('dock').addEventListener('click', function(){
+    sum.classList.toggle('on');
+  });
+})();
+</script>
+</body>
+</html>
