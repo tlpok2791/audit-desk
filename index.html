@@ -229,6 +229,67 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .agent-badge{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--indigo-d);
   background:var(--indigo-l);padding:4px 11px;border-radius:999px;white-space:nowrap}
 
+/* ── 블로그 발행 목록 ───────────────────── */
+.cat-block{margin-bottom:26px}
+.cat-hd{display:flex;align-items:baseline;gap:9px;margin-bottom:11px}
+.cat-hd b{font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.cat-hd span{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+.post{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+      margin-bottom:11px;overflow:hidden;transition:border-color .16s,box-shadow .16s}
+.post:hover{border-color:var(--indigo-b);box-shadow:0 2px 14px rgba(79,70,229,.07)}
+.post-hd{width:100%;background:none;border:0;font:inherit;text-align:left;cursor:pointer;
+         padding:16px 19px;display:flex;gap:12px;align-items:flex-start}
+.post-hd:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+.post-main{flex:1;min-width:0}
+.post-title{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.02em;
+            line-height:1.45}
+.post-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.post-body{display:none;padding:0 19px 19px;border-top:1px solid var(--line-l)}
+.post.open .post-body{display:block;animation:fade .2s ease-out}
+.post.open .chev{transform:rotate(90deg)}
+
+.tcand{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#FAFBFD;
+       border:1px solid var(--line);border-radius:9px;margin-bottom:7px}
+.tcand-n{font-family:var(--mono);font-size:11.5px;color:var(--faint);flex:none}
+.tcand-t{flex:1;min-width:0;font-size:13.5px;color:var(--ink);line-height:1.5}
+.tcand-len{font-family:var(--mono);font-size:11px;color:var(--faint);flex:none}
+
+.mini-btn{font:inherit;font-size:12px;font-weight:600;color:var(--indigo-d);
+  background:var(--indigo-l);border:0;border-radius:7px;padding:6px 11px;cursor:pointer;
+  flex:none;white-space:nowrap;transition:background .14s}
+.mini-btn:hover{background:var(--indigo-b)}
+.mini-btn.copied{background:var(--mint);color:var(--mint-t)}
+
+.body-box{background:var(--line-l);border:1px solid var(--line);border-radius:9px;
+  padding:13px 15px;font-size:13px;color:var(--body);line-height:1.72;
+  white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto;
+  font-family:var(--sans)}
+.tag-box{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.rep{font-family:var(--mono);font-size:12px;color:var(--body);line-height:1.7;
+     white-space:pre-wrap}
+.flagbox{background:#FFF7F7;border:1px solid #FECACA;border-radius:9px;padding:12px 14px}
+.flagbox li{font-size:12.5px;color:var(--rose-t);line-height:1.65;list-style:none;
+            padding-left:14px;position:relative;margin-bottom:5px}
+.flagbox li:last-child{margin-bottom:0}
+.flagbox li::before{content:"!";position:absolute;left:2px;font-weight:700}
+
+.pub{margin-top:14px;padding-top:14px;border-top:1px solid var(--line-l)}
+.pub-check{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;
+           font-weight:600;color:var(--ink)}
+.pub-check input{width:17px;height:17px;accent-color:var(--indigo);cursor:pointer}
+.pub-form{display:none;margin-top:11px}
+.pub-form.on{display:block;animation:fade .18s ease-out}
+.pub-form input[type=url]{font:inherit;font-size:13px;width:100%;padding:9px 11px;
+  border:1px solid var(--line);border-radius:8px;background:#FAFBFD;color:var(--ink)}
+.pub-form input[type=url]:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+.pub-cmd{margin-top:9px;background:var(--ink);color:#E5E7EB;border-radius:8px;
+  padding:11px 13px;font-family:var(--mono);font-size:11.5px;line-height:1.6;
+  white-space:pre-wrap;word-break:break-all}
+
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);
+       padding:22px;text-align:center;font-size:13.5px;color:var(--faint)}
+
 @media(max-width:600px){
   .wrap{padding:34px 17px 120px}
   .mod-hd{padding:17px 17px}
@@ -238,6 +299,10 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
   .dock-sum{right:14px;bottom:68px}
   .fcard{padding:17px 17px}
   .fcard-actions{justify-content:flex-start}
+  .post-hd{padding:15px 16px}
+  .post-body{padding:0 16px 16px}
+  .tcand{flex-wrap:wrap}
+  .tcand-t{flex-basis:100%;order:-1}
 }
 body:not(.tab-audit-active) .dock,
 body:not(.tab-audit-active) .dock-sum{display:none!important}
@@ -519,13 +584,24 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
   <!-- 블로그 작성 -->
   <section class="tab-panel" data-tab="blog" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>블로그 작성</h2></div>
+    <div class="sec"><div class="num">1</div><h2>네이버 발행 대기</h2></div>
     <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      필드를 채우면 아래 미리보기가 실시간으로 갱신됩니다. 완성된 프롬프트를 복사해 표시된 서브에이전트에게 넘기세요.
+      변환이 끝난 글입니다. 제목·본문·태그를 복사해 스마트에디터에 붙여넣으세요.
+      자동 발행은 하지 않습니다.
     </p>
+    <div id="ready-list"></div>
+
+    <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>변환 대기 초안</h2></div>
+    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
+      <code>drafts/</code>에 있지만 아직 네이버용으로 변환하지 않은 글입니다.
+    </p>
+    <div id="draft-list"></div>
+
+    <div class="sec" style="margin-top:34px"><div class="num">3</div><h2>프롬프트 도구</h2></div>
     <div class="card-grid" data-cards="blog"></div>
+
     <p class="cap" style="margin-top:16px">
-      카드는 우선 예시 2개입니다. <code>src/data/cards.js</code>에 항목만 추가하면 화면에 그대로 나타납니다.
+      목록은 <code>python3 build_posts.py</code>로 굽습니다. 글을 추가·변환·발행한 뒤 다시 실행하세요.
     </p>
   </section>
 
@@ -603,6 +679,7 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 })();
 </script>
 <script src="src/data/cards.js"></script>
+<script src="src/data/posts.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

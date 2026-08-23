@@ -43,7 +43,10 @@ modules/            기능별 화면
 build_web.py        tool.html 생성기
 index.html          홈페이지 — 감사도구 · 기장/세무조정 · 블로그 작성 · 광고마케팅 4개 탭
 src/data/cards.js   탭 2~4의 "기능 카드" 정의 (아래 '홈페이지 카드 추가' 참고)
-src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기·복사 스크립트
+src/data/posts.js   블로그 발행 목록 (build_posts.py 결과물 · 직접 고치지 말 것)
+src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기·복사 · 발행목록 스크립트
+content/posts/      네이버 블로그 발행 파이프라인 (아래 '네이버 블로그 발행' 참고)
+build_posts.py      content/posts/ → src/data/posts.js 생성기
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
 tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
 ```
@@ -98,6 +101,28 @@ cp web/tool.html .        # 최상단에 반영
 
 `template` 안의 `{key}`는 해당 필드 입력값으로 실시간 치환되고, 비어 있으면
 `placeholder` 값이 대신 채워져 미리보기가 항상 완성된 문장으로 보인다.
+
+## 네이버 블로그 발행
+
+자동 발행은 하지 않는다. **붙여넣기 직전까지만** 자동화한다.
+
+```
+content/posts/drafts/     GPT 초안 (직접 넣음)
+                ready/    네이버 발행용으로 변환 완료
+                published/ 발행 후 URL까지 기록
+```
+
+```bash
+/naver-ready content/posts/drafts/글.md          # 초안 하나를 변환 → ready/
+/naver-done  content/posts/ready/글.md <URL>     # 발행 후 published/로 이동
+python3 build_posts.py                           # 홈페이지 블로그 탭에 반영
+```
+
+변환은 `naver-post-formatter` 서브에이전트가 한다. 마크다운을 전부 걷어내고
+(스마트에디터가 인식하지 못한다) 제목 후보 3개·태그 10개·글자수 리포트를 만들며,
+단정적 표현·절세 보장 문구·의료광고 소지를 `검토 필요`로 플래그한다.
+
+자세한 형식은 `content/posts/README.md` 참고.
 
 ## 주의
 

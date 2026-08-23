@@ -6,6 +6,7 @@
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
     renderAllCards();
+    renderPosts();
     setupTabs();
   });
 
@@ -120,6 +121,274 @@
       }
       list.forEach(function (card) { grid.appendChild(renderCard(card)); });
     });
+  }
+
+  /* ── 네이버 발행 목록 ──────────────────────────────── */
+
+  var CAT_LABEL = { medical: "병의원", transfer: "양도" };
+
+  function catLabel(c) { return CAT_LABEL[c] || "미분류"; }
+
+  // 발행 체크 상태는 이 브라우저에만 남는다 (파일을 고치지는 못한다)
+  function pubKey(file) { return "naver-pub:" + file; }
+
+  function loadPub(file) {
+    try { return JSON.parse(localStorage.getItem(pubKey(file))) || {}; }
+    catch (e) { return {}; }
+  }
+
+  function savePub(file, data) {
+    try { localStorage.setItem(pubKey(file), JSON.stringify(data)); }
+    catch (e) { /* 저장 못 해도 화면은 그대로 동작한다 */ }
+  }
+
+  function copyButton(label, getText) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "mini-btn";
+    b.textContent = label;
+    b.addEventListener("click", function () {
+      copyText(getText()).then(function () {
+        var old = b.textContent;
+        b.textContent = "복사됨 ✓";
+        b.classList.add("copied");
+        setTimeout(function () {
+          b.textContent = old;
+          b.classList.remove("copied");
+        }, 1500);
+      });
+    });
+    return b;
+  }
+
+  function renderReadyPost(p) {
+    var el = document.createElement("article");
+    el.className = "post";
+
+    var flagCount = (p.flags || []).length;
+    el.innerHTML =
+      '<button class="post-hd" type="button">' +
+        '<span class="post-main">' +
+          '<span class="post-title">' + escapeHtml(p.title) + "</span>" +
+          '<span class="post-meta">' +
+            '<span class="tag">' + (p.charCount || 0).toLocaleString() + "자</span>" +
+            '<span class="tag">태그 ' + (p.tags || []).length + "개</span>" +
+            (flagCount
+              ? '<span class="tag" style="background:var(--rose);color:var(--rose-t)">검토 '
+                + flagCount + "건</span>"
+              : "") +
+          "</span>" +
+        "</span>" +
+        '<span class="chev">▸</span>' +
+      "</button>" +
+      '<div class="post-body"></div>';
+
+    var hd = el.querySelector(".post-hd");
+    hd.addEventListener("click", function () { el.classList.toggle("open"); });
+
+    var body = el.querySelector(".post-body");
+
+    if (p.malformed) {
+      var warn = document.createElement("div");
+      warn.className = "flagbox";
+      warn.style.marginTop = "14px";
+      warn.innerHTML = "<li>형식이 어긋납니다 — 빠진 섹션: "
+        + escapeHtml(p.malformed.join(", ")) + "</li>";
+      body.appendChild(warn);
+    }
+
+    // 제목 후보
+    body.appendChild(label("제목 후보"));
+    (p.titleCandidates || []).forEach(function (t, i) {
+      var row = document.createElement("div");
+      row.className = "tcand";
+      row.innerHTML = '<span class="tcand-n">' + (i + 1) + "</span>"
+        + '<span class="tcand-t">' + escapeHtml(t) + "</span>"
+        + '<span class="tcand-len">' + t.length + "자</span>";
+      row.appendChild(copyButton("복사", function () { return t; }));
+      body.appendChild(row);
+    });
+
+    // 본문
+    var bh = label("본문");
+    bh.appendChild(copyButton("본문 전체 복사", function () { return p.body || ""; }));
+    body.appendChild(bh);
+    var pre = document.createElement("div");
+    pre.className = "body-box";
+    pre.textContent = p.body || "";
+    body.appendChild(pre);
+
+    // 태그
+    var th = label("태그");
+    th.appendChild(copyButton("태그 복사", function () {
+      return (p.tags || []).join(", ");
+    }));
+    body.appendChild(th);
+    var tb = document.createElement("div");
+    tb.className = "tag-box";
+    (p.tags || []).forEach(function (t) {
+      var s = document.createElement("span");
+      s.className = "tag";
+      s.textContent = "#" + t;
+      tb.appendChild(s);
+    });
+    body.appendChild(tb);
+
+    // 리포트
+    if (p.report) {
+      body.appendChild(label("리포트"));
+      var r = document.createElement("div");
+      r.className = "rep";
+      r.textContent = p.report;
+      body.appendChild(r);
+    }
+
+    // 검토 필요
+    if (flagCount) {
+      body.appendChild(label("검토 필요"));
+      var fb = document.createElement("ul");
+      fb.className = "flagbox";
+      p.flags.forEach(function (f) {
+        var li = document.createElement("li");
+        li.textContent = f;
+        fb.appendChild(li);
+      });
+      body.appendChild(fb);
+    }
+
+    body.appendChild(publishBlock(p));
+    return el;
+  }
+
+  function label(text) {
+    var d = document.createElement("div");
+    d.className = "sublabel";
+    d.style.display = "flex";
+    d.style.alignItems = "center";
+    d.style.gap = "10px";
+    d.appendChild(document.createTextNode(text));
+    return d;
+  }
+
+  function publishBlock(p) {
+    var saved = loadPub(p.file);
+    var wrap = document.createElement("div");
+    wrap.className = "pub";
+
+    var lab = document.createElement("label");
+    lab.className = "pub-check";
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!saved.done;
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode("발행 완료"));
+    wrap.appendChild(lab);
+
+    var form = document.createElement("div");
+    form.className = "pub-form" + (saved.done ? " on" : "");
+    var input = document.createElement("input");
+    input.type = "url";
+    input.placeholder = "https://blog.naver.com/...";
+    input.value = saved.url || "";
+    form.appendChild(input);
+
+    var cmd = document.createElement("div");
+    cmd.className = "pub-cmd";
+    form.appendChild(cmd);
+
+    var actions = document.createElement("div");
+    actions.style.marginTop = "9px";
+    actions.appendChild(copyButton("명령 복사", function () { return cmdText(); }));
+    form.appendChild(actions);
+
+    var note = document.createElement("p");
+    note.className = "cap";
+    note.textContent = "이 체크는 브라우저에만 남습니다. 파일을 실제로 옮기려면 "
+      + "위 명령을 클로드 코드에서 실행하세요.";
+    form.appendChild(note);
+
+    wrap.appendChild(form);
+
+    function cmdText() {
+      return "/naver-done " + p.path + " " + (input.value.trim() || "<발행 URL>");
+    }
+    function sync() {
+      cmd.textContent = cmdText();
+      savePub(p.file, { done: cb.checked, url: input.value.trim() });
+    }
+    cb.addEventListener("change", function () {
+      form.classList.toggle("on", cb.checked);
+      sync();
+    });
+    input.addEventListener("input", sync);
+    cmd.textContent = cmdText();
+
+    return wrap;
+  }
+
+  function renderDraft(p) {
+    var el = document.createElement("article");
+    el.className = "post";
+    el.innerHTML =
+      '<div class="post-hd" style="cursor:default">' +
+        '<span class="post-main">' +
+          '<span class="post-title">' + escapeHtml(p.title) + "</span>" +
+          '<span class="post-meta">' +
+            '<span class="tag">' + escapeHtml(catLabel(p.category)) + "</span>" +
+            '<span class="tag wait">변환 전</span>' +
+          "</span>" +
+        "</span>" +
+      "</div>" +
+      '<div class="draft-cmd" style="padding:0 19px 16px">' +
+        '<div class="pub-cmd">/naver-ready ' + escapeHtml(p.path) + "</div>" +
+        '<div style="margin-top:9px"></div>' +
+      "</div>";
+    el.querySelector(".draft-cmd > div:last-child").appendChild(
+      copyButton("명령 복사", function () { return "/naver-ready " + p.path; })
+    );
+    return el;
+  }
+
+  function renderPosts() {
+    var readyBox = document.getElementById("ready-list");
+    var draftBox = document.getElementById("draft-list");
+    if (!readyBox && !draftBox) return;
+    var all = typeof POSTS === "undefined" ? [] : POSTS;
+
+    if (readyBox) {
+      var ready = all.filter(function (p) { return p.stage === "ready"; });
+      if (!ready.length) {
+        readyBox.innerHTML = '<div class="empty">발행 대기 중인 글이 없습니다. '
+          + "<code>/naver-ready &lt;초안경로&gt;</code>로 초안을 변환하세요.</div>";
+      } else {
+        ["medical", "transfer"].concat(
+          // 위 두 분류에 안 잡히는 값이 있으면 뒤에 붙인다
+          ready.map(function (p) { return p.category; })
+               .filter(function (c) { return c !== "medical" && c !== "transfer"; })
+        ).filter(function (c, i, a) { return a.indexOf(c) === i; })
+         .forEach(function (cat) {
+          var list = ready.filter(function (p) { return p.category === cat; });
+          if (!list.length) return;
+          var block = document.createElement("div");
+          block.className = "cat-block";
+          block.innerHTML = '<div class="cat-hd"><b>' + escapeHtml(catLabel(cat))
+            + "</b><span>" + list.length + "건</span></div>";
+          list.forEach(function (p) { block.appendChild(renderReadyPost(p)); });
+          readyBox.appendChild(block);
+        });
+      }
+    }
+
+    if (draftBox) {
+      var drafts = all.filter(function (p) {
+        return p.stage === "drafts" && !p.convertedAlready;
+      });
+      if (!drafts.length) {
+        draftBox.innerHTML = '<div class="empty">변환을 기다리는 초안이 없습니다.</div>';
+      } else {
+        drafts.forEach(function (p) { draftBox.appendChild(renderDraft(p)); });
+      }
+    }
   }
 
   function setupTabs() {
