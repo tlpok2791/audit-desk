@@ -397,11 +397,6 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .copy-btn:disabled{background:var(--line);color:var(--faint);cursor:not-allowed}
 .mini-btn:disabled{opacity:.45;cursor:not-allowed}
 
-details.legacy{margin-top:30px;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r);padding:15px 19px}
-details.legacy summary{font-size:14px;font-weight:700;color:var(--ink);cursor:pointer}
-details.legacy[open] summary{margin-bottom:14px}
-
 /* ── 광고 규칙 필터 ─────────────────────── */
 .filters{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
          padding:19px 22px;margin-bottom:16px}
@@ -509,11 +504,23 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
   <!-- 정산표 워크플로 (세부탭) -->
   <div id="audit-app"></div>
 
-  <details class="legacy">
-  <summary>브라우저 실행 모듈 · 기능 후보 (tool.html)</summary>
+  <hr>
 
   <!-- 1. 모듈 -->
   <div class="sec"><div class="num">1</div><h2>사용 가능한 모듈</h2></div>
+  <p class="sub" style="margin:-8px 0 18px;font-size:14px">
+    분개장·계정별원장 편집을 비롯한 모듈은 <a href="./tool.html" style="color:var(--indigo);font-weight:600">브라우저 실행 도구</a>에서 씁니다.
+    카드를 눌러 무엇을 하는 모듈인지 펼쳐볼 수 있습니다.
+  </p>
+
+  <a class="launch" href="./tool.html" style="margin-top:0;margin-bottom:20px">
+    <span class="launch-ico">▶</span>
+    <span class="launch-txt">
+      <b>분개장 · 계정별원장 편집 열기</b>
+      <em>JL-100 · 설치 없이 브라우저에서 바로 실행 · 파일은 브라우저 밖으로 나가지 않습니다</em>
+    </span>
+    <span class="launch-arrow">→</span>
+  </a>
 
   <!-- JL -->
   <div class="mod" id="m-jl">
@@ -722,8 +729,6 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
     브라우저에서 실행할 때도 파이썬이 서버가 아니라 사용자의 브라우저 안에서 돌기 때문에,
     올린 파일은 어디로도 전송되지 않습니다. 다만 10만 행이 넘는 큰 파일은 PC 설치본이 훨씬 빠릅니다.
   </p>
-
-  </details>
 
   </section>
 
