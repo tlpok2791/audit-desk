@@ -41,7 +41,9 @@ core/theme.py       색 · 서체
 modules/edit.py     JL-100 분개장·계정별원장 편집 (화면 하나, 자료 종류만 선택)
 modules/            기능별 화면
 build_web.py        tool.html 생성기
-index.html          소개 홈페이지
+index.html          홈페이지 — 감사도구 · 기장/세무조정 · 블로그 작성 · 광고마케팅 4개 탭
+src/data/cards.js   탭 2~4의 "기능 카드" 정의 (아래 '홈페이지 카드 추가' 참고)
+src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기·복사 스크립트
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
 tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
 ```
@@ -72,6 +74,30 @@ cp web/tool.html .        # 최상단에 반영
 1. `modules/새기능.py` 에 `render()` 함수를 만든다
 2. `core/registry.py` 의 `MODULES` 에 `Module(...)` 한 줄 추가
 3. 메뉴와 홈 화면에 자동으로 나타난다
+
+## 홈페이지 카드 추가
+
+`index.html`의 기장/세무조정·블로그 작성·광고마케팅 탭은 "기능 카드"로 채워지며,
+카드는 전부 `src/data/cards.js`의 `CARDS` 배열에서 나온다. 새 카드를 넣으려면
+`index.html`·`src/app.js`는 건드릴 필요 없이 이 배열에 객체 하나만 추가하면 된다.
+
+```js
+{
+  id: "고유id",
+  tab: "tax",                 // "tax" | "blog" | "ads"
+  icon: "🧮",
+  title: "기능명",
+  desc: "한 줄 설명",
+  subagent: "호출할-서브에이전트-이름",
+  fields: [
+    { key: "company", label: "회사명", placeholder: "예시값" },
+  ],
+  template: "{company}로 시작하는 프롬프트 문장…",
+}
+```
+
+`template` 안의 `{key}`는 해당 필드 입력값으로 실시간 치환되고, 비어 있으면
+`placeholder` 값이 대신 채워져 미리보기가 항상 완성된 문장으로 보인다.
 
 ## 주의
 
