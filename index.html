@@ -290,6 +290,113 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);
        padding:22px;text-align:center;font-size:13.5px;color:var(--faint)}
 
+/* ── 감사도구 세부탭 ────────────────────── */
+.engbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--ink);border-radius:var(--r);padding:14px 18px;margin-bottom:14px}
+.engbar-l{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+.engbar-co{color:#fff;font-size:15.5px;font-weight:700;letter-spacing:-.02em}
+.engbar-dt{color:#9CA3AF;font-size:13px;font-family:var(--mono)}
+.engbar-path{color:#6B7280;font-size:11.5px;font-family:var(--mono)}
+.engbar-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.eng-sel{font:inherit;font-size:13px;background:#1F2937;color:#fff;border:1px solid #374151;
+  border-radius:8px;padding:7px 10px;cursor:pointer;max-width:230px}
+
+.engform{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 20px;margin-bottom:14px}
+.engform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:4px}
+.engform-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+
+.subtabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;
+         scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtab{flex:none;font:inherit;font-size:13.5px;font-weight:600;color:var(--mute);
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.subtab:hover{border-color:var(--indigo-b);color:var(--ink)}
+.subtab.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.subtab.locked{opacity:.72}
+.subtab-n{font-family:var(--mono);font-size:11px;width:18px;height:18px;border-radius:5px;
+  background:var(--line-l);color:var(--mute);display:flex;align-items:center;justify-content:center}
+.subtab.active .subtab-n{background:rgba(255,255,255,.22);color:#fff}
+.subtab .lock{font-size:11px}
+
+.wsbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--indigo-l);border:1px solid var(--indigo-b);border-radius:11px;
+  padding:11px 16px;margin-bottom:18px}
+.wsbar.none{background:var(--line-l);border-color:var(--line)}
+.wsbar-l{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0}
+.wsbar-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+  background:var(--indigo);color:#fff}
+.wsbar-tag.off{background:var(--faint)}
+.wsbar-l b{font-size:14px;color:var(--ink)}
+.wsbar-s{font-size:12px;color:var(--mute);font-family:var(--mono)}
+
+.guard{background:#FFF7F7;border:1px solid #FECACA;border-radius:var(--r);padding:20px 22px;
+  margin-bottom:14px}
+.guard b{font-size:15px;color:var(--rose-t)}
+.guard p{font-size:13.5px;color:var(--body);margin:7px 0 13px;line-height:1.6}
+.lockcard{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);
+  padding:32px 22px;text-align:center}
+.lockcard .lock-ico{font-size:26px;margin-bottom:9px}
+.lockcard b{font-size:15px;color:var(--ink);display:block}
+.lockcard p{font-size:13px;color:var(--faint);margin-top:7px;line-height:1.6}
+
+.wstep{margin:26px 0 12px}
+.wstep-h{display:flex;align-items:center;gap:10px}
+.wstep-n{width:23px;height:23px;border-radius:50%;background:var(--indigo-l);color:var(--indigo-d);
+  font-family:var(--mono);font-size:12px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;flex:none}
+.wstep-h b{font-size:15.5px;color:var(--ink);letter-spacing:-.02em}
+.wstep .cap{margin-top:6px}
+
+.up-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.upbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px 19px}
+.upbox-t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.upfile{font:inherit;font-size:12.5px;width:100%;margin-bottom:10px}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
+.upbox select,.upbox input[type=number]{font:inherit;font-size:13px;width:100%;padding:7px 9px;
+  border:1px solid var(--line);border-radius:7px;background:#FAFBFD;color:var(--ink)}
+.cap.err{color:var(--rose-t)}
+.cap.ok{color:var(--mint-t)}
+
+.mapsum{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px 18px}
+.msum-row{display:flex;gap:9px;flex-wrap:wrap;align-items:baseline}
+.msum-k{font-size:12px;color:var(--faint)}
+.msum-row b{font-family:var(--mono);font-size:14px;color:var(--indigo-d);margin-right:12px}
+.msum-row b.warn{color:var(--amber-t)}
+.unmatched{margin-top:12px}
+.unmatched summary{font-size:13px;color:var(--indigo-d);cursor:pointer;font-weight:600}
+.unmatched .tbl-wrap{margin-top:10px;max-height:230px;overflow:auto}
+
+.adjbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px 18px}
+.adjtable input{font:inherit;font-size:12.5px;width:100%;min-width:70px;padding:5px 7px;
+  border:1px solid var(--line);border-radius:6px;background:#FAFBFD}
+.adjtable select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line);
+  border-radius:6px;background:#FAFBFD}
+.adjtable td{padding:5px 6px;white-space:nowrap}
+
+.verify{border-radius:var(--r);padding:16px 19px;border:1px solid}
+.verify.good{background:#F0FDF4;border-color:#BBF7D0}
+.verify.bad{background:#FFF7F7;border-color:#FECACA}
+.verify b{font-size:14.5px}
+.verify.good b{color:var(--mint-t)}
+.verify.bad b{color:var(--rose-t)}
+.vlist{list-style:none;margin-top:11px;display:grid;
+       grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px}
+.vlist li{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;
+  background:rgba(255,255,255,.7);border-radius:7px;padding:7px 11px}
+.vlist li b{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.vlist li.bad b{color:var(--rose-t)}
+.verify .flagbox{margin-top:12px;max-height:190px;overflow-y:auto}
+.save-actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.copy-btn:disabled{background:var(--line);color:var(--faint);cursor:not-allowed}
+.mini-btn:disabled{opacity:.45;cursor:not-allowed}
+
+details.legacy{margin-top:30px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:15px 19px}
+details.legacy summary{font-size:14px;font-weight:700;color:var(--ink);cursor:pointer}
+details.legacy[open] summary{margin-bottom:14px}
+
 /* ── 광고 규칙 필터 ─────────────────────── */
 .filters{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
          padding:19px 22px;margin-bottom:16px}
@@ -393,6 +500,12 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
   </div>
 
   <hr>
+
+  <!-- 정산표 워크플로 (세부탭) -->
+  <div id="audit-app"></div>
+
+  <details class="legacy">
+  <summary>브라우저 실행 모듈 · 기능 후보 (tool.html)</summary>
 
   <!-- 1. 모듈 -->
   <div class="sec"><div class="num">1</div><h2>사용 가능한 모듈</h2></div>
@@ -605,6 +718,8 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
     올린 파일은 어디로도 전송되지 않습니다. 다만 10만 행이 넘는 큰 파일은 PC 설치본이 훨씬 빠릅니다.
   </p>
 
+  </details>
+
   </section>
 
   <!-- 기장 및 세무조정 -->
@@ -739,5 +854,10 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 <script src="src/data/cards.js"></script>
 <script src="src/data/posts.js"></script>
 <script src="src/app.js"></script>
+<!-- 감사도구 세부탭 — SheetJS는 로컬 번들(브라우저 안에서만 처리, 서버 전송 없음) -->
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="src/audit/worksheet.js"></script>
+<script src="src/audit/state.js"></script>
+<script src="src/audit/tabs.js"></script>
 </body>
 </html>

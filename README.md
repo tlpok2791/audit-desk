@@ -48,7 +48,10 @@ src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기�
 content/posts/      네이버 블로그 발행 파이프라인 (아래 '네이버 블로그 발행' 참고)
 build_posts.py      content/posts/ → src/data/posts.js 생성기
 config/             광고 규칙 KB (아래 '광고마케팅 KB 동기화' 참고)
-scripts/            노션 동기화 스크립트
+scripts/            노션 동기화 · 정산표 엔진 테스트
+src/audit/          감사도구 세부탭 (아래 '감사도구 세부탭' 참고)
+vendor/             SheetJS 로컬 번들 (Apache-2.0)
+work/               감사 작업 데이터 — .gitignore 로 막혀 있음
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
 tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
 ```
@@ -125,6 +128,28 @@ python3 build_posts.py                           # 홈페이지 블로그 탭에
 단정적 표현·절세 보장 문구·의료광고 소지를 `검토 필요`로 플래그한다.
 
 자세한 형식은 `content/posts/README.md` 참고.
+
+## 감사도구 세부탭
+
+작업 단위는 engagement — **회사 × 결산일**. 저장 위치는 `work/<회사코드>/<결산일>/`.
+이 폴더는 `.gitignore`로 막혀 있어 실제 감사 데이터가 커밋되지 않는다.
+
+| 탭 | 상태 | 하는 일 |
+|---|---|---|
+| 1 정산표 작성 | 완성 | 전기 재무제표 + 당기 시산표 → 정산표, 수정·재분류분개 반영, 차대 검증, xlsx·json 산출 |
+| 2~5 | 잠금 | 골격만. 업로드 없이 탭1의 정산표를 그대로 받아 쓴다 |
+
+정산표는 전역 상태(단일 소스)로 보관한다. 모든 탭 상단에 현재 engagement와
+사용 중인 정산표(회사명·결산일·계정 수·갱신 시각)가 표시되고, "정산표 불러오기"로
+`worksheet.json`을 다시 올릴 수 있다.
+
+엑셀은 SheetJS(`vendor/xlsx.full.min.js`)로 **브라우저 안에서만** 처리한다.
+서버가 없으므로 업로드 파일이 외부로 전송되지 않는다. 브라우저는 디스크에 쓸 수 없어
+산출물은 내려받은 뒤 사람이 `work/` 아래에 넣는다. 자세한 내용은 `work/README.md` 참고.
+
+```bash
+node scripts/worksheet.test.js    # 정산표 계산 엔진 검증
+```
 
 ## 광고마케팅 KB 동기화
 
