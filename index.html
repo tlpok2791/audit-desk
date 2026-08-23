@@ -621,21 +621,34 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
   <!-- 블로그 작성 -->
   <section class="tab-panel" data-tab="blog" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>네이버 발행 대기</h2></div>
+
+    <div class="flow" style="margin:0 0 26px">
+      <span>① 프롬프트로 초안</span><i>▸</i>
+      <span>② drafts/에 저장</span><i>▸</i>
+      <span>③ 네이버용 변환</span><i>▸</i>
+      <span>④ 붙여넣고 발행</span>
+    </div>
+
+    <div class="sec"><div class="num">1</div><h2>초안 쓸 프롬프트 만들기</h2></div>
     <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      변환이 끝난 글입니다. 제목·본문·태그를 복사해 스마트에디터에 붙여넣으세요.
-      자동 발행은 하지 않습니다.
+      필드를 채우고 프롬프트를 복사해 GPT에 넣으세요.
+      받은 초안은 <code>content/posts/drafts/</code>에 넣으면 아래 2번에 나타납니다.
     </p>
-    <div id="ready-list"></div>
+    <div class="card-grid" data-cards="blog"></div>
 
     <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>변환 대기 초안</h2></div>
     <p class="sub" style="margin:-8px 0 18px;font-size:14px">
       <code>drafts/</code>에 있지만 아직 네이버용으로 변환하지 않은 글입니다.
+      아래 명령을 복사해 클로드 코드에서 실행하면 3번으로 넘어갑니다.
     </p>
     <div id="draft-list"></div>
 
-    <div class="sec" style="margin-top:34px"><div class="num">3</div><h2>프롬프트 도구</h2></div>
-    <div class="card-grid" data-cards="blog"></div>
+    <div class="sec" style="margin-top:34px"><div class="num">3</div><h2>네이버 발행 대기</h2></div>
+    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
+      변환이 끝난 글입니다. 제목·본문·태그를 복사해 스마트에디터에 붙여넣으세요.
+      발행 후 "발행 완료"를 체크하면 마무리 명령이 나옵니다. 자동 발행은 하지 않습니다.
+    </p>
+    <div id="ready-list"></div>
 
     <p class="cap" style="margin-top:16px">
       목록은 <code>python3 build_posts.py</code>로 굽습니다. 글을 추가·변환·발행한 뒤 다시 실행하세요.
