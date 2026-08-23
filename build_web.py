@@ -23,7 +23,7 @@ PY_FILES = [
     "core/loader.py", "core/accounts.py", "core/report.py",
     "core/journal.py", "core/ledger.py",
     "modules/__init__.py", "modules/stub.py",
-    "modules/ledger_edit.py", "modules/journal_edit.py",
+    "modules/edit.py",
     "modules/lead.py", "modules/fs.py", "modules/jet.py",
 ]
 

@@ -11,8 +11,13 @@ from openpyxl.utils import get_column_letter
 FONT = "Arial"
 HDR = PatternFill("solid", fgColor="16202E")
 SUB = PatternFill("solid", fgColor="E8E6DF")
+OK_F = PatternFill("solid", fgColor="D1FAE5")
+NG_F = PatternFill("solid", fgColor="FEE2E2")
 _thin = Side(style="thin", color="C9C6BA")
+THIN = _thin
+MED = Side(style="medium", color="16202E")
 BOX = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
+TOTAL_BOX = Border(left=_thin, right=_thin, top=MED, bottom=MED)
 
 
 def build(results: dict, meta: dict) -> bytes:

@@ -19,8 +19,7 @@ streamlit run app.py
 
 | 참조 | 이름 | 입력 | 산출 |
 |---|---|---|---|
-| LG-100 | 계정별원장 편집 | 계정별로 시트가 나뉜 원장 | 통합 원장 + [누계] 대조 검증 |
-| JN-100 | 분개장 편집 | 어떤 서식의 분개장이든 | 표준 형태 + 전표별 차대 검증 |
+| JL-100 | 분개장·계정별원장 편집 | 분개장(어떤 서식이든) 또는 계정별로 시트가 나뉜 원장 | 표준 형태/통합 원장 + 차대·[누계] 대조 검증 |
 | WP-300 | 조서 작성 | 2개년 시산표 | 표지 + 계정그룹별 리드시트 |
 | FS-200 | 재무제표 분석 | 2개년 시산표 | 증감·비율분석 + 코멘트 초안 |
 | JE-100 | 전표 이상징후 분석 | 총계정원장 | 5개 테스트 + 벤포드 검정 |
@@ -36,13 +35,27 @@ core/loader.py      파일 읽기 · 컬럼 연결 · 숫자 정리
 core/ledger.py      계정별원장 통합 엔진
 core/journal.py     분개장 정규화 엔진
 core/accounts.py    계정과목 자동 분류 사전
-core/report.py      엑셀 조서 생성 공통 유틸
+core/report.py      엑셀 조서 생성 공통 유틸 · 서식 상수
 core/env.py         브라우저인지 로컬인지 판별
 core/theme.py       색 · 서체
+modules/edit.py     JL-100 분개장·계정별원장 편집 (화면 하나, 자료 종류만 선택)
 modules/            기능별 화면
 build_web.py        tool.html 생성기
 index.html          소개 홈페이지
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
+tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
+```
+
+## 테스트
+
+`core/journal.py`(분개장 정규화)와 `core/ledger.py`(계정별원장 통합)는 서식이 다른
+여러 회사 자료를 넣어도 같은 결과가 나오는지 회귀 테스트로 확인합니다.
+컬럼명·금액 표기·소계 표기 방식이 서로 다른 가상의 회사 자료를 여러 개 만들어
+정규화·통합·검증(`verify`) 결과가 서로 일치하는지 대조합니다.
+
+```bash
+pip install -r requirements.txt pytest
+pytest
 ```
 
 ## 코드를 고친 뒤
