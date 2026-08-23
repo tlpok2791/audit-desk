@@ -47,6 +47,8 @@ src/data/posts.js   블로그 발행 목록 (build_posts.py 결과물 · 직접 
 src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기·복사 · 발행목록 스크립트
 content/posts/      네이버 블로그 발행 파이프라인 (아래 '네이버 블로그 발행' 참고)
 build_posts.py      content/posts/ → src/data/posts.js 생성기
+config/             광고 규칙 KB (아래 '광고마케팅 KB 동기화' 참고)
+scripts/            노션 동기화 스크립트
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
 tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
 ```
@@ -123,6 +125,17 @@ python3 build_posts.py                           # 홈페이지 블로그 탭에
 단정적 표현·절세 보장 문구·의료광고 소지를 `검토 필요`로 플래그한다.
 
 자세한 형식은 `content/posts/README.md` 참고.
+
+## 광고마케팅 KB 동기화
+
+노션 광고 규칙 데이터베이스를 내려받아 홈페이지 광고 탭의 프롬프트에 규칙으로 넣는다.
+
+```bash
+NOTION_TOKEN=secret_xxx NOTION_AD_RULES_DB=<id> node scripts/sync-ad-rules.js
+```
+
+속성명을 코드에 박지 않는다. 스키마를 실행 시점에 읽으므로 노션에 속성을 추가하면
+다시 동기화하는 것만으로 홈페이지 필터가 늘어난다. 자세한 내용은 `config/README.md` 참고.
 
 ## 주의
 

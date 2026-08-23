@@ -290,6 +290,43 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);
        padding:22px;text-align:center;font-size:13.5px;color:var(--faint)}
 
+/* ── 광고 규칙 필터 ─────────────────────── */
+.filters{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+         padding:19px 22px;margin-bottom:16px}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:15px}
+.filt{display:flex;flex-direction:column;gap:7px;min-width:0}
+.filt-name{font-size:12px;font-weight:700;color:var(--faint)}
+.filt-name em{font-style:normal;font-family:var(--mono);font-size:10.5px;
+              color:var(--indigo-b);margin-left:5px}
+.filt select{font:inherit;font-size:13.5px;color:var(--ink);background:#FAFBFD;
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;cursor:pointer}
+.filt select:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;cursor:pointer;
+  background:var(--line-l);color:var(--mute);border:1px solid transparent;user-select:none;
+  transition:background .13s,color .13s}
+.chip:hover{border-color:var(--indigo-b)}
+.chip input{position:absolute;opacity:0;width:0;height:0}
+.chip.on{background:var(--indigo);color:#fff}
+.chip:focus-within{outline:2px solid var(--indigo);outline-offset:2px}
+
+.filter-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:17px;padding-top:15px;border-top:1px solid var(--line-l);flex-wrap:wrap}
+.hitcount{font-size:13.5px;color:var(--body)}
+.hitcount b{font-family:var(--mono);color:var(--indigo-d);font-size:15px}
+.src-note{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+
+.rule-list{max-height:250px;overflow-y:auto;border:1px solid var(--line);
+           border-radius:10px;margin-top:13px}
+.rule-row{padding:11px 14px;border-bottom:1px solid var(--line-l);font-size:13px}
+.rule-row:last-child{border-bottom:0}
+.rule-row b{color:var(--ink);font-weight:700;font-size:13.5px}
+.rule-row .rmeta{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.rule-row .rmeta span{font-size:11px;padding:2px 8px;border-radius:999px;
+  background:var(--indigo-l);color:var(--indigo-d)}
+.rule-row p{font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.6}
+.rule-off{opacity:.5}
+
 @media(max-width:600px){
   .wrap{padding:34px 17px 120px}
   .mod-hd{padding:17px 17px}
@@ -607,13 +644,21 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
   <!-- 광고마케팅 -->
   <section class="tab-panel" data-tab="ads" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>광고마케팅</h2></div>
+    <div class="sec"><div class="num">1</div><h2>적용할 규칙 고르기</h2></div>
     <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      필드를 채우면 아래 미리보기가 실시간으로 갱신됩니다. 완성된 프롬프트를 복사해 표시된 서브에이전트에게 넘기세요.
+      노션 광고 KB에서 동기화한 규칙입니다. 필터로 고른 규칙이 아래 카드의 프롬프트에 그대로 들어갑니다.
+    </p>
+    <div id="ad-filters"></div>
+
+    <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>프롬프트</h2></div>
+    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
+      필드를 채우면 미리보기가 실시간으로 갱신됩니다. 위에서 고른 규칙이 함께 삽입됩니다.
     </p>
     <div class="card-grid" data-cards="ads"></div>
+
     <p class="cap" style="margin-top:16px">
-      카드는 우선 예시 2개입니다. <code>src/data/cards.js</code>에 항목만 추가하면 화면에 그대로 나타납니다.
+      규칙은 <code>node scripts/sync-ad-rules.js</code>로 노션에서 내려받습니다.
+      노션에 속성을 추가하면 다시 동기화하는 것만으로 위 필터에 나타납니다.
     </p>
   </section>
 

@@ -8,6 +8,7 @@
     renderAllCards();
     renderPosts();
     setupTabs();
+    loadAdRules();
   });
 
   function escapeHtml(s) {
@@ -17,12 +18,18 @@
   }
 
   function buildPrompt(card, values) {
-    return String(card.template).replace(/\{(\w+)\}/g, function (m, key) {
+    var out = String(card.template).replace(/\{(\w+)\}/g, function (m, key) {
+      if (key === "rules") return card.injectRules ? adRules.text : m;
       var v = (values[key] || "").trim();
       if (v) return v;
       var f = (card.fields || []).find(function (x) { return x.key === key; });
       return f && f.placeholder ? f.placeholder : m;
     });
+    // {rules} 자리를 안 잡아둔 카드는 맨 뒤에 붙인다
+    if (card.injectRules && String(card.template).indexOf("{rules}") === -1) {
+      out += "\n\n" + adRules.text;
+    }
+    return out;
   }
 
   function copyText(text) {
@@ -92,6 +99,8 @@
 
     function update() { previewEl.textContent = buildPrompt(card, values); }
     update();
+    // 규칙 필터가 바뀌면 이 카드의 미리보기도 다시 그린다
+    if (card.injectRules) adRules.subscribers.push(update);
 
     var btn = el.querySelector(".copy-btn");
     btn.addEventListener("click", function () {
@@ -389,6 +398,255 @@
         drafts.forEach(function (p) { draftBox.appendChild(renderDraft(p)); });
       }
     }
+  }
+
+  /* ── 광고 규칙 (노션 KB 동기화 결과) ─────────────────── */
+
+  var adRules = {
+    data: null,          // { schema, rows, synced_at }
+    source: "",          // 어느 파일을 읽었는지
+    filters: {},         // { 속성명: 문자열 | [문자열] }
+    filtered: [],
+    text: "(광고 규칙을 불러오지 못했습니다)",
+    subscribers: [],
+  };
+
+  // 필터 UI를 만들 수 있는 타입. 여기 없는 타입은 필터에 안 나오되 규칙 본문에는 쓰인다.
+  var FILTERABLE = { select: 1, status: 1, multi_select: 1, checkbox: 1 };
+
+  function loadAdRules() {
+    var box = document.getElementById("ad-filters");
+    if (!box) return;
+
+    // 실제 동기화 결과가 없으면 샘플로 화면을 확인할 수 있게 한다
+    tryFetch("config/ad-rules.json")
+      .catch(function () {
+        return tryFetch("config/ad-rules.sample.json").then(function (d) {
+          d.__sample = true;
+          return d;
+        });
+      })
+      .then(function (data) {
+        adRules.data = data;
+        adRules.source = data.__sample
+          ? "config/ad-rules.sample.json (예시 데이터 — 아직 동기화 전입니다)"
+          : "config/ad-rules.json · 동기화 " + fmtDate(data.synced_at);
+        renderAdFilters(box);
+      })
+      .catch(function () {
+        box.innerHTML = '<div class="empty">광고 규칙을 불러오지 못했습니다.<br>'
+          + "<code>node scripts/sync-ad-rules.js</code>로 노션에서 동기화해 주세요.</div>";
+        adRules.text = "(광고 규칙 없음)";
+        notifyRules();
+      });
+  }
+
+  function tryFetch(url) {
+    return fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    });
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "-";
+    var d = new Date(iso);
+    return isNaN(d) ? String(iso) : d.toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" });
+  }
+
+  function renderAdFilters(box) {
+    var schema = (adRules.data && adRules.data.schema) || [];
+    var facets = schema.filter(function (s) { return FILTERABLE[s.type]; });
+
+    box.innerHTML = "";
+    var panel = document.createElement("div");
+    panel.className = "filters";
+
+    var grid = document.createElement("div");
+    grid.className = "filter-grid";
+
+    facets.forEach(function (f) {
+      var cell = document.createElement("div");
+      cell.className = "filt";
+      var name = document.createElement("div");
+      name.className = "filt-name";
+      name.innerHTML = escapeHtml(f.name) + "<em>" + escapeHtml(f.type) + "</em>";
+      cell.appendChild(name);
+
+      if (f.type === "multi_select") {
+        adRules.filters[f.name] = [];
+        var chips = document.createElement("div");
+        chips.className = "chips";
+        optionsFor(f).forEach(function (opt) {
+          var lab = document.createElement("label");
+          lab.className = "chip";
+          var cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.value = opt;
+          cb.addEventListener("change", function () {
+            var sel = adRules.filters[f.name];
+            var i = sel.indexOf(opt);
+            if (cb.checked && i === -1) sel.push(opt);
+            if (!cb.checked && i !== -1) sel.splice(i, 1);
+            lab.classList.toggle("on", cb.checked);
+            applyAdFilters();
+          });
+          lab.appendChild(cb);
+          lab.appendChild(document.createTextNode(opt));
+          chips.appendChild(lab);
+        });
+        cell.appendChild(chips);
+      } else {
+        adRules.filters[f.name] = "";
+        var sel = document.createElement("select");
+        var opts = f.type === "checkbox" ? ["예", "아니오"] : optionsFor(f);
+        sel.appendChild(new Option("전체", ""));
+        opts.forEach(function (o) { sel.appendChild(new Option(o, o)); });
+        sel.addEventListener("change", function () {
+          adRules.filters[f.name] = sel.value;
+          applyAdFilters();
+        });
+        cell.appendChild(sel);
+      }
+      grid.appendChild(cell);
+    });
+
+    if (!facets.length) {
+      grid.innerHTML = '<p class="cap">필터로 쓸 수 있는 속성(선택·다중선택·체크박스)이 없습니다.</p>';
+    }
+    panel.appendChild(grid);
+
+    var bar = document.createElement("div");
+    bar.className = "filter-bar";
+    bar.innerHTML = '<span class="hitcount"></span>'
+      + '<span class="src-note">' + escapeHtml(adRules.source) + "</span>";
+    panel.appendChild(bar);
+
+    var list = document.createElement("div");
+    list.className = "rule-list";
+    panel.appendChild(list);
+
+    box.appendChild(panel);
+    adRules._hit = bar.querySelector(".hitcount");
+    adRules._list = list;
+    applyAdFilters();
+  }
+
+  /** 스키마에 options가 없으면 실제 행에서 값을 모아 만든다 */
+  function optionsFor(f) {
+    if (f.options && f.options.length) return f.options;
+    var seen = [];
+    (adRules.data.rows || []).forEach(function (r) {
+      var v = r.props[f.name];
+      (Array.isArray(v) ? v : [v]).forEach(function (x) {
+        if (x && seen.indexOf(x) === -1) seen.push(x);
+      });
+    });
+    return seen;
+  }
+
+  function rowMatches(row) {
+    return Object.keys(adRules.filters).every(function (name) {
+      var want = adRules.filters[name];
+      var got = row.props[name];
+
+      if (Array.isArray(want)) {                       // multi_select — 고른 것 중 하나라도
+        if (!want.length) return true;
+        var have = Array.isArray(got) ? got : (got ? [got] : []);
+        return want.some(function (w) { return have.indexOf(w) !== -1; });
+      }
+      if (!want) return true;                          // "전체"
+      if (typeof got === "boolean") return got === (want === "예");
+      return String(got == null ? "" : got) === want;
+    });
+  }
+
+  function applyAdFilters() {
+    var rows = (adRules.data && adRules.data.rows) || [];
+    adRules.filtered = rows.filter(rowMatches);
+    adRules.text = formatRules(adRules.filtered);
+
+    if (adRules._hit) {
+      adRules._hit.innerHTML = "규칙 <b>" + adRules.filtered.length + "</b>건 선택됨 "
+        + '<span style="color:var(--faint)">/ 전체 ' + rows.length + "건</span>";
+    }
+    if (adRules._list) renderRuleList(adRules._list);
+    notifyRules();
+  }
+
+  function notifyRules() {
+    adRules.subscribers.forEach(function (fn) { try { fn(); } catch (e) {} });
+  }
+
+  /* 스키마를 보고 규칙을 문장으로 만든다 — 속성명을 코드에 박지 않는다 */
+  function schemaOf() { return (adRules.data && adRules.data.schema) || []; }
+
+  function titleKey() {
+    var t = schemaOf().find(function (s) { return s.type === "title"; });
+    return t ? t.name : null;
+  }
+
+  function metaPairs(row) {
+    return schemaOf()
+      .filter(function (s) {
+        return ["select", "status", "multi_select", "number", "checkbox", "formula"]
+          .indexOf(s.type) !== -1;
+      })
+      .map(function (s) {
+        var v = row.props[s.name];
+        if (v === null || v === undefined || v === "") return null;
+        if (Array.isArray(v)) return v.length ? s.name + ": " + v.join("/") : null;
+        if (typeof v === "boolean") return s.name + ": " + (v ? "예" : "아니오");
+        return s.name + ": " + v;
+      })
+      .filter(Boolean);
+  }
+
+  function bodyTexts(row) {
+    return schemaOf()
+      .filter(function (s) { return s.type === "rich_text"; })
+      .map(function (s) {
+        var v = row.props[s.name];
+        return v ? (s.name + ": " + v) : null;
+      })
+      .filter(Boolean);
+  }
+
+  function formatRules(rows) {
+    if (!rows.length) {
+      return "[적용 규칙]\n선택된 규칙이 없습니다. 위 필터에서 규칙을 고르면 여기에 삽입됩니다.";
+    }
+    var tk = titleKey();
+    var lines = rows.map(function (r, i) {
+      var name = tk ? (r.props[tk] || "(제목 없음)") : "규칙 " + (i + 1);
+      var meta = metaPairs(r);
+      var head = (i + 1) + ". " + name + (meta.length ? "  [" + meta.join(" · ") + "]" : "");
+      var body = bodyTexts(r).map(function (t) { return "   " + t; });
+      return [head].concat(body).join("\n");
+    });
+    return "[적용 규칙 " + rows.length + "건]\n" + lines.join("\n");
+  }
+
+  function renderRuleList(list) {
+    list.innerHTML = "";
+    if (!adRules.filtered.length) {
+      list.innerHTML = '<div class="rule-row" style="color:var(--faint)">'
+        + "조건에 맞는 규칙이 없습니다.</div>";
+      return;
+    }
+    var tk = titleKey();
+    adRules.filtered.forEach(function (r) {
+      var row = document.createElement("div");
+      row.className = "rule-row";
+      var meta = metaPairs(r).map(function (m) {
+        return "<span>" + escapeHtml(m) + "</span>";
+      }).join("");
+      var body = bodyTexts(r).join(" / ");
+      row.innerHTML = "<b>" + escapeHtml(tk ? (r.props[tk] || "(제목 없음)") : "규칙") + "</b>"
+        + (meta ? '<div class="rmeta">' + meta + "</div>" : "")
+        + (body ? "<p>" + escapeHtml(body) + "</p>" : "");
+      list.appendChild(row);
+    });
   }
 
   function setupTabs() {

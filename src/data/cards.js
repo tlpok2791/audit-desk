@@ -89,37 +89,63 @@ const CARDS = [
       "편마다 제목과 핵심 메시지를 2~3줄로 정리해줘.",
   },
 
-  // ── 광고마케팅 (placeholder 2개) ────────────────────────────
+  // ── 광고마케팅 ──────────────────────────────────────────────
+  // injectRules: true 인 카드는 광고 탭 상단 필터로 고른 규칙이
+  // template 안의 {rules} 자리에 삽입된다. {rules}가 없으면 맨 뒤에 붙는다.
   {
-    id: "ad-copy-draft",
-    tab: "ads",
-    icon: "📣",
-    title: "광고 카피 초안",
-    desc: "제품·서비스 정보를 주면 채널에 맞는 광고 카피 여러 안을 뽑습니다.",
-    subagent: "ad-copywriter-agent",
-    fields: [
-      { key: "product", label: "제품/서비스명", placeholder: "감사 데스크" },
-      { key: "channel", label: "채널", placeholder: "인스타그램 피드 광고" },
-      { key: "usp", label: "핵심 장점", placeholder: "엑셀만 올리면 조서가 나온다" },
-    ],
-    template:
-      "'{product}'의 '{channel}'용 광고 카피를 5안 뽑아줘. 핵심 장점은 '{usp}'이고, " +
-      "각 안마다 헤드라인과 본문을 짧게 나눠서 써줘.",
-  },
-  {
-    id: "ad-campaign-brief",
+    id: "ad-campaign-plan",
     tab: "ads",
     icon: "📊",
-    title: "캠페인 기획안 초안",
-    desc: "목표와 예산을 주면 캠페인 기획안 뼈대(타깃·메시지·채널믹스)를 잡아줍니다.",
+    title: "캠페인 기획",
+    desc: "목표와 예산을 주면 타깃·메시지·채널믹스를 잡아줍니다. 위에서 고른 규칙을 지켜서 기획합니다.",
     subagent: "campaign-strategist-agent",
+    injectRules: true,
     fields: [
-      { key: "goal", label: "캠페인 목표", placeholder: "신규 가입자 500명 확보" },
+      { key: "goal", label: "캠페인 목표", placeholder: "신규 상담 문의 30건" },
       { key: "budget", label: "예산", placeholder: "월 300만원" },
-      { key: "period", label: "기간", placeholder: "2025년 4분기" },
+      { key: "period", label: "기간", placeholder: "2026년 4분기" },
     ],
     template:
-      "목표가 '{goal}'이고 예산은 '{budget}', 기간은 '{period}'인 마케팅 캠페인 기획안 뼈대를 " +
-      "만들어줘. 타깃 오디언스, 핵심 메시지, 채널 믹스, 대략적 일정을 포함해줘.",
+      "목표가 '{goal}'이고 예산은 '{budget}', 기간은 '{period}'인 광고 캠페인 기획안을 만들어줘. " +
+      "타깃 오디언스, 핵심 메시지, 채널 믹스, 대략적 일정을 포함해줘.\n\n" +
+      "{rules}\n\n" +
+      "위 규칙에 어긋나는 제안은 하지 말고, 규칙과 충돌하는 지점이 있으면 먼저 알려줘.",
+  },
+  {
+    id: "ad-performance-review",
+    tab: "ads",
+    icon: "📈",
+    title: "성과 분석",
+    desc: "집행 결과를 주면 무엇이 문제인지 진단하고 다음 조치를 제안합니다.",
+    subagent: "ad-analyst-agent",
+    injectRules: true,
+    fields: [
+      { key: "channel", label: "채널", placeholder: "구글 검색광고" },
+      { key: "period", label: "분석 기간", placeholder: "2026년 10월" },
+      { key: "metrics", label: "주요 지표", placeholder: "노출 12만, 클릭 900, 문의 8건, 비용 280만원" },
+    ],
+    template:
+      "'{channel}'의 '{period}' 광고 성과를 분석해줘. 지표는 다음과 같아: {metrics}.\n" +
+      "어느 단계(노출·클릭·랜딩·문의)에서 이탈이 큰지 짚고, 원인 가설과 다음 조치를 우선순위로 제안해줘.\n\n" +
+      "{rules}\n\n" +
+      "진단과 제안은 위 규칙에 비추어 판단해줘.",
+  },
+  {
+    id: "ad-compliance-check",
+    tab: "ads",
+    icon: "🔍",
+    title: "소재 점검",
+    desc: "작성한 광고 소재가 규칙에 어긋나지 않는지 문구 단위로 점검합니다.",
+    subagent: "ad-reviewer-agent",
+    injectRules: true,
+    fields: [
+      { key: "channel", label: "채널", placeholder: "네이버 검색광고" },
+      { key: "copy", label: "점검할 소재", placeholder: "병의원 세무 1위, 100% 절세 보장" },
+    ],
+    template:
+      "'{channel}'에 집행할 아래 광고 소재를 점검해줘.\n\n소재: {copy}\n\n" +
+      "{rules}\n\n" +
+      "규칙을 어긴 문구를 그대로 인용하고, 어떤 규칙에 걸리는지와 대체 문구를 함께 제시해줘. " +
+      "판단이 애매한 문구는 임의로 결론내지 말고 확인이 필요하다고 표시해줘.",
   },
 ];
