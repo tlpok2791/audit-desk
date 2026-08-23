@@ -11,9 +11,10 @@
   "use strict";
 
   var DB_NAME = "audit-desk";
-  var DB_VER = 1;
+  var DB_VER = 2;
   var STORE_ENG = "engagements";
   var STORE_WS = "worksheets";
+  var STORE_COA = "coamaps";      // 회사코드 → COA 매핑표
 
   var listeners = [];
   var state = {
@@ -31,6 +32,7 @@
         var db = req.result;
         if (!db.objectStoreNames.contains(STORE_ENG)) db.createObjectStore(STORE_ENG, { keyPath: "id" });
         if (!db.objectStoreNames.contains(STORE_WS)) db.createObjectStore(STORE_WS, { keyPath: "id" });
+        if (!db.objectStoreNames.contains(STORE_COA)) db.createObjectStore(STORE_COA, { keyPath: "id" });
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };
@@ -178,6 +180,30 @@
 
   function getState() { return state; }
 
+  /* ── COA 매핑표 ────────────────────────────────────── */
+  /** 브라우저 보관 (파일 저장은 화면의 "매핑 저장" 버튼) */
+  function saveCoaMap(companyCode, map) {
+    return idbPut(STORE_COA, { id: companyCode, data: map }).catch(function (e) {
+      console.warn("COA 매핑을 보관하지 못했습니다:", e);
+    });
+  }
+
+  /**
+   * 저장된 매핑을 찾는다.
+   * 1) config/coa-map/<회사코드>.json  — 저장소에 커밋해 둔 것 (다음 기수에 그대로 쓰인다)
+   * 2) 브라우저 보관본                — 아직 파일로 안 옮긴 것
+   */
+  function loadCoaMap(companyCode) {
+    if (!companyCode) return Promise.resolve(null);
+    return fetch("config/coa-map/" + encodeURIComponent(companyCode) + ".json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .catch(function () {
+        return idbGet(STORE_COA, companyCode).then(function (rec) {
+          return rec ? rec.data : null;
+        }).catch(function () { return null; });
+      });
+  }
+
   root.AuditState = {
     init: init,
     subscribe: subscribe,
@@ -192,6 +218,8 @@
     saveWorksheet: saveWorksheet,
     importWorksheet: importWorksheet,
     loadWorksheet: loadWorksheet,
+    saveCoaMap: saveCoaMap,
+    loadCoaMap: loadCoaMap,
     notify: notify,
   };
 })(typeof self !== "undefined" ? self : this);

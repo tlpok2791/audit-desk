@@ -375,6 +375,11 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
   border-radius:6px;background:#FAFBFD}
 .adjtable td{padding:5px 6px;white-space:nowrap}
 
+.reason-in{font:inherit;font-family:var(--mono);font-size:12px;width:100%;margin-top:10px;
+  padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#FAFBFD;
+  color:var(--ink);resize:vertical}
+.reason-in:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+
 .verify{border-radius:var(--r);padding:16px 19px;border:1px solid}
 .verify.good{background:#F0FDF4;border-color:#BBF7D0}
 .verify.bad{background:#FFF7F7;border-color:#FECACA}
@@ -857,6 +862,8 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 <!-- 감사도구 세부탭 — SheetJS는 로컬 번들(브라우저 안에서만 처리, 서버 전송 없음) -->
 <script src="vendor/xlsx.full.min.js"></script>
 <script src="src/audit/worksheet.js"></script>
+<script src="src/audit/coa.js"></script>
+<script src="src/audit/export.js"></script>
 <script src="src/audit/state.js"></script>
 <script src="src/audit/tabs.js"></script>
 </body>

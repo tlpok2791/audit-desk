@@ -13,7 +13,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var VERSION = 1;
+  var VERSION = 2;   // 2: 표준COA 기반 9열 정산표
 
   /* ── 숫자 정리 ─────────────────────────────────────── */
   function toNumber(v) {
@@ -123,89 +123,85 @@
     return "BS";
   }
 
-  /* ── 전기·당기 병합 ────────────────────────────────── */
+  /* ── 표준COA 단위로 집계 ───────────────────────────── */
   /**
-   * prior: 전기 재무제표 계정 목록, current: 당기 시산표 계정 목록
-   * 계정코드 기준으로 맞춘다. 코드가 비어 있으면 계정과목으로 대체 매칭.
-   * 돌려주는 값: { accounts, unmatched: { priorOnly, currentOnly } }
+   * 회사 계정 목록을 표준COA코드 단위로 합친다.
+   * accounts : [{코드, 계정과목, 잔액}]  (회사 원본)
+   * mapRows  : [{회사계정코드, 회사계정과목명, 표준COA코드}]
+   * 돌려주는 값: Map(표준COA코드 → 합계)
    */
-  function mergeAccounts(prior, current) {
-    function keyOf(a) { return a.코드 ? "C:" + a.코드.trim() : "N:" + norm(a.계정과목); }
-
-    var pMap = new Map(), cMap = new Map();
-    prior.forEach(function (a) { pMap.set(keyOf(a), a); });
-    current.forEach(function (a) { cMap.set(keyOf(a), a); });
-
-    var accounts = [];
-    var seen = new Set();
-
-    // 당기 시산표 순서를 기준으로 삼는다
-    current.forEach(function (c) {
-      var k = keyOf(c);
-      if (seen.has(k)) return;
-      seen.add(k);
-      var p = pMap.get(k);
-      accounts.push(makeAccount(c.코드, c.계정과목, c.구분, p ? p.잔액 : 0, c.잔액));
+  function aggregateByCoa(accounts, mapRows) {
+    var byName = new Map(), byCode = new Map();
+    (mapRows || []).forEach(function (m) {
+      if (!m.표준COA코드) return;
+      if (m.회사계정과목명) byName.set(norm(m.회사계정과목명), m.표준COA코드);
+      if (m.회사계정코드) byCode.set(String(m.회사계정코드).trim(), m.표준COA코드);
     });
 
-    // 전기에만 있는 계정도 정산표에 남긴다 (당기 0)
-    var priorOnly = [];
-    prior.forEach(function (p) {
-      var k = keyOf(p);
-      if (seen.has(k)) return;
-      seen.add(k);
-      priorOnly.push({ 코드: p.코드, 계정과목: p.계정과목, 전기말: p.잔액 });
-      accounts.push(makeAccount(p.코드, p.계정과목, p.구분, p.잔액, 0));
+    var sums = new Map();
+    (accounts || []).forEach(function (a) {
+      var coa = byCode.get(String(a.코드 || "").trim());
+      if (coa === undefined) coa = byName.get(norm(a.계정과목));
+      if (!coa) return;                       // 미매핑은 여기 오지 않는다 (생성 전에 막힌다)
+      sums.set(coa, (sums.get(coa) || 0) + (a.잔액 || 0));
     });
-
-    var currentOnly = current
-      .filter(function (c) { return !pMap.has(keyOf(c)); })
-      .map(function (c) { return { 코드: c.코드, 계정과목: c.계정과목, 당기말_수정전: c.잔액 }; });
-
-    return { accounts: accounts, unmatched: { priorOnly: priorOnly, currentOnly: currentOnly } };
+    return sums;
   }
 
-  function makeAccount(code, name, section, prior, cur) {
-    return {
-      코드: String(code || "").trim(),
-      계정과목: String(name || "").trim(),
-      구분: section || inferSection(code, name),
-      전기말: prior || 0,
-      당기말_수정전: cur || 0,
-      수정분개액: 0,
-      재분류액: 0,
-      당기말_수정후: cur || 0,
-    };
-  }
-
-  /* ── 분개 반영 ─────────────────────────────────────── */
   /**
-   * 분개를 계정에 반영한다. 원본을 바꾸지 않고 새 배열을 돌려준다.
-   * adjustments: [{ 번호, 차변계정, 대변계정, 금액, 적요, 조서참조, 구분 }]
-   *   차변계정/대변계정은 계정코드. 한쪽만 채워도 된다(복합분개).
+   * 정산표 행을 만든다 — 화면 미리보기와 강조 판단에 쓰는 계산값.
+   * 실제 xlsx 는 이 값을 쓰지 않고 SUMIFS 수식으로 기록한다.
+   *
+   * 돌려주는 값: [{코드, 계정과목명, 구분, 대분류, 전기, 당기, 수정분개, 수정후, 증감액, 증감비율}]
    */
-  function applyAdjustments(accounts, adjustments) {
-    var byCode = new Map();
-    var out = accounts.map(function (a) {
-      var copy = Object.assign({}, a, { 수정분개액: 0, 재분류액: 0 });
-      if (copy.코드) byCode.set(copy.코드, copy);
-      return copy;
+  function buildRows(coaList, curSums, priorSums, adjustments) {
+    var adjBy = adjustmentsByCoa(adjustments);
+    var used = new Set();
+    [curSums, priorSums, adjBy].forEach(function (m) {
+      m.forEach(function (_, k) { used.add(k); });
     });
 
+    var rows = [];
+    coaList.forEach(function (c) {
+      if (!used.has(c.코드)) return;
+      var 전기 = priorSums.get(c.코드) || 0;
+      var 당기 = curSums.get(c.코드) || 0;
+      var 수정분개 = adjBy.get(c.코드) || 0;
+      var 수정후 = 당기 + 수정분개;
+      var 증감액 = 수정후 - 전기;
+      rows.push({
+        코드: c.코드,
+        계정과목명: c.표준계정과목명,
+        구분: c.구분,
+        대분류: c.대분류 || "",
+        전기: 전기, 당기: 당기, 수정분개: 수정분개, 수정후: 수정후,
+        증감액: 증감액,
+        // 전기가 0이면 비율을 내지 않는다 (엑셀에서도 IFERROR 로 공란)
+        증감비율: 전기 === 0 ? null : 증감액 / Math.abs(전기),
+      });
+    });
+    return rows;
+  }
+
+  /** 수정·재분류분개를 표준COA 단위 순액(차변-대변)으로 */
+  function adjustmentsByCoa(adjustments) {
+    var m = new Map();
     (adjustments || []).forEach(function (j) {
       var amt = toNumber(j.금액);
       if (!amt) return;
-      var field = j.구분 === "재분류" ? "재분류액" : "수정분개액";
-      var dr = byCode.get(String(j.차변계정 || "").trim());
-      var cr = byCode.get(String(j.대변계정 || "").trim());
-      if (dr) dr[field] += amt;
-      if (cr) cr[field] -= amt;
+      var dr = String(j.차변계정 || "").trim();
+      var cr = String(j.대변계정 || "").trim();
+      if (dr) m.set(dr, (m.get(dr) || 0) + amt);
+      if (cr) m.set(cr, (m.get(cr) || 0) - amt);
     });
+    return m;
+  }
 
-    out.forEach(function (a) {
-      a.당기말_수정후 = a.당기말_수정전 + a.수정분개액 + a.재분류액;
-    });
-    return out;
+  /** 중요성금액 이상 증감한 행만 (증감사유 초안 대상) */
+  function materialRows(rows, materiality) {
+    var t = Math.abs(Number(materiality) || 0);
+    if (!t) return [];
+    return rows.filter(function (r) { return Math.abs(r.증감액) >= t; });
   }
 
   /* ── 검증 ──────────────────────────────────────────── */
@@ -249,17 +245,39 @@
     return { ok: errors.length === 0, entries: entries, errors: errors, 차액합계: 차액합계 };
   }
 
-  /** 정산표 자체의 차대평형 (합계가 0이어야 한다) */
-  function verifyBalance(accounts) {
-    function sum(k) { return accounts.reduce(function (s, a) { return s + (a[k] || 0); }, 0); }
-    var 전기 = sum("전기말"), 수정전 = sum("당기말_수정전"), 수정후 = sum("당기말_수정후");
+  /** 정산표 차대평형과 자산=부채+자본 (대분류는 COA 코드 첫 자리로 판단) */
+  function verifyBalance(rows) {
+    function sum(pred, key) {
+      return rows.reduce(function (s, r) { return pred(r) ? s + (r[key] || 0) : s; }, 0);
+    }
+    var head = function (d) { return function (r) { return String(r.코드).charAt(0) === d; }; };
+    var all = function () { return true; };
+
+    var 자산 = sum(head("1"), "수정후");
+    var 부채 = sum(head("2"), "수정후");
+    var 자본 = sum(head("3"), "수정후");
+    var 수익 = sum(head("4"), "수정후");
+    var 비용 = sum(function (r) { return /[56789]/.test(String(r.코드).charAt(0)); }, "수정후");
+    var 총합 = sum(all, "수정후");
+    var 전기총합 = sum(all, "전기");
+    var 당기총합 = sum(all, "당기");
+
+    // 손익 마감 전이므로 자산 = 부채 + 자본 + 당기순손익 이다.
+    // 부호 규약(차변 양수·대변 음수)에서는 자산+부채+자본+수익+비용 = 0 과 같다.
+    var 당기순손익 = -(수익 + 비용);
+    var bsDiff = 자산 + 부채 + 자본 + 수익 + 비용;
+
     return {
-      전기말: 전기, 당기말_수정전: 수정전, 당기말_수정후: 수정후,
-      ok: Math.abs(수정후) < 0.5,
+      자산: 자산, 부채: 부채, 자본: 자본, 수익: 수익, 비용: 비용,
+      당기순손익: 당기순손익,
+      전기: 전기총합, 당기: 당기총합, 수정후: 총합,
+      자산_부채자본_차이: bsDiff,
+      ok: Math.abs(총합) < 0.5 && Math.abs(bsDiff) < 0.5,
       균형: {
-        전기말: Math.abs(전기) < 0.5,
-        당기말_수정전: Math.abs(수정전) < 0.5,
-        당기말_수정후: Math.abs(수정후) < 0.5,
+        차대일치: Math.abs(총합) < 0.5,
+        자산_부채자본: Math.abs(bsDiff) < 0.5,
+        전기: Math.abs(전기총합) < 0.5,
+        당기: Math.abs(당기총합) < 0.5,
       },
     };
   }
@@ -270,13 +288,16 @@
   }
 
   /* ── 정산표 객체 ───────────────────────────────────── */
-  function build(meta, accounts, adjustments) {
-    var applied = applyAdjustments(accounts, adjustments);
+  function build(meta, rows, adjustments, reasons) {
     return {
       version: VERSION,
       updated_at: new Date().toISOString(),
       meta: meta,
-      accounts: applied,
+      accounts: rows.map(function (r) {
+        return Object.assign({}, r, {
+          증감사유: (reasons && reasons[r.코드] && reasons[r.코드].text) || "",
+        });
+      }),
       adjustments: (adjustments || []).slice(),
     };
   }
@@ -290,6 +311,40 @@
     return null;
   }
 
+  /** 증감사유 초안을 받을 프롬프트 (audit-fs-analyzer 에 넘긴다) */
+  function reasonPrompt(rows, materiality) {
+    var target = materialRows(rows, materiality);
+    var lines = target.map(function (r) {
+      return [r.코드, r.계정과목명, Math.round(r.전기), Math.round(r.수정후),
+        Math.round(r.증감액), r.증감비율 === null ? "" : (r.증감비율 * 100).toFixed(1) + "%"]
+        .join(" | ");
+    });
+    return "아래는 정산표에서 중요성금액 이상 변동한 계정이다. "
+      + "각 계정의 증감사유 초안을 확인이 필요한 질문 형태로 작성해줘.\n\n"
+      + "중요성금액: " + Math.round(Number(materiality) || 0).toLocaleString("ko-KR") + "\n\n"
+      + "COA | 계정과목명 | 전기 | 수정후 | 증감액 | 증감비율\n"
+      + lines.join("\n")
+      + "\n\nJSON만 출력해줘. 키는 COA 코드, 값은 증감사유 초안 문자열.";
+  }
+
+  /** 에이전트가 돌려준 JSON 텍스트 → { 코드: {text, draft:true} } */
+  function parseReasons(text, rows) {
+    var t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+    var obj;
+    try { obj = JSON.parse(t); } catch (e) { return { error: "JSON을 읽지 못했습니다: " + e.message }; }
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
+      return { error: "{\"COA코드\": \"사유\"} 형태여야 합니다." };
+    }
+    var valid = new Set(rows.map(function (r) { return r.코드; }));
+    var out = {}, unknown = [];
+    Object.keys(obj).forEach(function (k) {
+      if (!valid.has(k)) { unknown.push(k); return; }
+      var v = obj[k];
+      if (typeof v === "string" && v.trim()) out[k] = { text: v.trim(), draft: true };
+    });
+    return { reasons: out, unknown: unknown, count: Object.keys(out).length };
+  }
+
   return {
     VERSION: VERSION,
     toNumber: toNumber,
@@ -298,12 +353,16 @@
     findHeaderRow: findHeaderRow,
     extractAccounts: extractAccounts,
     inferSection: inferSection,
-    mergeAccounts: mergeAccounts,
-    applyAdjustments: applyAdjustments,
+    aggregateByCoa: aggregateByCoa,
+    adjustmentsByCoa: adjustmentsByCoa,
+    buildRows: buildRows,
+    materialRows: materialRows,
     verifyAdjustments: verifyAdjustments,
     verifyBalance: verifyBalance,
     build: build,
     validateShape: validateShape,
+    reasonPrompt: reasonPrompt,
+    parseReasons: parseReasons,
     fmt: fmt,
   };
 });

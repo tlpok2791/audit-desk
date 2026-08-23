@@ -50,7 +50,7 @@ build_posts.py      content/posts/ → src/data/posts.js 생성기
 config/             광고 규칙 KB (아래 '광고마케팅 KB 동기화' 참고)
 scripts/            노션 동기화 · 정산표 엔진 테스트
 src/audit/          감사도구 세부탭 (아래 '감사도구 세부탭' 참고)
-vendor/             SheetJS 로컬 번들 (Apache-2.0)
+vendor/             SheetJS(읽기·Apache-2.0) · ExcelJS(쓰기·MIT, 내보낼 때만 지연 로드)
 work/               감사 작업 데이터 — .gitignore 로 막혀 있음
 tool.html           브라우저 실행 버전 (build_web.py 결과물)
 tests/              core/journal.py · core/ledger.py 검증 (아래 '테스트' 참고)
@@ -136,8 +136,20 @@ python3 build_posts.py                           # 홈페이지 블로그 탭에
 
 | 탭 | 상태 | 하는 일 |
 |---|---|---|
-| 1 정산표 작성 | 완성 | 전기 재무제표 + 당기 시산표 → 정산표, 수정·재분류분개 반영, 차대 검증, xlsx·json 산출 |
+| 1 정산표 작성 | 완성 | 회사 원본 엑셀 → 표준 COA 매핑 → 수정·재분류분개 → 살아있는 정산표 xlsx |
 | 2~5 | 잠금 | 골격만. 업로드 없이 탭1의 정산표를 그대로 받아 쓴다 |
+
+**산출 xlsx는 값이 아니라 수식이다.** 정산표 시트의 전기·당기·수정분개·수정후·증감액·
+증감비율은 전부 PBC 시트를 참조하는 SUMIFS 수식이라, 엑셀에서 PBC나 수정분개를 고치면
+정산표가 따라 갱신된다. 시트 구성은 `PBC_시산표 / PBC_전기FS / 수정분개 / 정산표 / 검증`.
+
+**표준 COA 매핑이 필수 단계다.** 회사마다 계정과목명이 다르므로
+`config/standard-coa.json`(직접 수정 가능)에 붙인다. 유사도로 후보를 제안하되
+자동 확정하지 않고, 미매핑이 남으면 생성이 막힌다. 확정한 매핑은
+`config/coa-map/<회사코드>.json`에 두면 다음 기수엔 신규 계정만 확인하면 된다.
+
+중요성금액 이상 변동한 계정은 `audit-fs-analyzer` 서브에이전트로 증감사유 초안을 받아
+넣을 수 있다. 초안이 들어간 셀은 배경색으로 구분되어 검토 전임을 알 수 있다.
 
 정산표는 전역 상태(단일 소스)로 보관한다. 모든 탭 상단에 현재 engagement와
 사용 중인 정산표(회사명·결산일·계정 수·갱신 시각)가 표시되고, "정산표 불러오기"로
@@ -148,7 +160,9 @@ python3 build_posts.py                           # 홈페이지 블로그 탭에
 산출물은 내려받은 뒤 사람이 `work/` 아래에 넣는다. 자세한 내용은 `work/README.md` 참고.
 
 ```bash
-node scripts/worksheet.test.js    # 정산표 계산 엔진 검증
+node scripts/worksheet.test.js        # 정산표 계산 엔진
+node scripts/coa.test.js              # 표준 COA 매핑·유사도
+node scripts/verify-live-xlsx.js <xlsx>   # 산출물이 값이 아니라 수식인지 직접 계산해 확인
 ```
 
 ## 광고마케팅 KB 동기화

@@ -17,7 +17,12 @@
 
   var activeTab = "ws";
   var S = null;                  // AuditState
-  var t1 = { prior: null, current: null, adjustments: [], merged: null, dirty: false };
+  var t1 = newT1();
+
+  function newT1() {
+    return { current: null, prior: null, coa: null, mapRows: null, prevMap: null,
+             adjustments: [], reasons: {}, rows: null, showUnmappedOnly: true };
+  }
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -86,7 +91,7 @@
     sel.appendChild(new Option("+ 새 engagement", "__new__"));
     sel.addEventListener("change", function () {
       if (sel.value === "__new__") { openEngForm(null); renderEngagementBar(); }
-      else { t1 = { prior: null, current: null, adjustments: [], merged: null, dirty: false }; S.setCurrent(sel.value); }
+      else { var coa = t1.coa; t1 = newT1(); t1.coa = coa; S.setCurrent(sel.value); }
     });
     right.appendChild(sel);
 
@@ -247,8 +252,13 @@
         try { obj = JSON.parse(txt); } catch (e) { alert("JSON을 읽지 못했습니다: " + e.message); return; }
         var err = WS.validateShape(obj);
         if (err) { alert("정산표 파일이 아닙니다 — " + err); return; }
+        // 불러온 정산표의 분개·증감사유는 이어서 쓸 수 있게 복원한다.
+        // 원본 PBC 는 파일에 없으므로 xlsx 를 다시 만들려면 엑셀을 다시 올려야 한다.
         t1.adjustments = (obj.adjustments || []).slice();
-        t1.merged = { accounts: obj.accounts.slice(), unmatched: { priorOnly: [], currentOnly: [] } };
+        t1.reasons = {};
+        (obj.accounts || []).forEach(function (a) {
+          if (a.증감사유) t1.reasons[a.코드] = { text: a.증감사유, draft: true };
+        });
         S.importWorksheet(obj).then(renderAll);
       });
     });
@@ -282,50 +292,90 @@
   }
 
   /* ══ 탭1 : 정산표 작성 ════════════════════════════════ */
+  /*
+   * 흐름: 파일 → 표준COA 매핑 → 수정분개 → 미리보기 → 증감사유 초안 → 생성
+   * 미리보기 숫자는 화면·강조 판단용일 뿐이고, xlsx 에는 SUMIFS 수식이 들어간다.
+   */
   function renderTab1(p) {
     var cur = S.current();
     if (!cur) {
       p.appendChild(hint("engagement를 먼저 등록하세요. 위 드롭다운에서 “+ 새 engagement”를 고르면 됩니다."));
       return;
     }
+    if (!t1.coa) { ensureCoa(); p.appendChild(hint("표준 COA를 불러오는 중입니다…")); return; }
 
-    p.appendChild(step(1, "파일 올리기", "전기 재무제표와 당기 시산표를 올립니다. 파일은 브라우저 안에서만 처리되고 서버로 가지 않습니다."));
+    p.appendChild(step(1, "파일 올리기",
+      "회사 원본 엑셀을 그대로 올립니다. 시트·컬럼 구조는 회사마다 다르므로 아래에서 직접 지정합니다. "
+      + "파일은 브라우저 안에서만 처리되고 서버로 가지 않습니다."));
     var up = el("div", "up-grid");
+    up.appendChild(uploader("current", "당기 시산표 (또는 계정별 잔액)"));
     up.appendChild(uploader("prior", "전기 재무제표"));
-    up.appendChild(uploader("current", "당기 시산표"));
     p.appendChild(up);
 
-    if (!t1.prior || !t1.current) {
-      p.appendChild(hint("두 파일을 모두 올리고 컬럼을 연결하면 정산표가 만들어집니다."));
+    if (!ready("current") || !ready("prior")) {
+      p.appendChild(hint("두 파일의 계정코드·계정과목명·금액 컬럼을 모두 지정하면 다음 단계가 열립니다."));
       return;
     }
-    if (!t1.prior.accounts || !t1.current.accounts) return;
 
-    // 병합
-    t1.merged = WS.mergeAccounts(t1.prior.accounts, t1.current.accounts);
+    p.appendChild(step(2, "표준 COA 매핑",
+      "회사 계정과목을 표준 계정과목에 붙입니다. 유사도로 후보를 제안하지만 확정은 직접 하셔야 합니다. "
+      + "미매핑이 하나라도 남으면 정산표를 만들 수 없습니다."));
+    p.appendChild(coaMapper());
 
-    p.appendChild(step(2, "계정 매핑 결과", "계정코드를 기준으로 맞췄습니다. 한쪽에만 있는 계정은 아래에 따로 표시합니다."));
-    p.appendChild(mappingSummary());
+    if (!t1.mapRows || COA.unmapped(t1.mapRows).length) return;
 
-    p.appendChild(step(3, "수정·재분류분개", "차변/대변 계정코드와 금액을 넣습니다. 한쪽만 채우면 복합분개로 처리되며, 번호별로 차대가 맞아야 저장됩니다."));
+    p.appendChild(step(3, "수정·재분류분개",
+      "차변/대변에는 표준 COA 코드를 넣습니다. 한쪽만 채우면 복합분개로 보고 번호별로 차대를 검증합니다."));
     p.appendChild(adjustEditor());
 
-    p.appendChild(step(4, "정산표", "전기말 · 당기말 수정전 · 수정분개 · 재분류 · 당기말 수정후. 대변 항목은 음수로 표시됩니다."));
-    p.appendChild(worksheetTable());
+    p.appendChild(step(4, "정산표 미리보기",
+      "아래 숫자는 확인용입니다. 실제 xlsx 에는 PBC 시트를 참조하는 SUMIFS 수식이 들어갑니다."));
+    p.appendChild(previewTable());
 
-    p.appendChild(step(5, "검증과 저장", "차대가 맞지 않으면 저장이 막힙니다."));
+    p.appendChild(step(5, "증감사유 초안",
+      "중요성금액 이상 변동한 계정만 audit-fs-analyzer 에 맡깁니다. 초안은 확정 결론이 아니라 확인할 질문입니다."));
+    p.appendChild(reasonBlock());
+
+    p.appendChild(step(6, "검증과 생성", "차대가 맞지 않으면 생성이 막힙니다."));
     p.appendChild(saveBlock());
+  }
+
+  function ready(slot) {
+    var st = t1[slot];
+    return st && st.accounts && st.accounts.length;
   }
 
   function step(n, title, desc) {
     var d = el("div", "wstep");
-    d.innerHTML = '<div class="wstep-h"><span class="wstep-n">' + n + "</span><b>" + esc(title) + "</b></div>"
-      + (desc ? '<p class="cap">' + esc(desc) + "</p>" : "");
+    d.innerHTML = '<div class="wstep-h"><span class="wstep-n">' + n + "</span><b>"
+      + esc(title) + "</b></div>" + (desc ? '<p class="cap">' + esc(desc) + "</p>" : "");
     return d;
   }
+
   function hint(text) { return el("div", "empty", esc(text)); }
 
-  /* ── 업로더 ────────────────────────────────────────── */
+  /* ── 표준 COA ──────────────────────────────────────── */
+  function ensureCoa() {
+    if (t1._coaLoading) return;
+    t1._coaLoading = true;
+    fetch("config/standard-coa.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (doc) {
+        var err = COA.validateCoaShape(doc);
+        if (err) throw new Error(err);
+        t1.coa = COA.sortCoa(doc.accounts);
+        renderPanel();
+      })
+      .catch(function (e) {
+        t1._coaLoading = false;
+        var p = $("sub-panel");
+        p.innerHTML = "";
+        p.appendChild(hint("표준 COA를 불러오지 못했습니다 — " + e.message
+          + " (config/standard-coa.json)"));
+      });
+  }
+
+  /* ── 업로더 : 계정코드 / 계정과목명 / 금액 ─────────── */
   function uploader(slot, title) {
     var box = el("div", "upbox");
     var st = t1[slot];
@@ -341,44 +391,42 @@
       readWorkbook(f).then(function (wb) {
         t1[slot] = { fileName: f.name, wb: wb, sheetName: wb.SheetNames[0], amountMode: "single" };
         loadSheet(slot);
+        t1.mapRows = null;              // 원본이 바뀌면 매핑을 다시 확인한다
         renderPanel();
       }).catch(function (e) { alert("파일을 읽지 못했습니다 — " + e.message); });
     });
     box.appendChild(inp);
-
     if (!st) return box;
 
     box.appendChild(el("div", "cap", esc(st.fileName)));
 
-    // 시트 선택
     if (st.wb.SheetNames.length > 1) {
       box.appendChild(labelled("시트", selectOf(st.wb.SheetNames, st.sheetName, function (v) {
-        st.sheetName = v; loadSheet(slot); renderPanel();
+        st.sheetName = v; loadSheet(slot); t1.mapRows = null; renderPanel();
       })));
     }
 
-    // 머리글 행
     var hrow = document.createElement("input");
     hrow.type = "number";
     hrow.min = "1";
     hrow.value = String((st.headerRow || 0) + 1);
     hrow.addEventListener("change", function () {
       st.headerRow = Math.max(0, Number(hrow.value) - 1);
-      remap(slot); renderPanel();
+      st.mapping = WS.guessColumns(st.aoa[st.headerRow] || []);
+      remap(slot); t1.mapRows = null; renderPanel();
     });
     box.appendChild(labelled("머리글 행", hrow));
 
-    // 금액 서식
     box.appendChild(labelled("금액 서식", selectOf(
       [["single", "금액 한 컬럼"], ["drcr", "차변·대변 두 컬럼"]], st.amountMode, function (v) {
-        st.amountMode = v; remap(slot); renderPanel();
+        st.amountMode = v; remap(slot); t1.mapRows = null; renderPanel();
       })));
 
-    // 컬럼 연결
     var headers = (st.aoa[st.headerRow] || []).map(function (h, i) {
-      return [String(i), (h === null || h === undefined || String(h).trim() === "") ? "(" + (i + 1) + "열)" : String(h)];
+      return [String(i), (h === null || h === undefined || String(h).trim() === "")
+        ? "(" + colName(i) + "열)" : String(h)];
     });
-    var need = ["계정코드", "계정과목"].concat(st.amountMode === "drcr" ? ["차변", "대변"] : ["금액"]);
+    var need = neededCols(st);
     var grid = el("div", "map-grid");
     need.forEach(function (field) {
       var val = st.mapping[field];
@@ -387,19 +435,21 @@
         val === undefined ? "" : String(val),
         function (v) {
           if (v === "") delete st.mapping[field]; else st.mapping[field] = Number(v);
-          remap(slot); renderPanel();
+          remap(slot); t1.mapRows = null; renderPanel();
         })));
     });
     box.appendChild(grid);
 
     var missing = need.filter(function (f) { return st.mapping[f] === undefined; });
-    if (missing.length) {
-      box.appendChild(el("p", "cap err", "연결이 필요한 항목: " + missing.join(", ")));
-    } else {
-      box.appendChild(el("p", "cap ok", "계정 " + (st.accounts ? st.accounts.length : 0) + "개 인식"));
-    }
+    if (missing.length) box.appendChild(el("p", "cap err", "지정이 필요한 컬럼: " + missing.join(", ")));
+    else box.appendChild(el("p", "cap ok", "계정 " + st.accounts.length + "개 인식"));
     return box;
   }
+
+  function neededCols(st) {
+    return ["계정코드", "계정과목"].concat(st.amountMode === "drcr" ? ["차변", "대변"] : ["금액"]);
+  }
+  function colName(i) { return WSExport.colLetter(i); }
 
   function labelled(name, node) {
     var w = el("label", "fcard-field");
@@ -430,7 +480,7 @@
   function loadSheet(slot) {
     var st = t1[slot];
     var sheet = st.wb.Sheets[st.sheetName];
-    st.aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null, blankrows: false });
+    st.aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null, blankrows: true });
     var h = WS.findHeaderRow(st.aoa);
     st.headerRow = h >= 0 ? h : 0;
     st.mapping = WS.guessColumns(st.aoa[st.headerRow] || []);
@@ -441,63 +491,199 @@
   function remap(slot) {
     var st = t1[slot];
     if (!st || !st.aoa) return;
-    var need = ["계정코드", "계정과목"].concat(st.amountMode === "drcr" ? ["차변", "대변"] : ["금액"]);
-    if (need.some(function (f) { return st.mapping[f] === undefined; })) { st.accounts = null; return; }
+    if (neededCols(st).some(function (f) { return st.mapping[f] === undefined; })) {
+      st.accounts = null; return;
+    }
     st.accounts = WS.extractAccounts(st.aoa, st.headerRow, st.mapping, st.amountMode);
   }
 
-  /* ── 매핑 요약 ─────────────────────────────────────── */
-  function mappingSummary() {
-    var m = t1.merged;
-    var box = el("div", "mapsum");
-    var po = m.unmatched.priorOnly, co = m.unmatched.currentOnly;
-    box.innerHTML =
-      '<div class="msum-row">' +
-        '<span class="msum-k">병합된 계정</span><b>' + m.accounts.length + "개</b>" +
-        '<span class="msum-k">전기에만</span><b class="' + (po.length ? "warn" : "") + '">' + po.length + "개</b>" +
-        '<span class="msum-k">당기에만</span><b class="' + (co.length ? "warn" : "") + '">' + co.length + "개</b>" +
-      "</div>";
+  /* ── COA 매핑 화면 ─────────────────────────────────── */
+  function buildMapRows() {
+    // 당기·전기 양쪽의 회사 계정을 한 목록으로 모은다
+    var seen = new Map();
+    [t1.current, t1.prior].forEach(function (st) {
+      (st.accounts || []).forEach(function (a) {
+        var k = String(a.코드 || "").trim() + "|" + COA.norm(a.계정과목);
+        if (!seen.has(k)) seen.set(k, { 코드: a.코드, 계정과목: a.계정과목 });
+      });
+    });
+    t1.mapRows = COA.applyMap(Array.from(seen.values()), t1.prevMap || COA.emptyMap(""));
+  }
 
-    if (po.length || co.length) {
-      var d = el("details", "unmatched");
-      d.appendChild(el("summary", null, "미매핑 계정 보기 (" + (po.length + co.length) + "개)"));
-      var t = el("div", "tbl-wrap");
-      var rows = ['<tr><th>구분</th><th>코드</th><th>계정과목</th><th>금액</th></tr>'];
-      po.forEach(function (a) {
-        rows.push("<tr><td>전기에만</td><td class='k'>" + esc(a.코드) + "</td><td>" + esc(a.계정과목) + "</td><td class='n'>" + num(a.전기말) + "</td></tr>");
+  function coaMapper() {
+    // 이전 기수 매핑을 먼저 찾아본다 (config/coa-map/<회사코드>.json → 브라우저 보관본)
+    if (!t1.mapRows && !t1._mapLoading && t1.prevMap === null) {
+      t1._mapLoading = true;
+      var code = (S.current() || {}).회사코드;
+      S.loadCoaMap(code).then(function (m) {
+        t1._mapLoading = false;
+        t1.prevMap = m && !COA.validateMapShape(m) ? m : COA.emptyMap(code);
+        buildMapRows();
+        renderPanel();
       });
-      co.forEach(function (a) {
-        rows.push("<tr><td>당기에만</td><td class='k'>" + esc(a.코드) + "</td><td>" + esc(a.계정과목) + "</td><td class='n'>" + num(a.당기말_수정전) + "</td></tr>");
-      });
-      t.innerHTML = "<table>" + rows.join("") + "</table>";
-      d.appendChild(t);
-      box.appendChild(d);
+      var box0 = el("div", "adjbox");
+      box0.appendChild(el("p", "cap", "저장된 매핑을 찾는 중입니다…"));
+      return box0;
+    }
+    if (!t1.mapRows) buildMapRows();
+    var box = el("div", "adjbox");
+    var un = COA.unmapped(t1.mapRows);
+
+    var bar = el("div", "msum-row");
+    bar.innerHTML = '<span class="msum-k">회사 계정</span><b>' + t1.mapRows.length + "개</b>"
+      + '<span class="msum-k">매핑 완료</span><b>' + (t1.mapRows.length - un.length) + "개</b>"
+      + '<span class="msum-k">미매핑</span><b class="' + (un.length ? "warn" : "") + '">'
+      + un.length + "개</b>";
+    box.appendChild(bar);
+
+    var acts = el("div", "save-actions");
+    var load = el("button", "mini-btn", "저장된 매핑 불러오기");
+    load.type = "button";
+    load.addEventListener("click", pickMapFile);
+    acts.appendChild(load);
+
+    var save = el("button", "mini-btn", "매핑 저장 (내려받기)");
+    save.type = "button";
+    save.addEventListener("click", function () {
+      var cur = S.current();
+      var m = COA.buildMap(cur.회사코드, t1.mapRows, t1.prevMap);
+      t1.prevMap = m;
+      S.saveCoaMap(cur.회사코드, m);
+      download(JSON.stringify(m, null, 2), safeName(cur.회사코드) + ".json", "application/json");
+    });
+    acts.appendChild(save);
+
+    var only = el("label", "pub-check");
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = t1.showUnmappedOnly !== false;
+    cb.addEventListener("change", function () { t1.showUnmappedOnly = cb.checked; renderPanel(); });
+    only.appendChild(cb);
+    only.appendChild(document.createTextNode("미매핑만 보기"));
+    acts.appendChild(only);
+    box.appendChild(acts);
+
+    if (un.length) {
+      box.appendChild(el("p", "cap err",
+        "미매핑 " + un.length + "개가 남아 있어 정산표를 만들 수 없습니다. 모두 지정해 주세요."));
+    } else {
+      box.appendChild(el("p", "cap ok", "모든 계정이 표준 COA에 연결되었습니다."));
+    }
+
+    var showOnly = t1.showUnmappedOnly !== false;
+    var list = showOnly ? un : t1.mapRows;
+
+    var wrap = el("div", "tbl-wrap");
+    wrap.style.maxHeight = "420px";
+    wrap.style.overflow = "auto";
+    var table = document.createElement("table");
+    table.className = "adjtable";
+    table.innerHTML = "<tr><th>회사 코드</th><th>회사 계정과목명</th><th>표준 COA</th><th>상태</th></tr>";
+
+    list.forEach(function (r) {
+      var tr = document.createElement("tr");
+      tr.appendChild(td(esc(r.회사계정코드), "k"));
+      tr.appendChild(td(esc(r.회사계정과목명)));
+
+      var pick = document.createElement("td");
+      pick.appendChild(coaSelect(r));
+      tr.appendChild(pick);
+
+      var stTd = document.createElement("td");
+      stTd.innerHTML = r.표준COA코드
+        ? '<span class="tag on">' + (r.출처 === "저장" ? "이전 기수" : "확정") + "</span>"
+        : '<span class="tag" style="background:var(--rose);color:var(--rose-t)">확인 필요</span>';
+      tr.appendChild(stTd);
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    box.appendChild(wrap);
+
+    if (showOnly && !un.length) {
+      box.appendChild(el("p", "cap", "미매핑이 없습니다. 전체를 보려면 위 체크를 해제하세요."));
     }
     return box;
   }
 
-  /* ── 분개 입력 ─────────────────────────────────────── */
+  function td(html, cls) {
+    var d = document.createElement("td");
+    if (cls) d.className = cls;
+    d.innerHTML = html;
+    return d;
+  }
+
+  /** 후보 상위 5개를 먼저, 그 아래 전체 목록. 자동 확정은 하지 않는다. */
+  function coaSelect(row) {
+    var s = document.createElement("select");
+    s.appendChild(new Option("— 선택하세요 —", ""));
+
+    var sug = COA.suggest(row.회사계정과목명, t1.coa, 5);
+    var g1 = document.createElement("optgroup");
+    g1.label = "추천 후보";
+    sug.forEach(function (c) {
+      g1.appendChild(new Option(
+        c.표준계정과목명 + " (" + c.코드 + ") · " + Math.round(c.score * 100) + "%", c.코드));
+    });
+    s.appendChild(g1);
+
+    var g2 = document.createElement("optgroup");
+    g2.label = "전체 표준 COA";
+    t1.coa.forEach(function (c) {
+      g2.appendChild(new Option(c.표준계정과목명 + " (" + c.코드 + ")", c.코드));
+    });
+    s.appendChild(g2);
+
+    s.value = row.표준COA코드 || "";
+    s.addEventListener("change", function () {
+      row.표준COA코드 = s.value;
+      row.출처 = s.value ? "확정" : "";
+      renderPanel();
+    });
+    return s;
+  }
+
+  function pickMapFile() {
+    var i = document.createElement("input");
+    i.type = "file";
+    i.accept = ".json,application/json";
+    i.addEventListener("change", function () {
+      var f = i.files && i.files[0];
+      if (!f) return;
+      f.text().then(function (txt) {
+        var obj;
+        try { obj = JSON.parse(txt); } catch (e) { alert("JSON을 읽지 못했습니다: " + e.message); return; }
+        var err = COA.validateMapShape(obj);
+        if (err) { alert("매핑 파일이 아닙니다 — " + err); return; }
+        t1.prevMap = obj;
+        buildMapRows();
+        renderPanel();
+      });
+    });
+    i.click();
+  }
+
+  /* ── 수정·재분류분개 ───────────────────────────────── */
   function adjustEditor() {
     var box = el("div", "adjbox");
-    var t = el("div", "tbl-wrap");
+    var wrap = el("div", "tbl-wrap");
     var table = document.createElement("table");
     table.className = "adjtable";
-    table.innerHTML = "<tr><th>번호</th><th>구분</th><th>차변계정</th><th>대변계정</th>"
+    table.innerHTML = "<tr><th>번호</th><th>구분</th><th>차변코드</th><th>대변코드</th>"
       + "<th>금액</th><th>적요</th><th>조서참조</th><th></th></tr>";
 
     t1.adjustments.forEach(function (j, idx) {
       var tr = document.createElement("tr");
-      tr.appendChild(cellInput(j, "번호", "text", "1", idx));
-      var td = document.createElement("td");
-      td.appendChild(selectOf([["수정", "수정"], ["재분류", "재분류"]], j.구분 || "수정", function (v) {
+      tr.appendChild(cellInput(j, "번호", "text", "1"));
+      var g = document.createElement("td");
+      g.appendChild(selectOf([["수정", "수정"], ["재분류", "재분류"]], j.구분 || "수정", function (v) {
         j.구분 = v; refreshCalc();
       }));
-      tr.appendChild(td);
-      tr.appendChild(cellInput(j, "차변계정", "text", "8200", idx));
-      tr.appendChild(cellInput(j, "대변계정", "text", "2100", idx));
-      tr.appendChild(cellInput(j, "금액", "number", "0", idx));
-      tr.appendChild(cellInput(j, "적요", "text", "", idx));
-      tr.appendChild(cellInput(j, "조서참조", "text", "A-01", idx));
+      tr.appendChild(g);
+      tr.appendChild(cellInput(j, "차변계정", "text", "6350"));
+      tr.appendChild(cellInput(j, "대변계정", "text", "2100"));
+      tr.appendChild(cellInput(j, "금액", "number", "0"));
+      tr.appendChild(cellInput(j, "적요", "text", ""));
+      tr.appendChild(cellInput(j, "조서참조", "text", "A-01"));
 
       var del = document.createElement("td");
       var b = el("button", "mini-btn", "삭제");
@@ -507,23 +693,23 @@
       tr.appendChild(del);
       table.appendChild(tr);
     });
-    t.appendChild(table);
-    box.appendChild(t);
+    wrap.appendChild(table);
+    box.appendChild(wrap);
 
     var add = el("button", "mini-btn", "+ 분개 추가");
     add.type = "button";
     add.style.marginTop = "10px";
     add.addEventListener("click", function () {
-      var next = String(t1.adjustments.length + 1);
-      t1.adjustments.push({ 번호: next, 구분: "수정", 차변계정: "", 대변계정: "", 금액: 0, 적요: "", 조서참조: "" });
+      t1.adjustments.push({ 번호: String(t1.adjustments.length + 1), 구분: "수정",
+        차변계정: "", 대변계정: "", 금액: 0, 적요: "", 조서참조: "" });
       renderPanel();
     });
     box.appendChild(add);
     return box;
   }
 
-  function cellInput(obj, key, type, ph, idx) {
-    var td = document.createElement("td");
+  function cellInput(obj, key, type, ph) {
+    var d = document.createElement("td");
     var i = document.createElement("input");
     i.type = type;
     i.placeholder = ph;
@@ -532,69 +718,167 @@
       obj[key] = type === "number" ? WS.toNumber(i.value) : i.value;
       refreshCalc();
     });
-    td.appendChild(i);
-    return td;
+    d.appendChild(i);
+    return d;
   }
 
-  /** 표·검증만 다시 그린다 (입력 포커스를 잃지 않도록 전체 렌더는 피한다) */
   function refreshCalc() {
-    var tbl = document.querySelector("#sub-panel .wstable-host");
+    var host = document.querySelector("#sub-panel .wstable-host");
     var sav = document.querySelector("#sub-panel .savehost");
-    if (tbl) { tbl.innerHTML = ""; tbl.appendChild(worksheetTableInner()); }
+    if (host) { host.innerHTML = ""; host.appendChild(previewTableInner()); }
     if (sav) { sav.innerHTML = ""; sav.appendChild(saveBlockInner()); }
   }
 
-  /* ── 정산표 표 ─────────────────────────────────────── */
-  function computed() {
-    return WS.applyAdjustments(t1.merged.accounts, t1.adjustments);
+  /* ── 계산 ──────────────────────────────────────────── */
+  function computeRows() {
+    var curSums = WS.aggregateByCoa(t1.current.accounts, t1.mapRows);
+    var priorSums = WS.aggregateByCoa(t1.prior.accounts, t1.mapRows);
+    return WS.buildRows(t1.coa, curSums, priorSums, t1.adjustments);
   }
 
-  function worksheetTable() {
+  function previewTable() {
     var host = el("div", "wstable-host");
-    host.appendChild(worksheetTableInner());
+    host.appendChild(previewTableInner());
     return host;
   }
 
-  function worksheetTableInner() {
-    var accts = computed();
+  function previewTableInner() {
+    var rows = computeRows();
+    t1.rows = rows;
+    var cur = S.current();
+    var material = Math.abs(Number(cur.중요성금액) || 0);
+
     var wrap = el("div", "tbl-wrap");
-    var rows = ["<tr><th>코드</th><th>계정과목</th><th>구분</th><th>전기말</th>"
-      + "<th>당기말 수정전</th><th>수정분개</th><th>재분류</th><th>당기말 수정후</th></tr>"];
+    wrap.style.maxHeight = "440px";
+    wrap.style.overflow = "auto";
+    var out = ["<tr><th>COA</th><th>계정과목명</th><th>전기</th><th>당기</th><th>수정분개</th>"
+      + "<th>수정후</th><th>증감액</th><th>증감비율</th><th>증감사유</th></tr>"];
 
-    accts.forEach(function (a) {
-      var changed = a.수정분개액 || a.재분류액;
-      rows.push("<tr" + (changed ? ' class="flag"' : "") + ">"
-        + "<td class='k'>" + esc(a.코드) + "</td>"
-        + "<td>" + esc(a.계정과목) + "</td>"
-        + "<td>" + esc(a.구분) + "</td>"
-        + "<td class='n'>" + num(a.전기말) + "</td>"
-        + "<td class='n'>" + num(a.당기말_수정전) + "</td>"
-        + "<td class='n'>" + (a.수정분개액 ? num(a.수정분개액) : "-") + "</td>"
-        + "<td class='n'>" + (a.재분류액 ? num(a.재분류액) : "-") + "</td>"
-        + "<td class='n'>" + num(a.당기말_수정후) + "</td></tr>");
-    });
-
-    function tot(k) { return accts.reduce(function (s, a) { return s + a[k]; }, 0); }
-    rows.push("<tr class='sum'><td></td><td>합계</td><td></td>"
-      + "<td class='n'>" + num(tot("전기말")) + "</td>"
-      + "<td class='n'>" + num(tot("당기말_수정전")) + "</td>"
-      + "<td class='n'>" + num(tot("수정분개액")) + "</td>"
-      + "<td class='n'>" + num(tot("재분류액")) + "</td>"
-      + "<td class='n'>" + num(tot("당기말_수정후")) + "</td></tr>");
+    function line(r) {
+      var big = material && Math.abs(r.증감액) >= material;
+      var reason = t1.reasons[r.코드];
+      out.push("<tr" + (big ? ' class="flag"' : "") + ">"
+        + "<td class='k'>" + esc(r.코드) + "</td>"
+        + "<td>" + esc(r.계정과목명) + "</td>"
+        + "<td class='n'>" + num(r.전기) + "</td>"
+        + "<td class='n'>" + num(r.당기) + "</td>"
+        + "<td class='n'>" + (r.수정분개 ? num(r.수정분개) : "-") + "</td>"
+        + "<td class='n'>" + num(r.수정후) + "</td>"
+        + "<td class='n'>" + num(r.증감액) + "</td>"
+        + "<td class='n'>" + (r.증감비율 === null ? "" : (r.증감비율 * 100).toFixed(1) + "%") + "</td>"
+        + "<td style='white-space:normal;max-width:280px'>"
+        + (reason ? "<span class='tag' style='background:var(--indigo-l);color:var(--indigo-d)'>초안</span> "
+          + esc(reason.text) : "") + "</td></tr>");
+    }
+    function subtotal(label, list) {
+      if (!list.length) return;
+      function s(k) { return list.reduce(function (a, r) { return a + r[k]; }, 0); }
+      out.push("<tr class='sum'><td></td><td>" + label + "</td>"
+        + "<td class='n'>" + num(s("전기")) + "</td><td class='n'>" + num(s("당기")) + "</td>"
+        + "<td class='n'>" + num(s("수정분개")) + "</td><td class='n'>" + num(s("수정후")) + "</td>"
+        + "<td class='n'>" + num(s("증감액")) + "</td><td></td><td></td></tr>");
+    }
+    var bs = rows.filter(function (r) { return r.구분 !== "PL"; });
+    var pl = rows.filter(function (r) { return r.구분 === "PL"; });
+    bs.forEach(line); subtotal("BS 소계", bs);
+    pl.forEach(line); subtotal("PL 소계", pl);
 
     var table = document.createElement("table");
-    table.innerHTML = rows.join("");
+    table.innerHTML = out.join("");
     wrap.appendChild(table);
 
-    var note = el("p", "cap", "합계는 0이어야 차대가 맞습니다 (차변 양수 · 대변 음수 규약). "
-      + "계정 " + accts.length + "개.");
     var box = el("div");
     box.appendChild(wrap);
-    box.appendChild(note);
+    box.appendChild(el("p", "cap", "계정 " + rows.length + "개 · 노란 행은 증감액이 중요성금액("
+      + num(material) + ") 이상입니다. 대변 항목은 음수로 표시됩니다."));
     return box;
   }
 
-  /* ── 검증·저장 ─────────────────────────────────────── */
+  /* ── 증감사유 초안 ─────────────────────────────────── */
+  function reasonBlock() {
+    var box = el("div", "adjbox");
+    var cur = S.current();
+    var rows = t1.rows || computeRows();
+    var material = WS.materialRows(rows, cur.중요성금액);
+
+    if (!material.length) {
+      box.appendChild(el("p", "cap", "중요성금액("
+        + num(Number(cur.중요성금액) || 0) + ") 이상 변동한 계정이 없습니다. 증감사유는 비워 둡니다."));
+      return box;
+    }
+
+    box.appendChild(el("p", "cap", "대상 " + material.length + "개 계정 · "
+      + "아래 프롬프트를 복사해 audit-fs-analyzer 에 넘기고, 돌아온 JSON을 붙여넣으세요."));
+
+    var acts = el("div", "save-actions");
+    acts.appendChild(copyButton("프롬프트 복사", function () {
+      return WS.reasonPrompt(rows, cur.중요성금액);
+    }));
+    var badge = el("span", "agent-badge", "🤖 audit-fs-analyzer");
+    acts.appendChild(badge);
+    box.appendChild(acts);
+
+    var ta = document.createElement("textarea");
+    ta.className = "reason-in";
+    ta.rows = 4;
+    ta.placeholder = '{"1200":"매출채권이 … 확인할 것.", "1400":"…"}';
+    box.appendChild(ta);
+
+    var msg = el("p", "cap");
+    var apply = el("button", "mini-btn", "초안 반영");
+    apply.type = "button";
+    apply.addEventListener("click", function () {
+      var r = WS.parseReasons(ta.value, rows);
+      if (r.error) { msg.className = "cap err"; msg.textContent = r.error; return; }
+      t1.reasons = Object.assign({}, t1.reasons, r.reasons);
+      msg.className = "cap ok";
+      msg.textContent = r.count + "개 반영했습니다."
+        + (r.unknown.length ? " 정산표에 없는 코드 " + r.unknown.length + "개는 버렸습니다." : "");
+      renderPanel();
+    });
+    var act2 = el("div", "save-actions");
+    act2.appendChild(apply);
+    if (Object.keys(t1.reasons).length) {
+      var clr = el("button", "mini-btn", "초안 지우기");
+      clr.type = "button";
+      clr.addEventListener("click", function () { t1.reasons = {}; renderPanel(); });
+      act2.appendChild(clr);
+      act2.appendChild(el("span", "cap", Object.keys(t1.reasons).length + "개 초안 보관 중"));
+    }
+    box.appendChild(act2);
+    box.appendChild(msg);
+    return box;
+  }
+
+  function copyButton(label, getText) {
+    var b = el("button", "copy-btn", label);
+    b.type = "button";
+    b.addEventListener("click", function () {
+      var text = getText();
+      var done = function () {
+        var old = b.textContent;
+        b.textContent = "복사됨 ✓";
+        setTimeout(function () { b.textContent = old; }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+      } else { fallbackCopy(text); done(); }
+    });
+    return b;
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  /* ── 검증·생성 ─────────────────────────────────────── */
   function saveBlock() {
     var host = el("div", "savehost");
     host.appendChild(saveBlockInner());
@@ -602,21 +886,22 @@
   }
 
   function saveBlockInner() {
-    var accts = computed();
-    var codes = accts.map(function (a) { return a.코드; }).filter(Boolean);
+    var rows = t1.rows || computeRows();
+    var codes = rows.map(function (r) { return r.코드; });
     var vAdj = WS.verifyAdjustments(t1.adjustments, codes);
-    var vBal = WS.verifyBalance(accts);
+    var vBal = WS.verifyBalance(rows);
     var ok = vAdj.ok && vBal.ok;
 
     var box = el("div");
     var card = el("div", "verify " + (ok ? "good" : "bad"));
-    card.innerHTML = "<b>" + (ok ? "차대가 맞습니다. 저장할 수 있습니다."
-      : "차대가 맞지 않아 저장할 수 없습니다.") + "</b>";
+    card.innerHTML = "<b>" + (ok ? "차대가 맞습니다. 정산표를 만들 수 있습니다."
+      : "차대가 맞지 않아 만들 수 없습니다.") + "</b>";
 
     var ul = el("ul", "vlist");
-    ul.appendChild(li("정산표 합계 (당기말 수정후)", vBal.당기말_수정후, vBal.ok));
-    ul.appendChild(li("당기말 수정전 합계", vBal.당기말_수정전, vBal.균형.당기말_수정전));
-    ul.appendChild(li("전기말 합계", vBal.전기말, vBal.균형.전기말));
+    ul.appendChild(li("정산표 수정후 총합 (차대일치)", vBal.수정후, vBal.균형.차대일치));
+    ul.appendChild(li("자산 - (부채+자본+당기순손익)", vBal.자산_부채자본_차이, vBal.균형.자산_부채자본));
+    ul.appendChild(li("자산 합계", vBal.자산, true));
+    ul.appendChild(li("당기순손익", vBal.당기순손익, true));
     if (t1.adjustments.length) {
       ul.appendChild(li("분개 차액 합계", vAdj.차액합계, Math.abs(vAdj.차액합계) < 0.5));
     }
@@ -630,33 +915,41 @@
     box.appendChild(card);
 
     var actions = el("div", "save-actions");
+    var bXlsx = el("button", "copy-btn", "정산표 xlsx 만들기");
+    bXlsx.type = "button";
+    bXlsx.disabled = !ok;
+    bXlsx.addEventListener("click", function () {
+      bXlsx.disabled = true;
+      var old = bXlsx.textContent;
+      bXlsx.textContent = "만드는 중…";
+      exportXlsx(rows, vBal).then(function () {
+        bXlsx.textContent = old; bXlsx.disabled = false;
+      }).catch(function (err) {
+        alert("엑셀을 만들지 못했습니다 — " + err.message);
+        bXlsx.textContent = old; bXlsx.disabled = false;
+      });
+    });
+    actions.appendChild(bXlsx);
 
-    var bSave = el("button", "copy-btn", "정산표 저장");
-    bSave.type = "button";
-    bSave.disabled = !ok;
-    bSave.addEventListener("click", function () {
+    var bJson = el("button", "mini-btn", "worksheet.json 저장");
+    bJson.type = "button";
+    bJson.disabled = !ok;
+    bJson.addEventListener("click", function () {
       var cur = S.current();
-      var ws = WS.build(stripId(cur), t1.merged.accounts, t1.adjustments);
+      var ws = WS.build(stripId(cur), rows, t1.adjustments, t1.reasons);
       S.saveWorksheet(ws).then(function () {
         download(JSON.stringify(ws, null, 2), "worksheet.json", "application/json");
         renderAll();
       });
     });
-    actions.appendChild(bSave);
-
-    var bXlsx = el("button", "mini-btn", "정산표 xlsx 내려받기");
-    bXlsx.type = "button";
-    bXlsx.disabled = !ok;
-    bXlsx.addEventListener("click", function () { exportXlsx(accts, vAdj); });
-    actions.appendChild(bXlsx);
-
+    actions.appendChild(bJson);
     box.appendChild(actions);
 
     var cur = S.current();
-    if (cur) {
-      box.appendChild(el("p", "cap", "내려받은 파일은 " + esc(S.workPath(cur))
-        + " 에 넣어 두세요. 이 폴더는 .gitignore로 막혀 있어 저장소에 올라가지 않습니다."));
-    }
+    box.appendChild(el("p", "cap", "내려받은 파일은 " + esc(S.workPath(cur))
+      + " 에 넣어 두세요. 이 폴더는 .gitignore로 막혀 있어 저장소에 올라가지 않습니다."));
+    box.appendChild(el("p", "cap", "정산표 시트의 전기·당기·수정분개·수정후·증감액·증감비율은 값이 아니라 "
+      + "SUMIFS 수식입니다. PBC 시트나 수정분개 시트를 엑셀에서 고치면 정산표가 따라 갱신됩니다."));
     return box;
   }
 
@@ -666,67 +959,51 @@
     return l;
   }
 
-  /* ── 산출물 ────────────────────────────────────────── */
-  function exportXlsx(accts, vAdj) {
-    var cur = S.current();
-    var wb = XLSX.utils.book_new();
-
-    var head = ["코드", "계정과목", "구분", "전기말", "당기말_수정전", "수정분개", "재분류", "당기말_수정후"];
-    var aoa = [
-      [(cur.회사명 || "") + " 정산표"],
-      ["결산일 " + cur.결산일 + " · 작성 " + (cur.작성자 || "-") + " · 검토 " + (cur.검토자 || "-")],
-      ["차변 양수 · 대변 음수 규약. 합계는 0이어야 합니다."],
-      [],
-      head,
-    ];
-    accts.forEach(function (a) {
-      aoa.push([a.코드, a.계정과목, a.구분, a.전기말, a.당기말_수정전, a.수정분개액, a.재분류액, a.당기말_수정후]);
+  /* ── xlsx 생성 ─────────────────────────────────────── */
+  /** 원본 각 행에 붙일 표준COA코드 배열 (행 번호 → 코드) */
+  function coaOfRows(st) {
+    var byName = new Map(), byCode = new Map();
+    t1.mapRows.forEach(function (m) {
+      if (!m.표준COA코드) return;
+      if (m.회사계정과목명) byName.set(COA.norm(m.회사계정과목명), m.표준COA코드);
+      if (m.회사계정코드) byCode.set(String(m.회사계정코드).trim(), m.표준COA코드);
     });
-    var first = 6, last = 5 + accts.length;
-    var totalAt = last + 1;                       // 합계 행 (1-based)
-    aoa.push(["", "합계", "", null, null, null, null, null]);
-
-    var ws1 = XLSX.utils.aoa_to_sheet(aoa);
-    // 합계는 =SUM() 수식으로 넣는다 — 숫자를 고치면 엑셀에서 다시 계산되도록.
-    // 수식만 있고 캐시값이 없으면 기록에서 빠지므로 계산값(v)도 함께 넣는다.
-    var sumKeys = ["전기말", "당기말_수정전", "수정분개액", "재분류액", "당기말_수정후"];
-    ["D", "E", "F", "G", "H"].forEach(function (c, i) {
-      var v = accts.reduce(function (s, a) { return s + (a[sumKeys[i]] || 0); }, 0);
-      ws1[c + totalAt] = { t: "n", v: v, f: "SUM(" + c + first + ":" + c + last + ")" };
-    });
-    ws1["!cols"] = [{ wch: 10 }, { wch: 24 }, { wch: 6 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 16 }];
-    ws1["!freeze"] = { xSplit: 0, ySplit: 5 };
-    XLSX.utils.book_append_sheet(wb, ws1, "정산표");
-
-    if (t1.adjustments.length) {
-      var a2 = [["번호", "구분", "차변계정", "대변계정", "금액", "적요", "조서참조"]];
-      t1.adjustments.forEach(function (j) {
-        a2.push([j.번호, j.구분 || "수정", j.차변계정, j.대변계정, WS.toNumber(j.금액), j.적요, j.조서참조]);
-      });
-      a2.push([]);
-      a2.push(["번호별 차대"]);
-      a2.push(["구분", "번호", "차변", "대변", "차액"]);
-      vAdj.entries.forEach(function (g) { a2.push([g.구분, g.번호, g.차변, g.대변, g.차액]); });
-      var ws2 = XLSX.utils.aoa_to_sheet(a2);
-      ws2["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, ws2, "수정분개");
+    var out = [];
+    for (var i = st.headerRow + 1; i < st.aoa.length; i++) {
+      var row = st.aoa[i] || [];
+      var code = String(row[st.mapping["계정코드"]] === undefined ? "" : row[st.mapping["계정코드"]]).trim();
+      var name = String(row[st.mapping["계정과목"]] === undefined ? "" : row[st.mapping["계정과목"]]).trim();
+      var coa = byCode.get(code);
+      if (coa === undefined) coa = byName.get(COA.norm(name));
+      out[i] = coa || "";
     }
-
-    var un = t1.merged.unmatched;
-    if (un.priorOnly.length || un.currentOnly.length) {
-      var a3 = [["구분", "코드", "계정과목", "금액"]];
-      un.priorOnly.forEach(function (a) { a3.push(["전기에만", a.코드, a.계정과목, a.전기말]); });
-      un.currentOnly.forEach(function (a) { a3.push(["당기에만", a.코드, a.계정과목, a.당기말_수정전]); });
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(a3), "미매핑");
-    }
-
-    // 파일명은 ASCII로 — 일부 브라우저가 download 속성에 한글이 있으면 이름을 버린다
-    var name = safeName("FY" + String(cur.결산일).slice(2, 4) + "_"
-      + (cur.회사코드 || "company") + "_worksheet") + ".xlsx";
-    // writeFile 대신 직접 내려받는다 — 파일명을 확실히 잡기 위해
-    var buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    download(buf, name, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    return out;
   }
+
+  function amountCols(st) {
+    return st.amountMode === "drcr"
+      ? [st.mapping["차변"], st.mapping["대변"]]
+      : [st.mapping["금액"]];
+  }
+
+  function exportXlsx(rows, vBal) {
+    var cur = S.current();
+    return WSExport.build({
+      meta: stripId(cur),
+      pbcCurrent: { aoa: t1.current.aoa, headerRow: t1.current.headerRow, amountCols: amountCols(t1.current) },
+      pbcPrior: { aoa: t1.prior.aoa, headerRow: t1.prior.headerRow, amountCols: amountCols(t1.prior) },
+      coaOfRow: { current: coaOfRows(t1.current), prior: coaOfRows(t1.prior) },
+      adjustments: t1.adjustments,
+      rows: rows,
+      reasons: t1.reasons,
+      checks: [],
+    }).then(function (buf) {
+      var name = safeName("FY" + String(cur.결산일).slice(2, 4) + "_"
+        + (cur.회사코드 || "company") + "_worksheet") + ".xlsx";
+      download(buf, name, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    });
+  }
+
 
   /** 브라우저가 확실히 지켜주는 이름으로 (비ASCII·경로문자 제거) */
   function safeName(s) {

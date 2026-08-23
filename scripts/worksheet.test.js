@@ -62,171 +62,235 @@ test("계정코드 첫 자리로 구분", () => {
   assert.strictEqual(WS.inferSection("", "매출원가"), "PL", "코드 없으면 이름으로");
 });
 
-console.log("전기·당기 병합");
+console.log("표준COA 집계");
 
-const prior = [
-  { 코드: "1100", 계정과목: "현금", 잔액: 500 },
-  { 코드: "2100", 계정과목: "매입채무", 잔액: -500 },
-  { 코드: "1300", 계정과목: "선급금", 잔액: 100 },   // 당기에 없음
+const coaList = [
+  { 코드: "1100", 표준계정과목명: "현금및현금성자산", 구분: "BS", 대분류: "자산", 표시순서: 10 },
+  { 코드: "1200", 표준계정과목명: "매출채권", 구분: "BS", 대분류: "자산", 표시순서: 20 },
+  { 코드: "2100", 표준계정과목명: "매입채무", 구분: "BS", 대분류: "부채", 표시순서: 30 },
+  { 코드: "3100", 표준계정과목명: "자본금", 구분: "BS", 대분류: "자본", 표시순서: 40 },
+  { 코드: "4100", 표준계정과목명: "매출", 구분: "PL", 대분류: "수익", 표시순서: 50 },
+  { 코드: "6350", 표준계정과목명: "지급수수료", 구분: "PL", 대분류: "비용", 표시순서: 60 },
 ];
-const current = [
-  { 코드: "1100", 계정과목: "현금", 잔액: 800 },
-  { 코드: "2100", 계정과목: "매입채무", 잔액: -300 },
-  { 코드: "8200", 계정과목: "지급수수료", 잔액: 200 },  // 전기에 없음
-  { 코드: "4100", 계정과목: "매출", 잔액: -700 },
+// 회사 계정과목명이 표준과 다르고, 여러 계정이 한 COA로 모이는 경우를 함께 본다
+const mapRows = [
+  { 회사계정코드: "101", 회사계정과목명: "현금", 표준COA코드: "1100" },
+  { 회사계정코드: "103", 회사계정과목명: "보통예금", 표준COA코드: "1100" },
+  { 회사계정코드: "108", 회사계정과목명: "외상매출금", 표준COA코드: "1200" },
+  { 회사계정코드: "251", 회사계정과목명: "외상매입금", 표준COA코드: "2100" },
+  { 회사계정코드: "331", 회사계정과목명: "자본금", 표준COA코드: "3100" },
+  { 회사계정코드: "401", 회사계정과목명: "제품매출", 표준COA코드: "4100" },
+  { 회사계정코드: "831", 회사계정과목명: "지급수수료", 표준COA코드: "6350" },
+];
+const curAcc = [
+  { 코드: "101", 계정과목: "현금", 잔액: 300000 },
+  { 코드: "103", 계정과목: "보통예금", 잔액: 500000 },
+  { 코드: "108", 계정과목: "외상매출금", 잔액: 450000 },
+  { 코드: "251", 계정과목: "외상매입금", 잔액: -300000 },
+  { 코드: "331", 계정과목: "자본금", 잔액: -300000 },
+  { 코드: "401", 계정과목: "제품매출", 잔액: -1650000 },
+  { 코드: "831", 계정과목: "지급수수료", 잔액: 1000000 },
+];
+const priorAcc = [
+  { 코드: "101", 계정과목: "현금", 잔액: 500000 },
+  { 코드: "108", 계정과목: "외상매출금", 잔액: 300000 },
+  { 코드: "251", 계정과목: "외상매입금", 잔액: -400000 },
+  { 코드: "331", 계정과목: "자본금", 잔액: -300000 },
+  { 코드: "401", 계정과목: "제품매출", 잔액: -900000 },
+  { 코드: "831", 계정과목: "지급수수료", 잔액: 800000 },
 ];
 
-test("계정코드 기준으로 맞추고 미매핑을 따로 뽑는다", () => {
-  const { accounts, unmatched } = WS.mergeAccounts(prior, current);
-  const by = Object.fromEntries(accounts.map(a => [a.코드, a]));
-
-  assert.strictEqual(by["1100"].전기말, 500);
-  assert.strictEqual(by["1100"].당기말_수정전, 800);
-
-  assert.strictEqual(by["1300"].전기말, 100);
-  assert.strictEqual(by["1300"].당기말_수정전, 0, "전기에만 있는 계정도 남긴다");
-
-  assert.strictEqual(by["8200"].전기말, 0);
-  assert.strictEqual(by["8200"].당기말_수정전, 200);
-
-  assert.deepStrictEqual(unmatched.priorOnly.map(x => x.코드), ["1300"]);
-  assert.deepStrictEqual(unmatched.currentOnly.map(x => x.코드).sort(), ["4100", "8200"]);
+test("여러 회사계정이 한 표준COA로 합쳐진다", () => {
+  const sums = WS.aggregateByCoa(curAcc, mapRows);
+  assert.strictEqual(sums.get("1100"), 800000, "현금 + 보통예금");
+  assert.strictEqual(sums.get("1200"), 450000);
 });
 
-test("코드가 없으면 계정과목으로 매칭", () => {
-  const { accounts } = WS.mergeAccounts(
-    [{ 코드: "", 계정과목: "현 금", 잔액: 100 }],
-    [{ 코드: "", 계정과목: "현금", 잔액: 300 }]
-  );
-  assert.strictEqual(accounts.length, 1, "공백 차이는 같은 계정으로 본다");
-  assert.strictEqual(accounts[0].전기말, 100);
-  assert.strictEqual(accounts[0].당기말_수정전, 300);
+test("매핑되지 않은 계정은 집계에서 빠진다", () => {
+  const sums = WS.aggregateByCoa(
+    curAcc.concat([{ 코드: "999", 계정과목: "미매핑계정", 잔액: 12345 }]), mapRows);
+  const total = Array.from(sums.values()).reduce((a, b) => a + b, 0);
+  assert.strictEqual(total, 0, "매핑된 것만 합하면 차대가 맞는다");
 });
 
-console.log("분개 반영");
+console.log("정산표 행");
 
-const { accounts: base } = WS.mergeAccounts(prior, current);
+const curSums = WS.aggregateByCoa(curAcc, mapRows);
+const priorSums = WS.aggregateByCoa(priorAcc, mapRows);
 
-test("수정분개와 재분류를 컬럼별로 나눠 반영", () => {
+test("9열 정산표 행을 표시순서대로 만든다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  assert.deepStrictEqual(rows.map(r => r.코드), ["1100", "1200", "2100", "3100", "4100", "6350"]);
+  const cash = rows[0];
+  assert.strictEqual(cash.전기, 500000);
+  assert.strictEqual(cash.당기, 800000);
+  assert.strictEqual(cash.수정분개, 0);
+  assert.strictEqual(cash.수정후, 800000);
+  assert.strictEqual(cash.증감액, 300000);
+  assert.ok(Math.abs(cash.증감비율 - 0.6) < 1e-9);
+});
+
+test("어느 쪽에도 없는 COA는 행으로 만들지 않는다", () => {
+  const extra = coaList.concat([{ 코드: "9999", 표준계정과목명: "안쓰는계정", 구분: "PL", 표시순서: 99 }]);
+  const rows = WS.buildRows(extra, curSums, priorSums, []);
+  assert.ok(!rows.some(r => r.코드 === "9999"));
+});
+
+test("전기가 0이면 증감비율은 null (엑셀에서 공란)", () => {
+  const rows = WS.buildRows(coaList, curSums, new Map(), []);
+  rows.forEach(r => assert.strictEqual(r.증감비율, null));
+});
+
+test("수정분개가 표준COA 단위로 반영된다", () => {
   const adj = [
-    { 번호: 1, 구분: "수정", 차변계정: "8200", 대변계정: "2100", 금액: 50, 적요: "미지급 수수료" },
-    { 번호: 2, 구분: "재분류", 차변계정: "1300", 대변계정: "1100", 금액: 30, 적요: "선급금 대체" },
+    { 번호: 1, 구분: "수정", 차변계정: "6350", 대변계정: "2100", 금액: 50000 },
+    { 번호: 2, 구분: "재분류", 차변계정: "1200", 대변계정: "1100", 금액: 30000 },
   ];
-  const out = WS.applyAdjustments(base, adj);
-  const by = Object.fromEntries(out.map(a => [a.코드, a]));
-
-  assert.strictEqual(by["8200"].수정분개액, 50);
-  assert.strictEqual(by["2100"].수정분개액, -50);
-  assert.strictEqual(by["8200"].재분류액, 0, "수정과 재분류는 섞이지 않는다");
-
-  assert.strictEqual(by["1300"].재분류액, 30);
-  assert.strictEqual(by["1100"].재분류액, -30);
-
-  assert.strictEqual(by["8200"].당기말_수정후, 200 + 50);
-  assert.strictEqual(by["1100"].당기말_수정후, 800 - 30);
+  const rows = WS.buildRows(coaList, curSums, priorSums, adj);
+  const by = Object.fromEntries(rows.map(r => [r.코드, r]));
+  assert.strictEqual(by["6350"].수정분개, 50000);
+  assert.strictEqual(by["2100"].수정분개, -50000);
+  assert.strictEqual(by["6350"].수정후, 1000000 + 50000);
+  assert.strictEqual(by["1100"].수정분개, -30000, "재분류도 같은 열에 합산된다");
+  assert.strictEqual(by["1200"].수정분개, 30000);
 });
 
-test("원본 배열을 바꾸지 않는다", () => {
-  const before = JSON.stringify(base);
-  WS.applyAdjustments(base, [{ 번호: 1, 차변계정: "1100", 대변계정: "4100", 금액: 999 }]);
-  assert.strictEqual(JSON.stringify(base), before);
+test("두 번 만들어도 누적되지 않는다", () => {
+  const adj = [{ 번호: 1, 차변계정: "6350", 대변계정: "2100", 금액: 50000 }];
+  const a = WS.buildRows(coaList, curSums, priorSums, adj);
+  const b = WS.buildRows(coaList, curSums, priorSums, adj);
+  assert.strictEqual(a.find(r => r.코드 === "6350").수정분개,
+                     b.find(r => r.코드 === "6350").수정분개);
 });
 
-test("두 번 적용해도 누적되지 않는다", () => {
-  const adj = [{ 번호: 1, 차변계정: "8200", 대변계정: "2100", 금액: 50 }];
-  const once = WS.applyAdjustments(base, adj);
-  const twice = WS.applyAdjustments(once, adj);
-  const a = twice.find(x => x.코드 === "8200");
-  assert.strictEqual(a.수정분개액, 50, "재계산이므로 100이 되면 안 된다");
+console.log("중요성");
+
+test("중요성금액 이상 변동한 행만 뽑는다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const m = WS.materialRows(rows, 200000);
+  const codes = m.map(r => r.코드).sort();
+  // 매출 -750,000 / 지급수수료 +200,000 / 현금 +300,000
+  assert.ok(codes.includes("4100") && codes.includes("1100") && codes.includes("6350"));
+  assert.ok(!codes.includes("3100"), "변동 없는 자본금은 빠진다");
+});
+
+test("중요성금액이 0이면 대상 없음", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  assert.strictEqual(WS.materialRows(rows, 0).length, 0);
 });
 
 console.log("차대 검증");
 
 test("정상 분개는 통과", () => {
   const r = WS.verifyAdjustments(
-    [{ 번호: 1, 차변계정: "8200", 대변계정: "2100", 금액: 50 }],
-    ["8200", "2100"]
-  );
+    [{ 번호: 1, 차변계정: "6350", 대변계정: "2100", 금액: 50 }], ["6350", "2100"]);
   assert.ok(r.ok, r.errors.join(" / "));
   assert.strictEqual(r.차액합계, 0);
 });
 
 test("복합분개(한쪽만 입력)의 차대 불일치를 잡는다", () => {
   const r = WS.verifyAdjustments([
-    { 번호: 3, 차변계정: "8200", 대변계정: "", 금액: 70 },
+    { 번호: 3, 차변계정: "6350", 대변계정: "", 금액: 70 },
     { 번호: 3, 차변계정: "", 대변계정: "2100", 금액: 50 },
-  ], ["8200", "2100"]);
+  ], ["6350", "2100"]);
   assert.ok(!r.ok);
   assert.ok(r.errors.some(e => /차대 불일치/.test(e)), r.errors.join(" / "));
   assert.strictEqual(r.차액합계, 20);
 });
 
-test("복합분개가 맞으면 통과", () => {
-  const r = WS.verifyAdjustments([
-    { 번호: 3, 차변계정: "8200", 대변계정: "", 금액: 70 },
-    { 번호: 3, 차변계정: "", 대변계정: "2100", 금액: 50 },
-    { 번호: 3, 차변계정: "", 대변계정: "1100", 금액: 20 },
-  ], ["8200", "2100", "1100"]);
-  assert.ok(r.ok, r.errors.join(" / "));
-});
-
 test("같은 번호라도 수정과 재분류는 따로 본다", () => {
   const r = WS.verifyAdjustments([
-    { 번호: 1, 구분: "수정", 차변계정: "8200", 대변계정: "2100", 금액: 50 },
-    { 번호: 1, 구분: "재분류", 차변계정: "1300", 대변계정: "1100", 금액: 30 },
-  ], ["8200", "2100", "1300", "1100"]);
+    { 번호: 1, 구분: "수정", 차변계정: "6350", 대변계정: "2100", 금액: 50 },
+    { 번호: 1, 구분: "재분류", 차변계정: "1200", 대변계정: "1100", 금액: 30 },
+  ], ["6350", "2100", "1200", "1100"]);
   assert.ok(r.ok, r.errors.join(" / "));
   assert.strictEqual(r.entries.length, 2);
 });
 
-test("정산표에 없는 계정코드를 잡는다", () => {
+test("정산표에 없는 COA 코드를 잡는다", () => {
   const r = WS.verifyAdjustments(
-    [{ 번호: 1, 차변계정: "9999", 대변계정: "2100", 금액: 50 }],
-    ["8200", "2100"]
-  );
+    [{ 번호: 1, 차변계정: "9999", 대변계정: "2100", 금액: 50 }], ["6350", "2100"]);
   assert.ok(!r.ok);
   assert.ok(r.errors.some(e => /9999/.test(e)));
 });
 
-test("금액 0 이하와 계정 미입력을 잡는다", () => {
-  const r = WS.verifyAdjustments([
-    { 번호: 1, 차변계정: "8200", 대변계정: "2100", 금액: 0 },
-    { 번호: 2, 차변계정: "", 대변계정: "", 금액: 10 },
-  ], ["8200", "2100"]);
-  assert.ok(!r.ok);
-  assert.ok(r.errors.some(e => /금액이 0 이하/.test(e)));
-  assert.ok(r.errors.some(e => /모두 비어/.test(e)));
-});
-
 console.log("정산표 차대평형");
 
-test("합계가 0이면 균형", () => {
-  const bal = WS.verifyBalance(WS.applyAdjustments(base, []));
-  assert.strictEqual(bal.당기말_수정전, 0, "차대가 맞는 시산표는 합계 0");
-  assert.ok(bal.ok);
+test("차대가 맞고 자산 = 부채 + 자본 + 당기순손익", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const b = WS.verifyBalance(rows);
+  assert.ok(b.균형.차대일치, "수정후 총합 " + b.수정후);
+  assert.ok(b.균형.자산_부채자본, "차이 " + b.자산_부채자본_차이);
+  assert.ok(b.ok);
+  // 손익 마감 전이므로 당기순손익을 넣어야 대차가 맞는다
+  assert.strictEqual(b.당기순손익, 650000);
+  assert.strictEqual(b.자산, 1250000);
+  assert.strictEqual(-(b.부채 + b.자본) + b.당기순손익, b.자산);
 });
 
-test("한쪽만 반영되면 불균형으로 잡힌다", () => {
-  const broken = WS.applyAdjustments(base, []).map(a =>
-    a.코드 === "1100" ? Object.assign({}, a, { 당기말_수정후: a.당기말_수정후 + 100 }) : a);
-  const bal = WS.verifyBalance(broken);
-  assert.ok(!bal.ok);
-  assert.strictEqual(bal.당기말_수정후, 100);
+test("한쪽이 어긋나면 불균형으로 잡힌다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  rows.find(r => r.코드 === "1100").수정후 += 100;
+  const b = WS.verifyBalance(rows);
+  assert.ok(!b.ok);
+  assert.strictEqual(b.수정후, 100);
+});
+
+console.log("증감사유 초안 연결");
+
+test("중요성 이상 행만 담은 프롬프트를 만든다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const p = WS.reasonPrompt(rows, 200000);
+  assert.ok(p.includes("중요성금액: 200,000"));
+  assert.ok(p.includes("4100"), "매출이 들어가야 한다");
+  assert.ok(!p.includes("3100"), "변동 없는 자본금은 빠져야 한다");
+  assert.ok(/COA \| 계정과목명 \| 전기 \| 수정후 \| 증감액 \| 증감비율/.test(p));
+});
+
+test("에이전트 JSON을 초안으로 읽는다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const r = WS.parseReasons('{"4100":"매출이 감소한 원인을 확인할 것."}', rows);
+  assert.ok(!r.error);
+  assert.strictEqual(r.count, 1);
+  assert.strictEqual(r.reasons["4100"].draft, true, "초안 표시가 있어야 배경색이 붙는다");
+});
+
+test("코드펜스가 붙어 와도 읽는다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const r = WS.parseReasons('```json\n{"4100":"확인 필요"}\n```', rows);
+  assert.ok(!r.error);
+  assert.strictEqual(r.count, 1);
+});
+
+test("정산표에 없는 코드는 버리고 알려준다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const r = WS.parseReasons('{"4100":"확인 필요","0000":"엉뚱한 코드"}', rows);
+  assert.strictEqual(r.count, 1);
+  assert.deepStrictEqual(r.unknown, ["0000"]);
+});
+
+test("깨진 JSON은 오류를 돌려준다", () => {
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  assert.ok(WS.parseReasons("이건 JSON이 아닙니다", rows).error);
+  assert.ok(WS.parseReasons('["배열"]', rows).error);
 });
 
 console.log("정산표 객체");
 
 test("build 결과가 규격을 만족", () => {
   const meta = { 회사명: "마플", 회사코드: "MAPLE", 결산일: "2025-12-31" };
-  const ws = WS.build(meta, base, [{ 번호: 1, 차변계정: "8200", 대변계정: "2100", 금액: 50 }]);
-  assert.strictEqual(ws.version, WS.VERSION);
+  const rows = WS.buildRows(coaList, curSums, priorSums, []);
+  const ws = WS.build(meta, rows,
+    [{ 번호: 1, 차변계정: "6350", 대변계정: "2100", 금액: 50 }],
+    { "4100": { text: "확인 필요", draft: true } });
+  assert.strictEqual(ws.version, 2);
   assert.ok(ws.updated_at);
   assert.strictEqual(ws.meta.회사코드, "MAPLE");
-  assert.ok(Array.isArray(ws.accounts) && ws.accounts.length);
   assert.strictEqual(ws.adjustments.length, 1);
   const keys = Object.keys(ws.accounts[0]);
-  ["코드", "계정과목", "구분", "전기말", "당기말_수정전", "수정분개액", "재분류액", "당기말_수정후"]
+  ["코드", "계정과목명", "구분", "전기", "당기", "수정분개", "수정후", "증감액", "증감비율", "증감사유"]
     .forEach(k => assert.ok(keys.includes(k), k + " 컬럼이 있어야 한다"));
+  assert.strictEqual(ws.accounts.find(a => a.코드 === "4100").증감사유, "확인 필요");
   assert.strictEqual(WS.validateShape(ws), null);
 });
 
