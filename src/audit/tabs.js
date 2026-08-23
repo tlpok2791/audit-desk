@@ -21,7 +21,8 @@
 
   function newT1() {
     return { current: null, prior: null, coa: null, mapRows: null, prevMap: null,
-             adjustments: [], reasons: {}, rows: null, showUnmappedOnly: true };
+             adjustments: [], reasons: {}, rows: null, showUnmappedOnly: true,
+             _restored: false, _restoring: false, _engId: null };
   }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -92,6 +93,7 @@
     sel.addEventListener("change", function () {
       if (sel.value === "__new__") { openEngForm(null); renderEngagementBar(); }
       else { var coa = t1.coa; t1 = newT1(); t1.coa = coa; S.setCurrent(sel.value); }
+      // _restored 는 newT1() 에서 false 로 돌아가 새 engagement 의 보관본을 다시 읽는다
     });
     right.appendChild(sel);
 
@@ -302,11 +304,24 @@
       p.appendChild(hint("engagement를 먼저 등록하세요. 위 드롭다운에서 “+ 새 engagement”를 고르면 됩니다."));
       return;
     }
+    // engagement 가 바뀌면 작업 상태를 반드시 비운다.
+    // 새 engagement 를 만드는 경로에서는 드롭다운 핸들러를 타지 않으므로
+    // 여기서 잡지 않으면 앞 회사의 파일이 그대로 남아 남의 자료가 섞인다.
+    var engId = S.getState().currentId;
+    if (t1._engId !== engId) {
+      var keepCoa = t1.coa;
+      t1 = newT1();
+      t1.coa = keepCoa;          // 표준 COA 는 회사와 무관한 공용 자료
+      t1._engId = engId;
+    }
+
     if (!t1.coa) { ensureCoa(); p.appendChild(hint("표준 COA를 불러오는 중입니다…")); return; }
+    if (!t1._restored) { restoreSources(); p.appendChild(hint("이어서 할 작업이 있는지 확인하는 중입니다…")); return; }
 
     p.appendChild(step(1, "파일 올리기",
       "회사 원본 엑셀을 그대로 올립니다. 시트·컬럼 구조는 회사마다 다르므로 아래에서 직접 지정합니다. "
       + "파일은 브라우저 안에서만 처리되고 서버로 가지 않습니다."));
+    p.appendChild(keepBar());
     var up = el("div", "up-grid");
     up.appendChild(uploader("current", "당기 시산표 (또는 계정별 잔액)"));
     up.appendChild(uploader("prior", "전기 재무제표"));
@@ -375,6 +390,127 @@
       });
   }
 
+  /* ── 이어서 작업 : 보관본 복원 · 저장 ──────────────── */
+  /*
+   * 새로고침하거나 다른 engagement를 다녀와도 이어서 하도록,
+   * 업로드한 원본의 파싱 결과와 매핑·분개·증감사유를 engagement 단위로 남긴다.
+   * 워크북 객체(wb)는 저장하지 않는다 — 크고 직렬화도 안 된다.
+   * 대신 시트 목록만 남겨두고, 시트를 바꾸려면 파일을 다시 올리게 한다.
+   */
+  function restoreSources() {
+    if (t1._restoring) return;
+    t1._restoring = true;
+
+    S.loadSources().then(function (rec) {
+      if (rec) {
+        ["current", "prior"].forEach(function (slot) {
+          var s = rec[slot];
+          if (!s || !s.aoa) return;
+          t1[slot] = {
+            fileName: s.fileName, sheetName: s.sheetName, sheetNames: s.sheetNames || [],
+            aoa: s.aoa, headerRow: s.headerRow, mapping: s.mapping || {},
+            amountMode: s.amountMode || "single", wb: null, restored: true,
+          };
+          remap(slot);
+        });
+        if (rec.mapRows) t1.mapRows = rec.mapRows;
+        if (rec.prevMap) t1.prevMap = rec.prevMap;
+        if (rec.adjustments) t1.adjustments = rec.adjustments;
+        if (rec.reasons) t1.reasons = rec.reasons;
+      }
+
+      // 보관본에 분개가 없으면 저장된 정산표에서라도 살려낸다
+      var ws = S.getState().worksheet;
+      if (ws && !t1.adjustments.length) {
+        t1.adjustments = (ws.adjustments || []).slice();
+        if (!Object.keys(t1.reasons).length) {
+          (ws.accounts || []).forEach(function (a) {
+            if (a.증감사유) t1.reasons[a.코드] = { text: a.증감사유, draft: true };
+          });
+        }
+      }
+
+      t1._restored = true;
+      t1._restoring = false;
+      renderPanel();
+    });
+  }
+
+  var persistTimer = null;
+  function persist() {
+    clearTimeout(persistTimer);
+    // 저장 대상 engagement 를 예약 시점에 고정한다.
+    // 디바운스 도중 engagement 를 바꾸면 남의 폴더에 저장될 수 있다.
+    var forId = S.getState().currentId;
+    persistTimer = setTimeout(function () {
+      function slim(st) {
+        if (!st || !st.aoa) return null;
+        return {
+          fileName: st.fileName, sheetName: st.sheetName,
+          sheetNames: st.sheetNames || (st.wb ? st.wb.SheetNames : []),
+          aoa: st.aoa, headerRow: st.headerRow,
+          mapping: st.mapping, amountMode: st.amountMode,
+        };
+      }
+      S.saveSources({
+        current: slim(t1.current), prior: slim(t1.prior),
+        mapRows: t1.mapRows, prevMap: t1.prevMap,
+        adjustments: t1.adjustments, reasons: t1.reasons,
+      }, forId);
+    }, 400);
+  }
+
+  /** 1단계 위에 붙는 보관 스위치 */
+  function keepBar() {
+    var box = el("div", "keepbar");
+    var on = S.keepSources();
+
+    var lab = el("label", "pub-check");
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = on;
+    cb.addEventListener("change", function () {
+      S.setKeepSources(cb.checked).then(function () {
+        if (!cb.checked) { t1._restored = true; }
+        renderPanel();
+      });
+      if (cb.checked) persist();
+    });
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode("이 브라우저에 작업 내용 보관"));
+    box.appendChild(lab);
+
+    var note = el("span", "cap");
+    note.style.margin = "0";
+    note.textContent = on
+      ? "올린 시산표·재무제표와 매핑·분개가 이 브라우저에 남아, 새로고침해도 이어서 작업할 수 있습니다."
+      : "보관을 껐습니다. 새로고침하면 올린 파일과 입력한 분개가 사라집니다.";
+    box.appendChild(note);
+
+    if (on) {
+      var del = el("button", "mini-btn", "보관본 지우기");
+      del.type = "button";
+      del.addEventListener("click", function () {
+        var coa = t1.coa;
+        S.clearAllSources().then(function () {
+          t1 = newT1();
+          t1.coa = coa;          // 표준 COA는 공용 자료라 다시 받을 필요 없다
+          t1._restored = true;
+          renderPanel();
+        });
+      });
+      box.appendChild(del);
+
+      S.sourcesInfo().then(function (info) {
+        if (!info.count) return;
+        var kb = Math.round(info.bytes / 1024);
+        note.textContent += "  (현재 " + info.count + "건 · 약 "
+          + (kb > 1024 ? (kb / 1024).toFixed(1) + "MB" : kb + "KB") + ")";
+      });
+    }
+    return box;
+  }
+
   /* ── 업로더 : 계정코드 / 계정과목명 / 금액 ─────────── */
   function uploader(slot, title) {
     var box = el("div", "upbox");
@@ -389,21 +525,29 @@
       var f = inp.files && inp.files[0];
       if (!f) return;
       readWorkbook(f).then(function (wb) {
-        t1[slot] = { fileName: f.name, wb: wb, sheetName: wb.SheetNames[0], amountMode: "single" };
+        t1[slot] = { fileName: f.name, wb: wb, sheetName: wb.SheetNames[0],
+                     sheetNames: wb.SheetNames, amountMode: "single" };
         loadSheet(slot);
         t1.mapRows = null;              // 원본이 바뀌면 매핑을 다시 확인한다
+        persist();
         renderPanel();
       }).catch(function (e) { alert("파일을 읽지 못했습니다 — " + e.message); });
     });
     box.appendChild(inp);
     if (!st) return box;
 
-    box.appendChild(el("div", "cap", esc(st.fileName)));
+    box.appendChild(el("div", "cap", esc(st.fileName)
+      + (st.restored ? "  · 보관본에서 이어받음" : "")));
 
-    if (st.wb.SheetNames.length > 1) {
-      box.appendChild(labelled("시트", selectOf(st.wb.SheetNames, st.sheetName, function (v) {
-        st.sheetName = v; loadSheet(slot); t1.mapRows = null; renderPanel();
+    var sheetNames = st.sheetNames || (st.wb ? st.wb.SheetNames : []);
+    if (st.wb && sheetNames.length > 1) {
+      box.appendChild(labelled("시트", selectOf(sheetNames, st.sheetName, function (v) {
+        st.sheetName = v; loadSheet(slot); t1.mapRows = null; persist(); renderPanel();
       })));
+    } else if (!st.wb && sheetNames.length > 1) {
+      // 보관본에서 되살린 상태 — 시트를 바꾸려면 파일을 다시 올려야 한다
+      box.appendChild(el("p", "cap", "시트: " + esc(st.sheetName)
+        + " (다른 시트를 쓰려면 파일을 다시 올리세요)"));
     }
 
     var hrow = document.createElement("input");
@@ -413,13 +557,13 @@
     hrow.addEventListener("change", function () {
       st.headerRow = Math.max(0, Number(hrow.value) - 1);
       st.mapping = WS.guessColumns(st.aoa[st.headerRow] || []);
-      remap(slot); t1.mapRows = null; renderPanel();
+      remap(slot); t1.mapRows = null; persist(); renderPanel();
     });
     box.appendChild(labelled("머리글 행", hrow));
 
     box.appendChild(labelled("금액 서식", selectOf(
       [["single", "금액 한 컬럼"], ["drcr", "차변·대변 두 컬럼"]], st.amountMode, function (v) {
-        st.amountMode = v; remap(slot); t1.mapRows = null; renderPanel();
+        st.amountMode = v; remap(slot); t1.mapRows = null; persist(); renderPanel();
       })));
 
     var headers = (st.aoa[st.headerRow] || []).map(function (h, i) {
@@ -435,7 +579,7 @@
         val === undefined ? "" : String(val),
         function (v) {
           if (v === "") delete st.mapping[field]; else st.mapping[field] = Number(v);
-          remap(slot); t1.mapRows = null; renderPanel();
+          remap(slot); t1.mapRows = null; persist(); renderPanel();
         })));
     });
     box.appendChild(grid);
@@ -637,6 +781,7 @@
     s.addEventListener("change", function () {
       row.표준COA코드 = s.value;
       row.출처 = s.value ? "확정" : "";
+      persist();
       renderPanel();
     });
     return s;
@@ -656,6 +801,7 @@
         if (err) { alert("매핑 파일이 아닙니다 — " + err); return; }
         t1.prevMap = obj;
         buildMapRows();
+        persist();
         renderPanel();
       });
     });
@@ -676,7 +822,7 @@
       tr.appendChild(cellInput(j, "번호", "text", "1"));
       var g = document.createElement("td");
       g.appendChild(selectOf([["수정", "수정"], ["재분류", "재분류"]], j.구분 || "수정", function (v) {
-        j.구분 = v; refreshCalc();
+        j.구분 = v; persist(); refreshCalc();
       }));
       tr.appendChild(g);
       tr.appendChild(cellInput(j, "차변계정", "text", "6350"));
@@ -688,7 +834,7 @@
       var del = document.createElement("td");
       var b = el("button", "mini-btn", "삭제");
       b.type = "button";
-      b.addEventListener("click", function () { t1.adjustments.splice(idx, 1); renderPanel(); });
+      b.addEventListener("click", function () { t1.adjustments.splice(idx, 1); persist(); renderPanel(); });
       del.appendChild(b);
       tr.appendChild(del);
       table.appendChild(tr);
@@ -702,6 +848,7 @@
     add.addEventListener("click", function () {
       t1.adjustments.push({ 번호: String(t1.adjustments.length + 1), 구분: "수정",
         차변계정: "", 대변계정: "", 금액: 0, 적요: "", 조서참조: "" });
+      persist();
       renderPanel();
     });
     box.appendChild(add);
@@ -716,6 +863,7 @@
     i.value = obj[key] === undefined || obj[key] === null ? "" : obj[key];
     i.addEventListener("input", function () {
       obj[key] = type === "number" ? WS.toNumber(i.value) : i.value;
+      persist();
       refreshCalc();
     });
     d.appendChild(i);
@@ -831,6 +979,7 @@
       var r = WS.parseReasons(ta.value, rows);
       if (r.error) { msg.className = "cap err"; msg.textContent = r.error; return; }
       t1.reasons = Object.assign({}, t1.reasons, r.reasons);
+      persist();
       msg.className = "cap ok";
       msg.textContent = r.count + "개 반영했습니다."
         + (r.unknown.length ? " 정산표에 없는 코드 " + r.unknown.length + "개는 버렸습니다." : "");
@@ -841,7 +990,7 @@
     if (Object.keys(t1.reasons).length) {
       var clr = el("button", "mini-btn", "초안 지우기");
       clr.type = "button";
-      clr.addEventListener("click", function () { t1.reasons = {}; renderPanel(); });
+      clr.addEventListener("click", function () { t1.reasons = {}; persist(); renderPanel(); });
       act2.appendChild(clr);
       act2.appendChild(el("span", "cap", Object.keys(t1.reasons).length + "개 초안 보관 중"));
     }
