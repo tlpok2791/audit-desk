@@ -1,11 +1,15 @@
-"""CrewAI 오케스트레이션 — 세 모델의 강점을 이어붙인다.
+"""CrewAI 오케스트레이션 — 세 단계를 모두 Claude 로 돌린다.
 
-  Agent 1  Gemini    대용량 PDF·이미지 서류를 읽어 핵심 수치를 뽑는다 (멀티모달)
-  Agent 2  GPT       뽑아낸 덩어리를 Notion 스키마에 맞는 JSON 으로 정제한다
-  Agent 3  Claude    정제된 수치로 병의원 블로그 원고와 진단 리포트를 쓴다
+  Agent 1  판독 정리   서류에서 읽어낸 원문을 세무상 의미 있는 수치로 정리한다
+  Agent 2  구조화      정리된 내용을 Notion 스키마에 맞는 JSON 으로 만든다
+  Agent 3  작성        정제된 수치로 진단 리포트와 네이버 블로그 원고를 쓴다
 
-OCR 은 에이전트 프롬프트만으로는 못 한다(바이너리를 못 실어보낸다).
-그래서 Agent 1 은 문서를 실제로 읽는 도구를 들고 있고, 그 결과를 가지고 판단한다.
+예전에는 판독을 Gemini, 구조화를 GPT 가 맡았으나 결제처를 하나로 줄이려고
+전부 Claude 로 옮겼다. Claude 는 PDF 와 이미지를 그대로 읽으므로 별도 OCR 모델이 필요 없다.
+
+서류 판독은 에이전트 프롬프트로는 못 한다(바이너리를 못 실어보낸다).
+그래서 read_documents() 가 Anthropic SDK 로 직접 문서를 붙여 보내고,
+그 결과 텍스트를 Agent 1 이 받아 판단한다.
 """
 from __future__ import annotations
 
@@ -19,40 +23,39 @@ from crewai import Agent, Crew, Process, Task
 from .config import Settings
 from .notion_io import download
 
-# 세무 자료를 다루므로 창의성은 낮게 둔다 (수치를 지어내면 안 된다)
-TEMP_EXTRACT = 0.0
-TEMP_STRUCTURE = 0.0
-TEMP_WRITE = 0.4
+# temperature 는 현행 Claude 모델(Sonnet 5 · Opus 5 등)에서 제거되어 보내면 400 이 난다.
+# 수치를 지어내지 않게 하는 일은 온도가 아니라 프롬프트로 시킨다.
 
-GEMINI_INLINE_LIMIT = 18 * 1024 * 1024   # inline base64 로 보낼 수 있는 대략적 상한
+# 한 요청에 실을 수 있는 총량이 32MB 라, 파일 하나는 넉넉히 잘라 둔다.
+DOC_INLINE_LIMIT = 20 * 1024 * 1024
+# Claude 가 문서로 받아주는 형식. 그 밖은 건너뛰고 사람에게 알린다.
+DOC_MIME = {"application/pdf"}
+IMG_MIME = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 
 
 # ── LLM 준비 ─────────────────────────────────────────────
 # CrewAI 1.x 의 Agent 는 LangChain LLM 객체를 받지 않는다 (pydantic 검증에서 막힌다).
 # crewai.LLM 에 "provider/model" 형식으로 넘겨야 한다.
 def build_crew_llms(s: Settings):
+    """세 단계 모두 Claude 다. 원고 단계만 출력 한도를 넉넉히 준다."""
     from crewai import LLM
 
-    gemini = LLM(model=f"gemini/{s.gemini_model}",
-                 api_key=s.gemini_api_key, temperature=TEMP_EXTRACT)
-    gpt = LLM(model=f"openai/{s.openai_model}",
-              api_key=s.openai_api_key, temperature=TEMP_STRUCTURE)
-    claude = LLM(model=f"anthropic/{s.anthropic_model}",
-                 api_key=s.anthropic_api_key, temperature=TEMP_WRITE, max_tokens=8000)
-    return gemini, gpt, claude
+    def claude(**kw):
+        return LLM(model=f"anthropic/{s.anthropic_model}",
+                   api_key=s.anthropic_api_key, **kw)
+
+    return claude(), claude(), claude(max_tokens=8000)
 
 
 def build_vision_llm(s: Settings):
     """
-    서류 판독 전용. 여기서는 LangChain 을 쓴다 —
-    PDF·이미지를 inline 으로 실어 보내는 멀티모달 호출이 필요하고,
-    그건 CrewAI 의 텍스트 태스크로는 할 수 없다.
+    서류 판독 전용 클라이언트.
+    PDF·이미지를 그대로 실어 보내는 호출은 CrewAI 의 텍스트 태스크로 할 수 없어
+    Anthropic SDK 를 직접 쓴다.
     """
-    from langchain_google_genai import ChatGoogleGenerativeAI
+    import anthropic
 
-    return ChatGoogleGenerativeAI(
-        model=s.gemini_model, google_api_key=s.gemini_api_key, temperature=TEMP_EXTRACT,
-    )
+    return anthropic.Anthropic(api_key=s.anthropic_api_key)
 
 
 # ── Agent 1 이 쓰는 실제 OCR ────────────────────────────
@@ -72,17 +75,17 @@ OCR_PROMPT = """이 세무 서류에서 아래를 있는 그대로 뽑아라.
 """
 
 
-def read_documents(llm, files: list[tuple[str, str]]) -> str:
+def read_documents(client, files: list[tuple[str, str]],
+                   model: str = "claude-sonnet-5") -> str:
     """
-    첨부 서류를 Gemini 멀티모달로 읽어 텍스트로 돌려준다.
-    PDF·이미지를 inline base64 로 실어 보낸다.
+    첨부 서류를 Claude 에게 그대로 보여주고 읽은 내용을 텍스트로 돌려준다.
+    PDF 는 document 블록, 이미지는 image 블록으로 붙인다.
+    한 장이 실패해도 나머지는 읽는다.
     """
-    from langchain_core.messages import HumanMessage
-
     if not files:
         return "(첨부 서류 없음)"
 
-    parts: list[dict[str, Any]] = [{"type": "text", "text": OCR_PROMPT}]
+    blocks: list[dict[str, Any]] = []
     read, skipped = [], []
 
     for name, url in files:
@@ -91,24 +94,36 @@ def read_documents(llm, files: list[tuple[str, str]]) -> str:
         except Exception as e:                      # 한 장 실패로 전체를 죽이지 않는다
             skipped.append(f"{name}: 내려받기 실패 ({e})")
             continue
-        if len(blob) > GEMINI_INLINE_LIMIT:
-            skipped.append(f"{name}: {len(blob)//1024//1024}MB — 인라인 한도 초과")
+        if len(blob) > DOC_INLINE_LIMIT:
+            skipped.append(f"{name}: {len(blob) // 1024 // 1024}MB — 한 번에 실을 수 있는 크기를 넘음")
             continue
-        if not (mime.startswith("image/") or mime == "application/pdf"):
+        if mime in DOC_MIME:
+            kind = "document"
+        elif mime in IMG_MIME:
+            kind = "image"
+        else:
             skipped.append(f"{name}: 지원하지 않는 형식({mime})")
             continue
-        parts.append({
-            "type": "media",
-            "mime_type": mime,
-            "data": base64.b64encode(blob).decode(),
+        blocks.append({
+            "type": kind,
+            "source": {"type": "base64", "media_type": mime,
+                       "data": base64.b64encode(blob).decode()},
         })
         read.append(name)
 
     if not read:
         return "(읽은 서류 없음) " + "; ".join(skipped)
 
-    resp = llm.invoke([HumanMessage(content=parts)])
-    text = resp.content if isinstance(resp.content, str) else str(resp.content)
+    # 문서 블록이 지시문보다 앞에 와야 한다
+    blocks.append({"type": "text", "text": OCR_PROMPT})
+
+    resp = client.messages.create(
+        model=model,
+        max_tokens=16000,
+        messages=[{"role": "user", "content": blocks}],
+    )
+    text = "".join(b.text for b in resp.content if b.type == "text")
+
     header = f"[읽은 서류] {', '.join(read)}\n"
     if skipped:
         header += f"[건너뜀] {'; '.join(skipped)}\n"
@@ -161,7 +176,7 @@ def extract_json(text: str) -> dict | None:
 # ── Crew 구성 ────────────────────────────────────────────
 def build_crew(s: Settings, row: dict[str, str], doc_text: str,
                schema_hint: str) -> Crew:
-    gemini, gpt, claude = build_crew_llms(s)
+    reader, structurer_llm, writer_llm = build_crew_llms(s)
 
     analyst = Agent(
         role="세무 서류 판독관",
@@ -170,7 +185,7 @@ def build_crew(s: Settings, row: dict[str, str], doc_text: str,
             "병의원 세무 서류를 오래 다뤄 온 실무자다. 서류 종류만 봐도 어떤 표의 "
             "어떤 줄이 중요한지 안다. 읽히지 않은 값을 추측으로 채우는 일은 하지 않는다."
         ),
-        llm=gemini, verbose=True, allow_delegation=False,
+        llm=reader, verbose=True, allow_delegation=False,
     )
     structurer = Agent(
         role="데이터 정제 담당",
@@ -179,7 +194,7 @@ def build_crew(s: Settings, row: dict[str, str], doc_text: str,
             "지저분한 텍스트를 스키마에 맞는 구조로 바꾸는 일을 한다. "
             "스키마에 없는 키를 만들어내지 않고, 값이 없으면 null 로 둔다."
         ),
-        llm=gpt, verbose=True, allow_delegation=False,
+        llm=structurer_llm, verbose=True, allow_delegation=False,
     )
     writer = Agent(
         role="병의원 세무 콘텐츠 작성자",
@@ -188,7 +203,7 @@ def build_crew(s: Settings, row: dict[str, str], doc_text: str,
             "병의원 원장을 상대로 오래 글을 써 왔다. 단정적인 결론 대신 "
             "확인이 필요한 지점을 짚어 주는 글이 신뢰를 얻는다는 것을 안다."
         ),
-        llm=claude, verbose=True, allow_delegation=False,
+        llm=writer_llm, verbose=True, allow_delegation=False,
     )
 
     row_text = "\n".join(f"- {k}: {v}" for k, v in row.items()) or "(Notion 행 정보 없음)"

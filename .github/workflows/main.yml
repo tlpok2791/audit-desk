@@ -2,7 +2,7 @@ name: 병의원 세무·마케팅 자동화 파이프라인
 
 on:
   # 자동 실행은 꺼 두었다.
-  # 이 파이프라인은 Gemini·GPT·Claude 를 실제로 호출하므로 도는 만큼 과금된다.
+  # 이 파이프라인은 Claude API 를 실제로 호출하므로 도는 만큼 과금된다.
   # 매일 돌릴 필요가 생기면 아래 두 줄의 주석을 풀면 된다 (09:00 KST = UTC 00:00).
   #
   # schedule:
@@ -58,14 +58,12 @@ jobs:
 
       - name: 시크릿 확인
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: |
           missing=""
-          for k in OPENAI_API_KEY GEMINI_API_KEY ANTHROPIC_API_KEY NOTION_TOKEN NOTION_DATABASE_ID; do
+          for k in ANTHROPIC_API_KEY NOTION_TOKEN NOTION_DATABASE_ID; do
             [ -z "${!k}" ] && missing="$missing $k"
           done
           if [ -n "$missing" ]; then
@@ -73,19 +71,17 @@ jobs:
             echo "Settings → Secrets and variables → Actions 에서 등록하세요."
             exit 1
           fi
-          echo "시크릿 5개 확인됨"
+          echo "시크릿 3개 확인됨"
 
       - name: 파이프라인 실행
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           # 아래는 없으면 코드 기본값을 쓴다 (Variables 에 넣어도 되고 안 넣어도 된다)
-          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          CONTACT_KAKAO: ${{ vars.CONTACT_KAKAO }}
+          CONTACT_PHONE: ${{ vars.CONTACT_PHONE }}
           NOTION_STATUS_PROPERTY: ${{ vars.NOTION_STATUS_PROPERTY }}
           NOTION_STATUS_PENDING: ${{ vars.NOTION_STATUS_PENDING }}
           MAX_PAGES_PER_RUN: ${{ github.event.inputs.limit || vars.MAX_PAGES_PER_RUN || '5' }}

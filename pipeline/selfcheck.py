@@ -127,6 +127,74 @@ check("자리표시자 안의 글자는 안 셈",
 check("밀도 계산", 0 < keyword_density("가족 인건비 " * 5, {"가족 인건비": 5},
                                     ["가족 인건비"]) <= 1)
 
+print("\n서류 판독 — Claude 에게 보낼 블록 모양 (API 호출 없음)")
+
+from . import crew as _crew                      # download 를 갈아끼우기 위해
+
+class _FakeResp:
+    def __init__(self):
+        self.content = [type("B", (), {"type": "text", "text": "매출 120,000,000원"})()]
+
+class _FakeClient:
+    """실제로 부르지 않고 무엇을 보내려 했는지만 기록한다."""
+    def __init__(self):
+        self.calls = []
+        self.messages = self
+    def create(self, **kw):
+        self.calls.append(kw)
+        return _FakeResp()
+
+_FILES = {
+    "https://x/a.pdf":  (b"%PDF-1.4 fake", "application/pdf"),
+    "https://x/b.png":  (b"\x89PNG fake", "image/png"),
+    "https://x/c.hwp":  (b"hwp", "application/x-hwp"),
+    "https://x/big.pdf": (b"0" * (21 * 1024 * 1024), "application/pdf"),
+    "https://x/dead.pdf": None,
+}
+
+_real_download = _crew.download
+def _fake_download(url, timeout=60.0):
+    got = _FILES.get(url)
+    if got is None:
+        raise RuntimeError("404")
+    return got
+_crew.download = _fake_download
+
+try:
+    check("첨부 없으면 호출하지 않음",
+          _crew.read_documents(_FakeClient(), []) == "(첨부 서류 없음)")
+
+    cli = _FakeClient()
+    out = _crew.read_documents(cli, [("신고서.pdf", "https://x/a.pdf"),
+                                     ("영수증.png", "https://x/b.png")], "claude-sonnet-5")
+    blocks = cli.calls[0]["messages"][0]["content"]
+    kinds = [b["type"] for b in blocks]
+    check("PDF 는 document, 이미지는 image", kinds[:2] == ["document", "image"], str(kinds))
+    check("지시문은 문서 뒤에 온다", kinds[-1] == "text", str(kinds))
+    check("base64 로 실린다", blocks[0]["source"]["type"] == "base64")
+    check("media_type 그대로", blocks[0]["source"]["media_type"] == "application/pdf")
+    check("모델을 넘긴다", cli.calls[0]["model"] == "claude-sonnet-5", str(cli.calls[0].get("model")))
+    check("temperature 를 보내지 않는다 (현행 모델은 400)",
+          "temperature" not in cli.calls[0], str(list(cli.calls[0])))
+    check("읽은 서류를 머리말에", out.startswith("[읽은 서류] 신고서.pdf, 영수증.png"), out[:60])
+    check("응답 본문 포함", "120,000,000" in out)
+
+    cli = _FakeClient()
+    out = _crew.read_documents(cli, [("한글.hwp", "https://x/c.hwp")])
+    check("지원 않는 형식은 호출 없이 건너뜀", not cli.calls and "지원하지 않는 형식" in out, out)
+
+    cli = _FakeClient()
+    out = _crew.read_documents(cli, [("큰파일.pdf", "https://x/big.pdf")])
+    check("너무 큰 파일은 건너뜀", "크기를 넘음" in out, out)
+
+    cli = _FakeClient()
+    out = _crew.read_documents(cli, [("죽은링크.pdf", "https://x/dead.pdf"),
+                                     ("신고서.pdf", "https://x/a.pdf")])
+    check("한 장 실패해도 나머지는 읽는다",
+          cli.calls and "내려받기 실패" in out and "신고서.pdf" in out, out[:80])
+finally:
+    _crew.download = _real_download
+
 print("\n네이버 규격 점검 — 스마트에디터는 마크다운을 읽지 못한다")
 
 check("깨끗한 본문은 통과", check_naver_ready("첫 문단입니다.\n\n둘째 문단입니다.") == [])

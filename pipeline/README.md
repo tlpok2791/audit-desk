@@ -5,9 +5,9 @@ Notion 에 쌓인 건을 세 모델이 이어받아 처리하고 다시 Notion �
 ```
 Notion(상태=대기)
    ↓
-Agent 1  Gemini    첨부 PDF·이미지를 읽어 수치를 뽑는다        (멀티모달)
+Agent 1  Claude    첨부 PDF·이미지를 그대로 읽어 수치를 뽑는다  (멀티모달)
    ↓
-Agent 2  GPT       Notion 스키마에 맞는 JSON 으로 정제한다
+Agent 2  Claude    Notion 스키마에 맞는 JSON 으로 정제한다
    ↓
 Agent 3  Claude    진단 리포트와 블로그 원고를 쓴다
    ↓
@@ -71,8 +71,10 @@ curl -X POST https://api.github.com/repos/<owner>/<repo>/dispatches \
   -d '{"event_type":"run-pipeline"}'
 ```
 
-시크릿 5개를 저장소 Settings → Secrets and variables → Actions 에 등록한다.
-`OPENAI_API_KEY` `GEMINI_API_KEY` `ANTHROPIC_API_KEY` `NOTION_TOKEN` `NOTION_DATABASE_ID`
+시크릿 3개를 저장소 Settings → Secrets and variables → Actions 에 등록한다.
+`ANTHROPIC_API_KEY` `NOTION_TOKEN` `NOTION_DATABASE_ID`
+
+자동 실행(cron)은 꺼 두었다. 도는 만큼 과금되므로 Actions 탭에서 직접 누를 때만 돈다.
 
 `concurrency` 로 같은 시각 중복 실행을 막아 한 행이 두 번 처리되지 않게 했다.
 
@@ -103,12 +105,15 @@ python -m pipeline.selfcheck_integration   # 통합 16개 — 가짜 Notion 서�
 
 ## 알아둘 것
 
-- **모델은 전부 환경변수로 바꾼다.** 기본값은 `gemini-1.5-flash` / `gpt-4o-mini` /
-  `claude-sonnet-5`. Claude 3.5 Sonnet 은 구형이라 현행 Sonnet 을 기본값으로 잡았고,
-  `ANTHROPIC_MODEL` 로 언제든 바꿀 수 있다.
+- **판독·정제·작성이 모두 Claude 다.** 결제처를 하나로 줄이려고 Gemini·GPT 를 뺐다.
+  Claude 는 PDF·이미지를 그대로 읽으므로 별도 OCR 모델이 필요 없다.
+  기본 모델은 `claude-sonnet-5`, `ANTHROPIC_MODEL` 로 바꾼다
+  (품질을 올리려면 `claude-opus-5`, 요금도 오른다).
+- **`temperature` 를 보내지 않는다.** 현행 Claude 모델은 이 값을 받으면 400 을 낸다.
+  수치를 지어내지 않게 하는 일은 온도가 아니라 프롬프트로 시킨다.
 - **CrewAI 1.x 는 LangChain LLM 객체를 Agent 에 넣을 수 없다.** `crewai.LLM` 에
-  `provider/model` 형식으로 넘긴다. LangChain 은 멀티모달 서류 판독에만 쓴다 —
+  `provider/model` 형식으로 넘긴다. 서류 판독은 Anthropic SDK 를 직접 쓴다 —
   CrewAI 태스크로는 바이너리를 실어보낼 수 없기 때문이다.
 - **첨부 상한** — inline 으로 보내는 방식이라 18MB 를 넘는 파일은 건너뛰고 그 사실을
-  판독 원문에 남긴다. 더 큰 파일을 다루려면 Gemini File API 로 바꿔야 한다.
+  판독 원문에 남긴다. 더 큰 파일을 다루려면 Files API 로 올려 참조해야 한다.
 - 서류가 없는 건도 처리된다. 이 경우 Notion 행 속성만 근거로 원고를 쓴다.

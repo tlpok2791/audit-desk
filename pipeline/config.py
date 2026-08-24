@@ -21,15 +21,12 @@ def _clean(name: str) -> str:
 
 @dataclass(frozen=True)
 class Settings:
-    openai_api_key: str
-    gemini_api_key: str
     anthropic_api_key: str
     notion_token: str
     notion_database_id: str
 
-    # 모델은 전부 환경변수로 바꿀 수 있다
-    gemini_model: str = field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-1.5-flash"))
-    openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    # 판독·구조화·작성 모두 이 한 모델로 돈다. 환경변수로 바꿀 수 있다.
+    # 더 좋은 품질이 필요하면 ANTHROPIC_MODEL=claude-opus-5 로 올린다(요금도 오른다).
     anthropic_model: str = field(default_factory=lambda: os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5"))
 
     # Notion 상태 값 (DB 의 select 옵션과 반드시 같아야 한다)
@@ -52,8 +49,6 @@ class Settings:
 
 
 REQUIRED = [
-    ("OPENAI_API_KEY", "openai_api_key"),
-    ("GEMINI_API_KEY", "gemini_api_key"),
     ("ANTHROPIC_API_KEY", "anthropic_api_key"),
     ("NOTION_TOKEN", "notion_token"),
     ("NOTION_DATABASE_ID", "notion_database_id"),
@@ -72,10 +67,8 @@ def load_settings(require_keys: bool = True) -> Settings:
 
     settings = Settings(**values)
 
-    # LangChain 각 provider 가 읽는 표준 env 이름을 맞춰준다
-    os.environ.setdefault("OPENAI_API_KEY", settings.openai_api_key)
+    # SDK 가 읽는 표준 env 이름을 맞춰준다
     os.environ.setdefault("ANTHROPIC_API_KEY", settings.anthropic_api_key)
-    os.environ.setdefault("GOOGLE_API_KEY", settings.gemini_api_key)
     return settings
 
 

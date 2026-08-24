@@ -112,7 +112,7 @@ cp web/tool.html .        # 최상단에 반영
 자동 발행은 하지 않는다. **붙여넣기 직전까지만** 자동화한다.
 
 ```
-content/posts/drafts/     GPT 초안 (직접 넣음)
+content/posts/drafts/     손으로 잡은 초안 (직접 넣음)
                 ready/    네이버 발행용으로 변환 완료
                 published/ 발행 후 URL까지 기록
 ```

@@ -2,7 +2,7 @@
 """
 병의원 세무·마케팅 무인 자동화 파이프라인.
 
-  Notion(대기) → Gemini 판독 → GPT 정제 → Claude 작성 → Notion(완료)
+  Notion(대기) → Claude 서류 판독 → Claude JSON 정제 → Claude 원고 작성 → Notion(완료)
 
 실행
   python -m pipeline.main              # 전체 실행
@@ -62,8 +62,8 @@ def process_page(repo: NotionRepo, s, page: dict, dry: bool) -> str:
     repo.set_status(page_id, s.status_running)
 
     try:
-        # Agent 1 의 눈: 서류를 실제로 읽는다 (멀티모달은 LangChain 경로)
-        doc_text = read_documents(build_vision_llm(s), files)
+        # 서류를 Claude 에게 그대로 보여주고 읽힌다 (PDF·이미지 직접 지원)
+        doc_text = read_documents(build_vision_llm(s), files, s.anthropic_model)
         log(f"    서류 판독 {len(doc_text):,}자")
 
         crew = build_crew(s, row, doc_text,
@@ -145,10 +145,8 @@ def main() -> int:
     dry = args.dry_run or s.dry_run
     limit = args.limit or s.max_pages
 
-    log("파이프라인 시작"
-        f" · Gemini {s.gemini_model} · OpenAI {s.openai_model} · Claude {s.anthropic_model}")
-    log(f"  키: OPENAI {mask(s.openai_api_key)} · GEMINI {mask(s.gemini_api_key)}"
-        f" · ANTHROPIC {mask(s.anthropic_api_key)} · NOTION {mask(s.notion_token)}")
+    log(f"파이프라인 시작 · 판독·구조화·작성 모두 Claude {s.anthropic_model}")
+    log(f"  키: ANTHROPIC {mask(s.anthropic_api_key)} · NOTION {mask(s.notion_token)}")
 
     repo = NotionRepo(s.notion_token, s.notion_database_id, s.status_property)
 

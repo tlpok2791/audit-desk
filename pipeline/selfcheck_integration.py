@@ -130,7 +130,8 @@ def run(stub_crew, argv=("main",), ready_dir=None) -> int:
     nio.Client = lambda auth: orig(auth=auth, base_url=f"http://127.0.0.1:{PORT}")
     M.build_vision_llm = lambda s: None
     C.build_vision_llm = lambda s: None
-    M.read_documents = lambda llm, files: "[읽은 서류] 신고서.pdf\n\n매출 120,000,000원"
+    M.read_documents = lambda client, files, model=None: (
+        "[읽은 서류] 신고서.pdf\n\n매출 120,000,000원")
     M.build_crew = stub_crew
 
     sys.argv = list(argv)
@@ -244,7 +245,7 @@ LEGACY_OUTPUT = """=== 진단리포트 ===
 
 def main() -> int:
     import os
-    for k in ("OPENAI_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY", "NOTION_TOKEN"):
+    for k in ("ANTHROPIC_API_KEY", "NOTION_TOKEN"):
         os.environ.setdefault(k, "test-key")
     os.environ.setdefault("NOTION_DATABASE_ID", "0" * 32)
     serve()
