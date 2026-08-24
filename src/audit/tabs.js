@@ -13,6 +13,8 @@
     { id: "t3", num: 3, name: "준비 중 3", locked: true },
     { id: "t4", num: 4, name: "준비 중 4", locked: true },
     { id: "t5", num: 5, name: "준비 중 5", locked: true },
+    { id: "hub", num: "🧰", name: "도구 모음", locked: false,
+      desc: "자주 쓰는 사이트와 도구를 한곳에 모아 둡니다." },
   ];
 
   var activeTab = "ws";
@@ -200,7 +202,12 @@
       b.setAttribute("aria-selected", t.id === activeTab ? "true" : "false");
       b.innerHTML = '<span class="subtab-n">' + t.num + "</span>"
         + esc(t.name) + (t.locked ? ' <span class="lock">🔒</span>' : "");
-      b.addEventListener("click", function () { activeTab = t.id; renderSubtabs(); renderPanel(); });
+      b.addEventListener("click", function () {
+        activeTab = t.id;
+        renderSubtabs();
+        renderWorksheetBar();      // 탭마다 보일지 말지가 다르다
+        renderPanel();
+      });
       bar.appendChild(b);
     });
   }
@@ -210,6 +217,7 @@
     var bar = $("ws-bar");
     var ws = S.getState().worksheet;
     bar.innerHTML = "";
+    if (activeTab === "hub") return;      // 도구 모음에는 정산표 상태가 필요 없다
     var box = el("div", "wsbar" + (ws ? "" : " none"));
 
     if (ws) {
@@ -267,11 +275,28 @@
     i.click();
   }
 
+  /* ══ 도구 모음 ════════════════════════════════════════ */
+  function renderHub(p) {
+    if (!window.AuditHub) {
+      p.innerHTML = '<div class="empty">도구 목록을 불러오지 못했습니다 '
+        + "(src/audit/hub.js).</div>";
+      return;
+    }
+    window.AuditHub.render(p, function (id) {
+      activeTab = id;
+      renderSubtabs();
+      renderWorksheetBar();
+      renderPanel();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
   /* ══ 패널 ═════════════════════════════════════════════ */
   function renderPanel() {
     var p = $("sub-panel");
     p.innerHTML = "";
     var tab = TABS.find(function (t) { return t.id === activeTab; });
+    if (tab.id === "hub") return renderHub(p);
     if (!tab.locked) return renderTab1(p);
 
     var ws = S.getState().worksheet;
