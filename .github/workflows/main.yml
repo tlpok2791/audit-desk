@@ -1,0 +1,98 @@
+name: 병의원 세무·마케팅 자동화 파이프라인
+
+on:
+  schedule:
+    # 매일 09:00 KST (UTC 00:00). cron 은 UTC 로 해석된다.
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "이번 실행에서 처리할 최대 건수"
+        required: false
+        default: "5"
+      dry_run:
+        description: "true 면 Notion 만 읽고 LLM 호출·쓰기를 하지 않음"
+        type: boolean
+        required: false
+        default: false
+  repository_dispatch:
+    # Webhook 으로 즉시 실행:
+    #   curl -X POST https://api.github.com/repos/<owner>/<repo>/dispatches \
+    #     -H "Authorization: Bearer <PAT>" \
+    #     -H "Accept: application/vnd.github+json" \
+    #     -d '{"event_type":"run-pipeline"}'
+    types: [run-pipeline]
+
+# 같은 시각에 두 번 돌아 Notion 행을 겹쳐 처리하는 일을 막는다.
+# 실행 중인 것을 죽이지 않고 뒤엣것을 기다리게 한다.
+concurrency:
+  group: tax-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: 패키지 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pipeline/requirements.txt
+
+      - name: 시크릿 확인
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: |
+          missing=""
+          for k in OPENAI_API_KEY GEMINI_API_KEY ANTHROPIC_API_KEY NOTION_TOKEN NOTION_DATABASE_ID; do
+            [ -z "${!k}" ] && missing="$missing $k"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::등록되지 않은 시크릿:$missing"
+            echo "Settings → Secrets and variables → Actions 에서 등록하세요."
+            exit 1
+          fi
+          echo "시크릿 5개 확인됨"
+
+      - name: 파이프라인 실행
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          # 아래는 없으면 코드 기본값을 쓴다 (Variables 에 넣어도 되고 안 넣어도 된다)
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          NOTION_STATUS_PROPERTY: ${{ vars.NOTION_STATUS_PROPERTY }}
+          NOTION_STATUS_PENDING: ${{ vars.NOTION_STATUS_PENDING }}
+          MAX_PAGES_PER_RUN: ${{ github.event.inputs.limit || vars.MAX_PAGES_PER_RUN || '5' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
+        run: python -m pipeline.main
+
+      - name: 실패 알림 요약
+        if: failure()
+        run: |
+          echo "### 파이프라인 실패" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 실행: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 계기: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "처리 중 오류가 난 Notion 행은 상태가 '오류'로 바뀌고 사유가 기록됩니다." >> $GITHUB_STEP_SUMMARY
