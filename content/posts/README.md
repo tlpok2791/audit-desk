@@ -6,16 +6,22 @@
 ## 흐름
 
 ```
-drafts/         ready/                    published/
-GPT 초안    →   /naver-ready 로 변환   →   홈페이지에서 복사 → 네이버 발행
-(직접 넣음)     네이버 붙여넣기용          → /naver-done 으로 이동
+Notion(대기)  →  pipeline  →  ready/  →  홈페이지에서 복사 → 네이버 발행
+                                              → /naver-done 으로 published/ 이동
+
+(선택) drafts/  →  /naver-ready  →  ready/    손으로 주제를 잡을 때
 ```
 
 | 폴더 | 무엇이 들어가나 | 누가 넣나 |
 |---|---|---|
-| `drafts/` | GPT가 쓴 초안 (마크다운이어도 됨) | 사람이 직접 |
-| `ready/` | 네이버 발행용으로 변환 완료 | `/naver-ready` |
+| `drafts/` | 손으로 잡은 초안 (선택 경로) | 사람이 직접 |
+| `ready/` | 네이버 발행용 원고 | **파이프라인(본류)** 또는 `/naver-ready` |
 | `published/` | 발행 후 URL까지 기록된 글 | `/naver-done` |
+
+**원고는 파이프라인이 자동으로 만드는 것이 본류다.** Notion 세무 DB 에 건이 쌓이면
+`pipeline/` 이 Gemini→GPT→Claude 를 거쳐 네이버 규격 원고를 `ready/` 에 떨구고
+GitHub Actions 가 커밋한다. 자동 생성분은 프론트매터에 `generated_by: "pipeline"` 이 붙는다.
+`drafts/` + `/naver-ready` 는 손으로 주제를 잡고 싶을 때 쓰는 선택 경로다.
 
 ## 프론트매터
 

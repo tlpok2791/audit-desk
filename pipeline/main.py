@@ -15,10 +15,12 @@ from __future__ import annotations
 import argparse
 import sys
 import traceback
+from pathlib import Path
 from datetime import datetime, timezone
 
 from .config import load_settings, mask
-from .crew import (build_crew, build_vision_llm, extract_json,
+from . import blog_out
+from .crew import (build_crew, build_vision_llm, check_naver_ready, extract_json,
                    read_documents, split_sections)
 from .notion_io import NotionRepo, pretty
 
@@ -86,14 +88,36 @@ def process_page(repo: NotionRepo, s, page: dict, dry: bool) -> str:
         if repo.prop_type("제목후보") == "rich_text":
             values["제목후보"] = written["제목후보"]
 
+        # ── 네이버 발행용 원고 파일 ─────────────────────
+        # 홈페이지 블로그 탭이 읽는 content/posts/ready/ 규격으로 떨군다.
+        # 스마트에디터는 마크다운을 인식하지 못하므로 남아 있으면 표시해 둔다.
+        md_left = check_naver_ready(written["본문"])
+        note = "; ".join(md_left) if md_left else ""
+        blog_path = None
+        if written["본문"]:
+            blog_path = blog_out.save(
+                written, category=s.blog_category,
+                source_note=(f"마크다운 잔재 — {note}" if note else
+                             f"파이프라인 자동 생성 · Notion {page_id[:8]}"))
+            try:                       # 저장소 안이면 상대경로로, 아니면 파일명만
+                shown = blog_path.relative_to(Path(__file__).resolve().parents[1])
+            except ValueError:
+                shown = blog_path.name
+            log(f"    원고 저장 {shown}"
+                + (f" · 마크다운 잔재 {note}" if note else ""))
+        elif not md_left:
+            log("    원고가 생성되지 않아 파일을 만들지 않았습니다.")
+
         skipped = repo.write_results(page_id, values)
         repo.append_body(page_id, [
             ("진단 리포트", written["진단리포트"]),
-            ("블로그 원고", written["블로그원고"]),
+            ("블로그 원고", written["본문"]),
             ("서류 판독 원문", doc_text[:8000]),
         ])
         repo.set_status(page_id, s.status_done,
                         note=f"자동 처리 완료 {datetime.now(timezone.utc):%Y-%m-%d %H:%M}Z"
+                             + (f" · 원고 {blog_path.name}" if blog_path else "")
+                             + (f" · 마크다운 잔재 {note}" if note else "")
                              + (f" · DB에 없어 건너뛴 속성: {', '.join(skipped)}" if skipped else ""))
         log(f"    완료 · 속성 {len(values) - len(skipped)}개 기록"
             + (f" · 건너뜀 {len(skipped)}개" if skipped else ""))
@@ -154,6 +178,17 @@ def main() -> int:
     tally = {"ok": 0, "error": 0, "dry": 0}
     for page in pages:
         tally[process_page(repo, s, page, dry)] += 1
+
+    # 원고를 하나라도 만들었으면 홈페이지 목록을 다시 굽는다
+    if tally["ok"]:
+        try:
+            import subprocess
+            root = Path(__file__).resolve().parents[1]
+            subprocess.run([sys.executable, "build_posts.py"], cwd=root, check=True,
+                           capture_output=True, text=True, timeout=120)
+            log("  src/data/posts.js 갱신")
+        except Exception as e:
+            log(f"  posts.js 갱신 실패(원고 파일은 남아 있습니다) — {e}")
 
     log(f"끝 — 성공 {tally['ok']} · 실패 {tally['error']}"
         + (f" · dry {tally['dry']}" if tally["dry"] else ""))

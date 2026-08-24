@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write   # 생성된 원고를 커밋해야 한다
 
 jobs:
   run:
@@ -86,6 +86,24 @@ jobs:
           MAX_PAGES_PER_RUN: ${{ github.event.inputs.limit || vars.MAX_PAGES_PER_RUN || '5' }}
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
         run: python -m pipeline.main
+
+      - name: 생성된 원고 커밋
+        if: success()
+        run: |
+          if [ -z "$(git status --porcelain content/posts/ready src/data/posts.js)" ]; then
+            echo "새로 만들어진 원고가 없습니다."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/posts/ready src/data/posts.js
+          n=$(git diff --cached --name-only -- content/posts/ready | wc -l)
+          git commit -m "자동 생성 원고 ${n}건 ($(date -u +%Y-%m-%d))"
+          # 사이가 벌어졌으면 rebase 후 재시도 (동시 실행은 concurrency 로 막지만 안전장치)
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo "### 자동 생성 원고 ${n}건" >> $GITHUB_STEP_SUMMARY
+          git diff --name-only HEAD~1 HEAD -- content/posts/ready >> $GITHUB_STEP_SUMMARY
 
       - name: 실패 알림 요약
         if: failure()

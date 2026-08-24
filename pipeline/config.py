@@ -39,6 +39,9 @@ class Settings:
     status_done: str = field(default_factory=lambda: os.getenv("NOTION_STATUS_DONE", "완료"))
     status_error: str = field(default_factory=lambda: os.getenv("NOTION_STATUS_ERROR", "오류"))
 
+    # 생성된 원고의 분류 (홈페이지 블로그 탭이 이 값으로 묶는다)
+    blog_category: str = field(default_factory=lambda: os.getenv("BLOG_CATEGORY", "medical"))
+
     max_pages: int = field(default_factory=lambda: int(os.getenv("MAX_PAGES_PER_RUN", "5")))
     dry_run: bool = field(default_factory=lambda: os.getenv("DRY_RUN", "").lower() in ("1", "true", "yes"))
 

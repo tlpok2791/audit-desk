@@ -6,7 +6,8 @@ from __future__ import annotations
 
 import sys
 
-from .crew import extract_json, split_sections
+from . import blog_out
+from .crew import SECTIONS, check_naver_ready, extract_json, split_sections
 from .notion_io import NotionRepo
 
 passed = failed = 0
@@ -49,19 +50,71 @@ sample = """=== 진단리포트 ===
 2. 개원의가 놓치기 쉬운 항목
 3. 비급여 수입 정리하기
 
-=== 블로그원고 ===
+=== 본문 ===
 본문 첫 문단.
 
 본문 둘째 문단.
+
+=== 태그 ===
+병의원세무, 개원의, 비급여
+
+=== 리포트 ===
+총 글자수: 1,234자
+
+=== 검토 필요 ===
+- [단정표현] "무조건" 이라는 표현 확인
 """
 sec = split_sections(sample)
-check("세 구획 분리", all(sec[k] for k in ("진단리포트", "제목후보", "블로그원고")))
+check("여섯 구획 분리", all(sec[k] for k in SECTIONS),
+      str({k: bool(v) for k, v in sec.items()}))
 check("리포트 내용", sec["진단리포트"].startswith("매출이 전기 대비"))
 check("제목 3개", sec["제목후보"].count("\n") == 2, sec["제목후보"])
-check("원고 문단 유지", "\n\n" in sec["블로그원고"])
+check("본문 문단 유지", "\n\n" in sec["본문"])
+check("태그 구획", sec["태그"] == "병의원세무, 개원의, 비급여", sec["태그"])
+check("띄어쓴 구분자도 인식", sec["검토필요"].startswith("- [단정표현]"), sec["검토필요"])
+check("옛 이름(블로그원고)은 본문으로",
+      split_sections("=== 블로그원고 ===\n옛 형식")["본문"] == "옛 형식")
 check("구분자 없으면 통째로 리포트에",
       split_sections("구분자 없는 응답")["진단리포트"] == "구분자 없는 응답")
 check("빈 입력", split_sections("")["진단리포트"] == "")
+
+print("\n네이버 규격 점검 — 스마트에디터는 마크다운을 읽지 못한다")
+
+check("깨끗한 본문은 통과", check_naver_ready("첫 문단입니다.\n\n둘째 문단입니다.") == [])
+check("이미지 자리표시자는 문제 아님",
+      check_naver_ready("[이미지: 진료비 영수증]\n\n본문입니다.") == [])
+check("헤딩 적발", any("헤딩" in p for p in check_naver_ready("# 제목\n본문")))
+check("굵게 적발", any("굵게" in p for p in check_naver_ready("이건 **중요** 합니다")))
+check("리스트 적발", any("리스트" in p for p in check_naver_ready("- 첫째\n- 둘째")))
+check("표 적발", any("표" in p for p in check_naver_ready("| a | b |\n| c | d |")))
+check("링크 문법 적발",
+      any("링크" in p for p in check_naver_ready("[국세청](https://nts.go.kr) 참고")))
+check("빈 본문", check_naver_ready("") == [])
+
+print("\n원고 파일 만들기 — content/posts/ready/ 규격")
+
+md_name, md_text = blog_out.build_markdown(sec, category="medical",
+                                           source_note="Notion abc12345")
+check("파일명은 첫 제목에서", md_name == "병의원-매출-신고-전-확인할-것.md", md_name)
+check("프론트매터 title", "title: 병의원 매출 신고 전 확인할 것" in md_text)
+check("자동 생성 표식", 'generated_by: "pipeline"' in md_text)
+check("status ready", "status: ready" in md_text)
+check("키워드는 태그 앞 3개",
+      "keywords: [병의원세무, 개원의, 비급여]" in md_text, md_text.splitlines()[3])
+check("홈페이지가 읽는 구분자 유지",
+      all(m in md_text for m in ("=== 제목 후보 ===", "=== 본문 ===",
+                                 "=== 태그 ===", "=== 리포트 ===")))
+check("본문 그대로", "본문 첫 문단." in md_text and "본문 둘째 문단." in md_text)
+check("출처 메모는 검토 필요에", "- [출처] Notion abc12345" in md_text)
+
+empty_name, empty_text = blog_out.build_markdown({})
+check("빈 입력도 파일이 됨", empty_name == "제목-미정.md", empty_name)
+check("리포트 없으면 글자수 자동 집계", "총 글자수:" in empty_text)
+check("슬러그에서 경로 문자 제거",
+      blog_out.slugify("가족 인건비/급여: 정리?") == "가족-인건비급여-정리",
+      blog_out.slugify("가족 인건비/급여: 정리?"))
+check("태그 파싱 — # 제거", blog_out.parse_tags("#가, 나,\n#다") == ["가", "나", "다"])
+check("제목 후보 파싱", blog_out.parse_titles("1. 첫째\n2) 둘째\n설명줄") == ["첫째", "둘째"])
 
 print("\nNotion 2,000자 제한 — 긴 원고를 그대로 넣으면 400 이 난다")
 

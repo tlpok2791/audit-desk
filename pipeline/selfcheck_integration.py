@@ -110,12 +110,22 @@ def written_props() -> dict:
     return {}
 
 
-def run(stub_crew, argv=("main",)) -> int:
+def run(stub_crew, argv=("main",), ready_dir=None) -> int:
+    """테스트는 절대 저장소에 파일을 남기지 않는다 — 원고는 늘 임시 폴더로."""
+    import shutil
+    import tempfile
+    from pathlib import Path
+
+    import pipeline.blog_out as B
     import pipeline.crew as C
     import pipeline.main as M
     import pipeline.notion_io as nio
 
     CALLS.clear()
+    own_tmp = ready_dir is None
+    tmp = Path(tempfile.mkdtemp()) if own_tmp else ready_dir
+    real_ready = B.READY_DIR
+    B.READY_DIR = tmp
     orig = nio.Client
     nio.Client = lambda auth: orig(auth=auth, base_url=f"http://127.0.0.1:{PORT}")
     M.build_vision_llm = lambda s: None
@@ -128,6 +138,9 @@ def run(stub_crew, argv=("main",)) -> int:
         return M.main()
     finally:
         nio.Client = orig
+        B.READY_DIR = real_ready
+        if own_tmp:
+            shutil.rmtree(tmp, ignore_errors=True)
 
 
 class FakeResult:
@@ -136,6 +149,36 @@ class FakeResult:
 
 
 LONG_BODY = "본문 문단입니다. " * 700          # 2,000자를 훌쩍 넘긴다
+
+NAVER_OUTPUT = """=== 진단리포트 ===
+매출이 늘었습니다.
+
+=== 제목후보 ===
+1. 병의원 매출 신고 전 확인할 세 가지
+2. 개원의가 놓치기 쉬운 수입금액
+3. 비급여 수입 어디까지 신고하나
+
+=== 본문 ===
+개원 첫해 원장님들이 가장 많이 묻는 것입니다.
+
+수입금액에 무엇이 들어가나
+
+건강보험 급여와 비급여가 모두 들어갈 수 있습니다.
+사안에 따라 달라질 수 있으니 개별 검토가 필요합니다.
+
+이 글은 일반적인 정보 제공을 목적으로 작성되었습니다.
+
+=== 태그 ===
+병의원세무, 수입금액, 비급여, 개원의, 병원장, 사업장현황신고, 종합소득세, 세무사, 병원세무, 신고
+
+=== 리포트 ===
+총 글자수: 150자
+키워드 등장 횟수:
+- 수입금액: 2회
+
+=== 검토필요 ===
+- [근거없음] 비급여 범위 조문 확인 필요
+"""
 
 
 def main() -> int:
@@ -201,6 +244,50 @@ def main() -> int:
               for b in (c[2].get("children") or [])]
     check("원고는 본문에 남음", any("원고 본문" in json.dumps(b, ensure_ascii=False)
                                 for b in blocks))
+
+    print("\n자동 생성 — ready/ 원고 파일까지 만든다")
+    import shutil, tempfile
+    from pathlib import Path
+    from pipeline import blog_out
+    from pipeline.crew import check_naver_ready, split_sections
+
+    tmp = Path(tempfile.mkdtemp())
+    try:
+        auto = lambda *a, **k: type("C", (), {"kickoff": lambda self: FakeResult([
+            "판독", '{"매출액": 1}', NAVER_OUTPUT])})()
+        rc = run(auto, ready_dir=tmp)
+        check("종료 코드 0", rc == 0, str(rc))
+        made = list(tmp.glob("*.md"))
+        check("ready/ 에 원고 파일 생성", len(made) == 1, str([p.name for p in made]))
+        if made:
+            txt = made[0].read_text(encoding="utf-8")
+            check("파일명이 첫 제목에서 나옴", "병의원" in made[0].name, made[0].name)
+            for sec in ("=== 제목 후보 ===", "=== 본문 ===", "=== 태그 ===",
+                        "=== 리포트 ===", "=== 검토 필요 ==="):
+                check(f"구분자 {sec}", sec in txt)
+            check("프론트매터 category", "category: medical" in txt)
+            check("자동 생성 표시", "generated_by: \"pipeline\"" in txt)
+            sec = split_sections(NAVER_OUTPUT)
+            check("본문에 마크다운 없음", not check_naver_ready(sec["본문"]),
+                  str(check_naver_ready(sec["본문"])))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    print("\n마크다운이 남으면 검토 필요로 표시한다")
+    tmp2 = Path(tempfile.mkdtemp())
+    try:
+        dirty = NAVER_OUTPUT.replace("수입금액에 무엇이 들어가나",
+                                     "## 수입금액에 무엇이 들어가나")
+        bad = lambda *a, **k: type("C", (), {"kickoff": lambda self: FakeResult([
+            "판독", '{"매출액": 1}', dirty])})()
+        run(bad, ready_dir=tmp2)
+        made = list(tmp2.glob("*.md"))
+        txt = made[0].read_text(encoding="utf-8") if made else ""
+        check("파일은 그래도 만든다", bool(made))
+        check("마크다운 잔재를 검토 필요에 남김", "마크다운 잔재" in txt,
+              txt[-200:] if txt else "")
+    finally:
+        shutil.rmtree(tmp2, ignore_errors=True)
 
     print(f"\n{passed}개 통과" + (f" · {failed}개 실패" if failed else ""))
     return 1 if failed else 0
