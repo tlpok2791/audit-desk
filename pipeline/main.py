@@ -97,6 +97,7 @@ def process_page(repo: NotionRepo, s, page: dict, dry: bool) -> str:
         if written["본문"]:
             blog_path = blog_out.save(
                 written, category=s.blog_category,
+                kakao=s.contact_kakao, phone=s.contact_phone,
                 source_note=(f"마크다운 잔재 — {note}" if note else
                              f"파이프라인 자동 생성 · Notion {page_id[:8]}"))
             try:                       # 저장소 안이면 상대경로로, 아니면 파일명만

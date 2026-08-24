@@ -7,7 +7,9 @@ from __future__ import annotations
 import sys
 
 from . import blog_out
-from .crew import SECTIONS, check_naver_ready, extract_json, split_sections
+from .crew import (SECTIONS, check_naver_ready, count_keywords, extract_json,
+                   image_markers, keyword_density, parse_image_specs, split_sections,
+                   strip_image_markers)
 from .notion_io import NotionRepo
 
 passed = failed = 0
@@ -46,37 +48,84 @@ sample = """=== 진단리포트 ===
 매출이 전기 대비 늘었습니다. 확인이 필요합니다.
 
 === 제목후보 ===
-1. 병의원 매출 신고 전 확인할 것
+1. 병의원 가족 인건비, 어디까지 인정되나
 2. 개원의가 놓치기 쉬운 항목
 3. 비급여 수입 정리하기
 
 === 본문 ===
-본문 첫 문단.
+도입 문단입니다.
 
-본문 둘째 문단.
+[이미지 1 삽입 위치]
+
+가족 인건비 설명 문단입니다.
+
+[이미지 2 삽입 위치]
+
+마무리 문단입니다.
+
+=== 이미지제작목록 ===
+이미지 1
+- 위치: 도입부 다음
+- 목적: 가족 직원이 실제 근무하는 상황을 보여준다
+- 유형: 상황 설명형
+- 화면 문구: 실제 근무 여부가 중요합니다
+
+이미지 2
+- 위치: 증빙 설명 다음
+- 목적: 증빙 자료를 한눈에 보여준다
+- 유형: 체크리스트형
+
+=== 핵심키워드 ===
+가족 인건비, 비급여
 
 === 태그 ===
 병의원세무, 개원의, 비급여
 
-=== 리포트 ===
-총 글자수: 1,234자
-
-=== 검토 필요 ===
-- [단정표현] "무조건" 이라는 표현 확인
+=== 검토필요 ===
+- [근거] 필요경비 인정 요건 조문 확인
 """
 sec = split_sections(sample)
-check("여섯 구획 분리", all(sec[k] for k in SECTIONS),
-      str({k: bool(v) for k, v in sec.items()}))
+check("여덟 구획 정의", len(SECTIONS) == 8, str(SECTIONS))
 check("리포트 내용", sec["진단리포트"].startswith("매출이 전기 대비"))
 check("제목 3개", sec["제목후보"].count("\n") == 2, sec["제목후보"])
 check("본문 문단 유지", "\n\n" in sec["본문"])
+check("이미지 제작 목록 구획", sec["이미지제작목록"].startswith("이미지 1"))
+check("핵심키워드 구획", sec["핵심키워드"] == "가족 인건비, 비급여", sec["핵심키워드"])
 check("태그 구획", sec["태그"] == "병의원세무, 개원의, 비급여", sec["태그"])
-check("띄어쓴 구분자도 인식", sec["검토필요"].startswith("- [단정표현]"), sec["검토필요"])
+check("검토필요 구획", sec["검토필요"].startswith("- [근거]"), sec["검토필요"])
+check("리포트는 모델이 안 채워도 됨", sec["리포트"] == "", repr(sec["리포트"]))
+check("띄어쓴 구분자도 인식",
+      split_sections("=== 이미지 제작 목록 ===\n이미지 1")["이미지제작목록"] == "이미지 1")
 check("옛 이름(블로그원고)은 본문으로",
       split_sections("=== 블로그원고 ===\n옛 형식")["본문"] == "옛 형식")
 check("구분자 없으면 통째로 리포트에",
       split_sections("구분자 없는 응답")["진단리포트"] == "구분자 없는 응답")
 check("빈 입력", split_sections("")["진단리포트"] == "")
+
+print("\n이미지 자리 · 키워드 집계 — 모델이 아니라 코드가 센다")
+
+check("새 규격 자리표시자", [n for n, _ in image_markers(sec["본문"])] == ["1", "2"],
+      str(image_markers(sec["본문"])))
+check("예전 규격도 인식",
+      image_markers("[이미지: 병원 데스크]") == [("", "병원 데스크")],
+      str(image_markers("[이미지: 병원 데스크]")))
+check("본문 아닌 대괄호는 무시", image_markers("문장 안 [이미지 1 삽입 위치] 는 제외") == [],
+      str(image_markers("문장 안 [이미지 1 삽입 위치] 는 제외")))
+check("글자수에서 자리표시자 제외",
+      "[이미지" not in strip_image_markers(sec["본문"]))
+
+specs = parse_image_specs(sec["이미지제작목록"])
+check("이미지 2개 파싱", len(specs) == 2, str(len(specs)))
+check("항목 파싱", specs[0]["fields"]["목적"].startswith("가족 직원이"), str(specs[0]))
+check("항목 순서 유지", specs[0]["order"][:2] == ["위치", "목적"], str(specs[0]["order"]))
+check("자리표시자 수와 목록 수 일치", len(specs) == len(image_markers(sec["본문"])))
+
+hits = count_keywords("가족 인건비는 가족 인건비다. 비급여는 없다.", ["가족 인건비", "필요경비"])
+check("등장 횟수 정확", hits == {"가족 인건비": 2, "필요경비": 0}, str(hits))
+check("자리표시자 안의 글자는 안 셈",
+      count_keywords("[이미지 1 삽입 위치]\n본문", ["삽입"]) == {"삽입": 0})
+check("밀도 계산", 0 < keyword_density("가족 인건비 " * 5, {"가족 인건비": 5},
+                                    ["가족 인건비"]) <= 1)
 
 print("\n네이버 규격 점검 — 스마트에디터는 마크다운을 읽지 못한다")
 
@@ -93,28 +142,74 @@ check("빈 본문", check_naver_ready("") == [])
 
 print("\n원고 파일 만들기 — content/posts/ready/ 규격")
 
-md_name, md_text = blog_out.build_markdown(sec, category="medical",
-                                           source_note="Notion abc12345")
-check("파일명은 첫 제목에서", md_name == "병의원-매출-신고-전-확인할-것.md", md_name)
-check("프론트매터 title", "title: 병의원 매출 신고 전 확인할 것" in md_text)
+md_name, md_text = blog_out.build_markdown(
+    sec, category="medical", source_note="Notion abc12345",
+    kakao="병의원세무상담", phone="010-0000-0000")
+check("파일명은 첫 제목에서", md_name == "병의원-가족-인건비,-어디까지-인정되나.md", md_name)
+check("프론트매터 title", "title: 병의원 가족 인건비, 어디까지 인정되나" in md_text)
 check("자동 생성 표식", 'generated_by: "pipeline"' in md_text)
 check("status ready", "status: ready" in md_text)
-check("키워드는 태그 앞 3개",
-      "keywords: [병의원세무, 개원의, 비급여]" in md_text, md_text.splitlines()[3])
+check("keywords 는 핵심키워드 구획에서",
+      "keywords: [가족 인건비, 비급여]" in md_text,
+      [l for l in md_text.splitlines() if l.startswith("keywords")])
+check("tags 는 태그 구획 전체",
+      "tags: [병의원세무, 개원의, 비급여]" in md_text,
+      [l for l in md_text.splitlines() if l.startswith("tags")])
+check("keywords 와 tags 가 다름",
+      "keywords: [병의원세무" not in md_text)
 check("홈페이지가 읽는 구분자 유지",
       all(m in md_text for m in ("=== 제목 후보 ===", "=== 본문 ===",
-                                 "=== 태그 ===", "=== 리포트 ===")))
-check("본문 그대로", "본문 첫 문단." in md_text and "본문 둘째 문단." in md_text)
+                                 "=== 이미지 제작 목록 ===", "=== 태그 ===",
+                                 "=== 리포트 ===")))
+check("본문 그대로", "도입 문단입니다." in md_text and "마무리 문단입니다." in md_text)
+check("이미지 자리 유지", md_text.count("삽입 위치]") == 2)
+check("이미지 제작 목록 실림", "- 유형: 체크리스트형" in md_text)
+check("연락처는 도구가 붙임",
+      "카카오톡 오픈채팅 병의원세무상담" in md_text and "전화 010-0000-0000" in md_text)
 check("출처 메모는 검토 필요에", "- [출처] Notion abc12345" in md_text)
+
+report = md_text.split("=== 리포트 ===")[1].split("===")[0]
+check("리포트에 핵심 키워드", "핵심 키워드: 가족 인건비, 비급여" in report, report)
+check("리포트에 이미지 개수", "이미지 개수: 2개" in report, report)
+check("리포트 글자수는 코드가 계산", "총 글자수:" in report and "자 (이미지 자리 제외)" in report)
+
+flags = md_text.split("=== 검토 필요 ===")[1]
+check("모델 검토 항목 유지", "- [근거] 필요경비 인정 요건 조문 확인" in flags)
+check("본문에 없는 키워드는 [키워드] 로", "[키워드]" in flags and "비급여" in flags, flags)
+check("짧은 본문은 [분량] 으로", "[분량]" in flags, flags)
+
+# 연락처를 설정하지 않으면 자리만 남긴다 (모델이 번호를 지어내지 않게)
+_, no_contact = blog_out.build_markdown(sec)
+check("연락처 미설정 자리표시", "(연락처 미설정" in no_contact)
+
+# 이미지 수와 목록 수가 어긋나면 알린다
+bad = dict(sec)
+bad["이미지제작목록"] = "이미지 1\n- 위치: 도입부 다음"
+_, bad_text = blog_out.build_markdown(bad)
+check("자리 2개 · 목록 1개 → [이미지] 표시", "[이미지]" in bad_text, bad_text[-400:])
+
+# 기존 글과 주제가 겹치면 알린다
+dup = blog_out.find_duplicates(
+    "병의원 가족 인건비, 어디까지 인정되나", ["가족 인건비"],
+    [("병의원 가족 인건비, 어디까지 인정될까", ["가족 인건비", "필요경비"])])
+check("중복 주제 탐지", len(dup) == 1 and "제목 유사도" in dup[0], str(dup))
+check("다른 주제는 조용", blog_out.find_duplicates(
+    "양도소득세 1세대 1주택", ["양도세"],
+    [("병의원 가족 인건비", ["가족 인건비"])]) == [])
+
+check("핵심키워드 없으면 예전처럼 태그 앞 3개",
+      blog_out.pick_keywords({}, ["가", "나", "다", "라"]) == ["가", "나", "다"])
 
 empty_name, empty_text = blog_out.build_markdown({})
 check("빈 입력도 파일이 됨", empty_name == "제목-미정.md", empty_name)
-check("리포트 없으면 글자수 자동 집계", "총 글자수:" in empty_text)
+check("빈 입력 리포트", "총 글자수: 0자" in empty_text, empty_text)
 check("슬러그에서 경로 문자 제거",
       blog_out.slugify("가족 인건비/급여: 정리?") == "가족-인건비급여-정리",
       blog_out.slugify("가족 인건비/급여: 정리?"))
 check("태그 파싱 — # 제거", blog_out.parse_tags("#가, 나,\n#다") == ["가", "나", "다"])
 check("제목 후보 파싱", blog_out.parse_titles("1. 첫째\n2) 둘째\n설명줄") == ["첫째", "둘째"])
+check("제목의 유형 표시는 떼어냄",
+      blog_out.parse_titles("1. (질문형) 가족 급여 인정될까") == ["가족 급여 인정될까"])
 
 print("\nNotion 2,000자 제한 — 긴 원고를 그대로 넣으면 400 이 난다")
 

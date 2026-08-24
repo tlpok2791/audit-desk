@@ -182,6 +182,8 @@
           '<span class="post-meta">' +
             '<span class="tag">' + (p.charCount || 0).toLocaleString() + "자</span>" +
             '<span class="tag">태그 ' + (p.tags || []).length + "개</span>" +
+            (p.imageSlots
+              ? '<span class="tag">이미지 ' + p.imageSlots + "곳</span>" : "") +
             (flagCount
               ? '<span class="tag" style="background:var(--rose);color:var(--rose-t)">검토 '
                 + flagCount + "건</span>"
@@ -218,7 +220,7 @@
       body.appendChild(row);
     });
 
-    // 본문
+    // 본문 — 전체 복사는 그대로 두고, 이미지 자리가 있으면 조각별 보기를 덧붙인다
     var bh = label("본문");
     bh.appendChild(copyButton("본문 전체 복사", function () { return p.body || ""; }));
     body.appendChild(bh);
@@ -226,6 +228,79 @@
     pre.className = "body-box";
     pre.textContent = p.body || "";
     body.appendChild(pre);
+
+    var segs = p.segments || [];
+    var hasImg = segs.some(function (g) { return g.type === "image"; });
+    if (hasImg) {
+      var sh = label("옮겨 붙이는 순서 (이미지 " + (p.imageSlots || 0) + "곳)");
+      body.appendChild(sh);
+      var n = 0;
+      segs.forEach(function (g) {
+        if (g.type === "image") {
+          var im = document.createElement("div");
+          im.className = "seg-img";
+          im.innerHTML = "<b>🖼 이미지 " + escapeHtml(g.no) + " 자리</b>";
+          var sp = document.createElement("span");
+          sp.textContent = g.desc || "아래 이미지 제작 목록의 " + g.no + "번을 넣습니다";
+          im.appendChild(sp);
+          body.appendChild(im);
+          return;
+        }
+        n += 1;
+        var box = document.createElement("div");
+        box.className = "seg";
+        var hd = document.createElement("div");
+        hd.className = "seg-hd";
+        hd.innerHTML = '<span class="grow">본문 ' + n + "번째 조각 · "
+          + g.text.length.toLocaleString() + "자</span>";
+        hd.appendChild(copyButton("이 조각 복사", function () { return g.text; }));
+        box.appendChild(hd);
+        var tx = document.createElement("div");
+        tx.className = "seg-txt";
+        tx.textContent = g.text;
+        box.appendChild(tx);
+        body.appendChild(box);
+      });
+    }
+
+    // 이미지 제작 목록 — 어떤 이미지를 만들어야 하는지
+    var specs = p.imageSpecs || [];
+    var specRaw = p.imageSpecsRaw || "";
+    if (specs.length || specRaw) {
+      var ih = label("이미지 제작 목록");
+      ih.appendChild(copyButton("이미지 목록 복사", function () { return specRaw; }));
+      body.appendChild(ih);
+      if (specs.length) {
+        specs.forEach(function (sp) {
+          var card = document.createElement("div");
+          card.className = "imgspec";
+          var h = document.createElement("h4");
+          h.textContent = "이미지 " + sp.no;
+          card.appendChild(h);
+          var dl = document.createElement("dl");
+          (sp.fields || []).forEach(function (f) {
+            var dt = document.createElement("dt");
+            dt.textContent = f.k;
+            var dd = document.createElement("dd");
+            dd.textContent = f.v;
+            dl.appendChild(dt);
+            dl.appendChild(dd);
+          });
+          card.appendChild(dl);
+          card.appendChild(copyButton("이 이미지 설명 복사", function () {
+            return "이미지 " + sp.no + "\n"
+              + (sp.fields || []).map(function (f) { return "- " + f.k + ": " + f.v; })
+                  .join("\n");
+          }));
+          body.appendChild(card);
+        });
+      } else {
+        var raw = document.createElement("div");
+        raw.className = "body-box";
+        raw.textContent = specRaw;
+        body.appendChild(raw);
+      }
+    }
 
     // 태그
     var th = label("태그");
@@ -243,13 +318,27 @@
     });
     body.appendChild(tb);
 
-    // 리포트
-    if (p.report) {
+    // 리포트 — 키워드 등장 횟수는 코드가 센 값이다
+    var hits = p.keywordHits || [];
+    if (p.report || hits.length) {
       body.appendChild(label("리포트"));
-      var r = document.createElement("div");
-      r.className = "rep";
-      r.textContent = p.report;
-      body.appendChild(r);
+      if (hits.length) {
+        var kr = document.createElement("div");
+        kr.className = "kwrow";
+        hits.forEach(function (h) {
+          var b = document.createElement("span");
+          b.className = "kw" + (h.n === 0 ? " zero" : "");
+          b.textContent = h.k + " " + h.n + "회";
+          kr.appendChild(b);
+        });
+        body.appendChild(kr);
+      }
+      if (p.report) {
+        var r = document.createElement("div");
+        r.className = "rep";
+        r.textContent = p.report;
+        body.appendChild(r);
+      }
     }
 
     // 검토 필요

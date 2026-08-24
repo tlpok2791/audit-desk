@@ -42,6 +42,11 @@ class Settings:
     # 생성된 원고의 분류 (홈페이지 블로그 탭이 이 값으로 묶는다)
     blog_category: str = field(default_factory=lambda: os.getenv("BLOG_CATEGORY", "medical"))
 
+    # 원고 말미 상담 유도에 붙일 연락처. 모델이 번호를 지어내지 않도록 여기서 넣는다.
+    # 비워 두면 원고에 자리만 남고 사람이 채운다.
+    contact_kakao: str = field(default_factory=lambda: os.getenv("CONTACT_KAKAO", "").strip())
+    contact_phone: str = field(default_factory=lambda: os.getenv("CONTACT_PHONE", "").strip())
+
     max_pages: int = field(default_factory=lambda: int(os.getenv("MAX_PAGES_PER_RUN", "5")))
     dry_run: bool = field(default_factory=lambda: os.getenv("DRY_RUN", "").lower() in ("1", "true", "yes"))
 

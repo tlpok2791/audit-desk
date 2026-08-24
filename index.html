@@ -266,6 +266,29 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
   white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto;
   font-family:var(--sans)}
 .tag-box{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+
+/* 본문 조각 · 이미지 자리 — 네이버에 순서대로 옮겨 붙이기 위한 뷰 */
+.seg{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:9px}
+.seg-hd{display:flex;align-items:center;gap:9px;padding:7px 12px;background:#FAFBFD;
+  border-bottom:1px solid var(--line);font-size:12px;color:var(--faint);font-weight:700}
+.seg-hd .grow{flex:1}
+.seg-txt{padding:12px 15px;font-size:13px;color:var(--body);line-height:1.72;
+  white-space:pre-wrap;word-break:break-word;font-family:var(--sans)}
+.seg-img{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  background:#F5F7FF;border:1px dashed var(--indigo);border-radius:9px;margin-bottom:9px}
+.seg-img b{font-size:12.5px;color:var(--indigo-d);flex:none}
+.seg-img span{font-size:12.5px;color:var(--body);line-height:1.6}
+.imgspec{border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin-bottom:8px}
+.imgspec h4{font-size:13px;color:var(--ink);margin:0 0 7px}
+.imgspec dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0}
+.imgspec dt{font-size:11.5px;color:var(--faint);font-weight:700;white-space:nowrap}
+.imgspec dd{font-size:12.5px;color:var(--body);line-height:1.6;margin:0;word-break:break-word}
+.kwrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.kw{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:999px;
+  background:var(--line-l);color:var(--body);border:1px solid var(--line)}
+.kw.zero{background:var(--rose);color:var(--rose-t);border-color:#FECACA}
+@media(max-width:520px){.imgspec dl{grid-template-columns:1fr;gap:2px}
+  .imgspec dt{margin-top:5px}}
 .rep{font-family:var(--mono);font-size:12px;color:var(--body);line-height:1.7;
      white-space:pre-wrap}
 .flagbox{background:#FFF7F7;border:1px solid #FECACA;border-radius:9px;padding:12px 14px}

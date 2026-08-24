@@ -15,7 +15,15 @@ POSTS = ROOT / "content" / "posts"
 OUT = ROOT / "src" / "data" / "posts.js"
 
 # ready/ 파일의 섹션 구분자 — content/posts/README.md 의 규약과 같아야 한다
-SECTIONS = ["제목 후보", "본문", "태그", "리포트", "검토 필요"]
+SECTIONS = ["제목 후보", "본문", "이미지 제작 목록", "태그", "리포트", "검토 필요"]
+
+# 예전 원고에도 있던 네 구획만 필수로 본다. '이미지 제작 목록' 이 없다고
+# 형식 위반으로 표시하면 이미 만들어 둔 글이 전부 빨갛게 된다.
+REQUIRED = ["제목 후보", "본문", "태그", "리포트"]
+
+# 새 규격은 [이미지 1 삽입 위치], 예전 원고는 [이미지: 설명]. 둘 다 받는다.
+IMAGE_MARKER = re.compile(
+    r"^[ \t]*\[이미지\s*(\d+)?\s*(?:삽입\s*위치)?\s*[:：]?\s*([^\]]*)\][ \t]*$", re.M)
 
 
 def split_frontmatter(text: str) -> tuple[dict, str]:
@@ -96,7 +104,54 @@ def parse_flags(raw: str) -> list[str]:
 
 def count_chars(body: str) -> int:
     """이미지 자리표시자를 뺀 실제 본문 글자수 (공백 포함)."""
-    return len(re.sub(r"^\[이미지:.*?\]\s*$", "", body, flags=re.M).strip())
+    return len(IMAGE_MARKER.sub("", body).strip())
+
+
+def split_segments(body: str) -> list:
+    """
+    본문을 이미지 자리 기준으로 자른다.
+    화면에서 '이 조각까지 복사 → 이미지 배치 → 다음 조각 복사' 를 하기 위한 것이다.
+    """
+    segments, pos, n = [], 0, 0
+    for m in IMAGE_MARKER.finditer(body):
+        text = body[pos:m.start()].strip()
+        if text:
+            segments.append({"type": "text", "text": text})
+        n += 1
+        segments.append({
+            "type": "image",
+            "no": m.group(1) or str(n),
+            "desc": (m.group(2) or "").strip(),
+            "marker": m.group(0).strip(),
+        })
+        pos = m.end()
+    tail = body[pos:].strip()
+    if tail:
+        segments.append({"type": "text", "text": tail})
+    return segments
+
+
+def parse_image_specs(raw: str) -> list:
+    """'=== 이미지 제작 목록 ===' 을 이미지 단위로 자른다."""
+    specs, cur = [], None
+    for line in (raw or "").splitlines():
+        head = re.match(r"^\s*(?:\[)?이미지\s*(\d+)\s*(?:\])?\s*[:.]?\s*$", line.rstrip())
+        if head:
+            cur = {"no": head.group(1), "fields": []}
+            specs.append(cur)
+            continue
+        if cur is None:
+            continue
+        item = re.match(r"^\s*[-*]?\s*([가-힣A-Za-z ]{1,12})\s*[:：]\s*(.+)$", line)
+        if item:
+            cur["fields"].append({"k": item.group(1).strip(), "v": item.group(2).strip()})
+    return specs
+
+
+def count_keywords(body: str, keywords: list) -> list:
+    """본문에서 핵심 키워드가 실제로 몇 번 나오는지 센다 (모델 집계를 믿지 않는다)."""
+    text = IMAGE_MARKER.sub("", body).strip()
+    return [{"k": k, "n": text.count(k)} for k in keywords if k]
 
 
 def read_post(path: Path, stage: str) -> dict:
@@ -121,17 +176,24 @@ def read_post(path: Path, stage: str) -> dict:
 
     sec = split_sections(body)
     plain = sec.get("본문", "").strip()
+    tags = parse_tags(sec.get("태그", ""))
+    segments = split_segments(plain)
     post.update({
         "titleCandidates": parse_titles(sec.get("제목 후보", "")),
         "body": plain,
-        "tags": parse_tags(sec.get("태그", "")),
+        "segments": segments,
+        "imageSpecsRaw": sec.get("이미지 제작 목록", "").strip(),
+        "imageSpecs": parse_image_specs(sec.get("이미지 제작 목록", "")),
+        "imageSlots": sum(1 for s in segments if s["type"] == "image"),
+        "tags": fm.get("tags") or tags,
         "report": sec.get("리포트", "").strip(),
         "flags": parse_flags(sec.get("검토 필요", "")),
         "charCount": count_chars(plain),
+        "keywordHits": count_keywords(plain, post["keywords"]),
     })
 
     # 규약을 어긴 파일은 화면에서 티가 나도록 표시해 둔다
-    missing = [s for s in ("제목 후보", "본문", "태그", "리포트") if s not in sec]
+    missing = [s for s in REQUIRED if s not in sec]
     if missing:
         post["malformed"] = missing
     return post

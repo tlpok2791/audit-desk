@@ -160,26 +160,87 @@ NAVER_OUTPUT = """=== 진단리포트 ===
 
 === 본문 ===
 개원 첫해 원장님들이 가장 많이 묻는 것입니다.
+수입금액을 어디까지 잡아야 하는지가 핵심입니다.
+
+[이미지 1 삽입 위치]
 
 수입금액에 무엇이 들어가나
 
 건강보험 급여와 비급여가 모두 들어갈 수 있습니다.
 사안에 따라 달라질 수 있으니 개별 검토가 필요합니다.
 
+[이미지 2 삽입 위치]
+
+수입금액을 정리할 때 남겨 둘 자료
+
+카드매출자료와 현금영수증 내역을 함께 맞춰 보는 것이 일반적입니다.
+
+[이미지 3 삽입 위치]
+
 이 글은 일반적인 정보 제공을 목적으로 작성되었습니다.
+
+수입금액 정리가 어렵다면 편하게 문의해 주세요.
+
+=== 이미지제작목록 ===
+이미지 1
+- 위치: 도입부 다음
+- 목적: 수입금액에 무엇이 포함되는지 한눈에 보여준다
+- 유형: 개념 설명형
+- 구성: 건강보험 급여 · 비급여 · 기타수입을 하나의 원으로 묶은 구조
+- 화면 문구: 수입금액은 급여와 비급여를 함께 봅니다
+- 스타일: 한국 병의원, 한국어 중심, 깔끔한 세무 인포그래픽
+- 비율: 네이버 블로그 가로형
+
+이미지 2
+- 위치: 수입금액 범위 설명 다음
+- 목적: 급여와 비급여를 구분해 비교한다
+- 유형: 비교형
+- 구성: 왼쪽 건강보험 급여, 오른쪽 비급여를 나란히 둔 2단 비교
+- 화면 문구: 둘 다 수입금액에 들어갈 수 있습니다
+- 스타일: 한국어 중심 인포그래픽
+- 비율: 네이버 블로그 가로형
+
+이미지 3
+- 위치: 증빙 설명 다음
+- 목적: 정리해 둘 자료를 순서대로 보여준다
+- 유형: 프로세스형
+- 구성: 카드매출자료 → 현금영수증 → 진료비 수납내역 → 대사
+- 화면 문구: 자료를 맞춰 보는 순서
+- 스타일: 한국어 중심 인포그래픽
+- 비율: 네이버 블로그 가로형
+
+=== 핵심키워드 ===
+수입금액, 비급여
 
 === 태그 ===
 병의원세무, 수입금액, 비급여, 개원의, 병원장, 사업장현황신고, 종합소득세, 세무사, 병원세무, 신고
 
-=== 리포트 ===
-총 글자수: 150자
-키워드 등장 횟수:
-- 수입금액: 2회
-
 === 검토필요 ===
-- [근거없음] 비급여 범위 조문 확인 필요
+- [근거] 비급여 범위 조문 확인 필요
 """
 
+# 예전 규격(구획 5개·[이미지: 설명])도 계속 읽혀야 한다
+LEGACY_OUTPUT = """=== 진단리포트 ===
+확인 필요.
+
+=== 제목후보 ===
+1. 옛 규격 원고
+2. 두 번째
+3. 세 번째
+
+=== 블로그원고 ===
+옛 규격 본문입니다.
+
+[이미지: 병원 데스크 사진]
+
+두 번째 문단입니다.
+
+=== 태그 ===
+병의원세무, 개원의
+
+=== 검토 필요 ===
+- [의료광고] 확인 필요
+"""
 
 def main() -> int:
     import os
@@ -262,14 +323,48 @@ def main() -> int:
         if made:
             txt = made[0].read_text(encoding="utf-8")
             check("파일명이 첫 제목에서 나옴", "병의원" in made[0].name, made[0].name)
-            for sec in ("=== 제목 후보 ===", "=== 본문 ===", "=== 태그 ===",
-                        "=== 리포트 ===", "=== 검토 필요 ==="):
+            for sec in ("=== 제목 후보 ===", "=== 본문 ===", "=== 이미지 제작 목록 ===",
+                        "=== 태그 ===", "=== 리포트 ===", "=== 검토 필요 ==="):
                 check(f"구분자 {sec}", sec in txt)
             check("프론트매터 category", "category: medical" in txt)
             check("자동 생성 표시", "generated_by: \"pipeline\"" in txt)
+            check("keywords 는 핵심키워드에서", "keywords: [수입금액, 비급여]" in txt,
+                  [l for l in txt.splitlines() if l.startswith("keywords")])
+            check("tags 는 태그 10개 전체",
+                  txt.count(",", txt.index("tags: ["), txt.index("]", txt.index("tags: ["))) == 9,
+                  [l for l in txt.splitlines() if l.startswith("tags")])
+            check("본문에 이미지 자리 3곳", txt.count("삽입 위치]") == 3)
+            check("이미지 제작 목록 3개", txt.count("\n이미지 ") >= 3)
+            rep = txt.split("=== 리포트 ===")[1].split("===")[0]
+            check("리포트 이미지 개수 일치", "이미지 개수: 3개" in rep, rep)
+            check("리포트 키워드 실제 횟수", "- 수입금액: " in rep and "- 비급여: " in rep, rep)
+            check("모델이 안 센 글자수를 코드가 채움", "총 글자수:" in rep)
             sec = split_sections(NAVER_OUTPUT)
             check("본문에 마크다운 없음", not check_naver_ready(sec["본문"]),
                   str(check_naver_ready(sec["본문"])))
+            check("이미지 자리는 마크다운 오탐 아님",
+                  not check_naver_ready("[이미지 1 삽입 위치]\n본문"))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    print("\n예전 규격 원고도 그대로 처리된다 (기존 글이 깨지지 않는지)")
+    tmp3 = Path(tempfile.mkdtemp())
+    try:
+        legacy = lambda *a, **k: type("C", (), {"kickoff": lambda self: FakeResult([
+            "판독", '{"매출액": 1}', LEGACY_OUTPUT])})()
+        rc = run(legacy, ready_dir=tmp3)
+        check("종료 코드 0", rc == 0, str(rc))
+        made = list(tmp3.glob("*.md"))
+        check("파일 생성", len(made) == 1, str([p.name for p in made]))
+        txt = made[0].read_text(encoding="utf-8") if made else ""
+        check("블로그원고 별칭이 본문으로", "옛 규격 본문입니다." in txt)
+        check("예전 [이미지: 설명] 도 이미지로 셈",
+              "이미지 개수: 1개" in txt, txt.split("=== 리포트 ===")[1][:200] if txt else "")
+        check("핵심키워드 없으면 태그 앞 3개로 물러섬",
+              "keywords: [병의원세무, 개원의]" in txt,
+              [l for l in txt.splitlines() if l.startswith("keywords")])
+        check("이미지 제작 목록 없어도 파일은 만든다",
+              "이미지 제작 목록이 생성되지 않았습니다" in txt)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
