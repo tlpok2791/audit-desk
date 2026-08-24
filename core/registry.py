@@ -9,7 +9,7 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from modules import fs, jet, journal_edit, ledger_edit, lead, stub
+from modules import edit, fs, jet, lead, stub
 
 
 @dataclass
@@ -23,19 +23,12 @@ class Module:
 
 MODULES = [
     Module(
-        ref="LG-100",
-        label="계정별원장 편집",
-        desc="계정마다 나뉜 시트를 계정과목 열을 가진 하나의 통합 원장으로 합치고, "
-             "원장에 찍힌 [누계]와 대조해 검증합니다.",
-        render=ledger_edit.render,
-        status="ready",
-    ),
-    Module(
-        ref="JN-100",
-        label="분개장 편집",
-        desc="회계프로그램에서 뽑은 분개장을 서식과 무관하게 표준 형태로 펴고, "
-             "차변·대변 합계가 일치하는지 검증합니다.",
-        render=journal_edit.render,
+        ref="JL-100",
+        label="분개장·계정별원장 편집",
+        desc="분개장은 서식과 무관하게 표준 형태로 펴 차대 합계를 검증하고, "
+             "계정별원장은 계정마다 나뉜 시트를 하나의 통합 원장으로 합쳐 "
+             "원장에 찍힌 [누계]와 대조합니다. 한 화면에서 자료 종류만 골라 씁니다.",
+        render=edit.render,
         status="ready",
     ),
     Module(

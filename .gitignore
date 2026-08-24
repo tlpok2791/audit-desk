@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# 감사 작업 데이터 — 절대 커밋하지 않는다 (과세정보·개인정보 포함)
+work/*
+!work/README.md
+
+# API 키 — 절대 커밋하지 않는다
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+credentials.json
