@@ -10,24 +10,31 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
 <style>
 :root{
-  /* 한 사무소의 세 화면이 같은 값을 쓴다. 값을 바꾸면 세 곳 모두 바꾼다. */
-  --navy:#0F1A3C; --navy-2:#1A2757; --navy-d:#080E22;
-  --ink:#111528; --body:#3C4256; --mute:#6E738A; --faint:#9AA0B4;
-  --paper:#FFFFFF; --bg:#F7F7F5; --sand:#F6F5F2;
-  --line:#E4E2DD; --line-l:#EFEEEA;
-  --accent:#B08C4F; --accent-d:#8F7040;
+  /* 세정회계법인 로고 색에서 가져온다. 세 화면이 같은 값을 쓴다. */
+  --brand:#4F5BD5;        /* 로고 마크의 청보라 — 주색 */
+  --brand-d:#3B44AC;      /* 눌렀을 때 */
+  --brand-l:#EEF0FC;      /* 옅은 배경 */
+  --brand-b:#C6CBF2;      /* 테두리 */
+  --sky:#6FB6F0;          /* 로고의 밝은 파랑 면 */
+  --deep:#1C2260;         /* 히어로·헤더 바탕 */
+  --deep-2:#2A3180;
+  --deep-d:#12163F;
+  --ink:#1A1A2E; --body:#3D4056; --mute:#6B6E84; --faint:#9A9CB0;
+  --paper:#FFFFFF; --bg:#F7F8FB; --sand:#F4F5FA;
+  --line:#E2E4EE; --line-l:#EEEFF6;
   --ok:#0F6E4E; --ok-bg:#E8F3EE;
   --warn:#8A6A16; --warn-bg:#FBF3DF;
   --bad:#A32B2B; --bad-bg:#FAEBEB;
-  /* 모서리는 세 가지뿐이다 */
   --r:8px; --r-sm:4px; --r-pill:999px;
   --sans:'Pretendard Variable',Pretendard,system-ui,-apple-system,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
-  /* 기존 이름으로 쓰던 곳이 계속 동작하도록 이어 준다.
-     새 코드에서는 위쪽 이름(--navy·--accent·--ok 등)을 쓴다. */
-  --indigo:var(--navy); --indigo-d:var(--navy-2);
-  --indigo-l:#EDEFF6; --indigo-b:#C3CBDE;
-  --card:var(--paper); --line-2:var(--line-l); --gold:var(--accent);
+
+  /* 예전 이름으로 쓰던 곳이 계속 동작하도록 이어 준다 */
+  --navy:var(--deep); --navy-2:var(--deep-2); --navy-d:var(--deep-d);
+  --indigo:var(--brand); --indigo-d:var(--brand-d);
+  --indigo-l:var(--brand-l); --indigo-b:var(--brand-b);
+  --accent:var(--brand); --accent-d:var(--brand-d); --gold:var(--brand);
+  --card:var(--paper); --line-2:var(--line-l); --steel:var(--mute);
   --mint:var(--ok-bg); --mint-t:var(--ok);
   --amber:var(--warn-bg); --amber-t:var(--warn);
   --rose:var(--bad-bg); --rose-t:var(--bad);
@@ -189,6 +196,7 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .site-eyebrow{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;
          color:var(--indigo);margin-bottom:12px}
 .site-eyebrow::before{content:"";width:26px;height:2px;background:var(--indigo);border-radius:var(--r-sm)}
+.brandmark{width:26px;height:26px;flex:none;display:inline-block;vertical-align:-5px;margin-right:10px}
 .site-h1{font-size:clamp(24px,4.6vw,30px);font-weight:800;color:var(--ink);
    letter-spacing:-.035em;line-height:1.28}
 .site-sub{font-size:15px;color:var(--mute);margin-top:8px}
@@ -535,7 +543,13 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 <div class="wrap">
 
   <div class="site-eyebrow">내부 업무 도구</div>
-  <h1 class="site-h1">업무 데스크</h1>
+  <h1 class="site-h1"><svg class="brandmark" viewBox="0 0 44 44" aria-hidden="true"><defs>
+<linearGradient id="bma" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#7DBFF6"/><stop offset="52%" stop-color="#4F5BD5"/>
+<stop offset="100%" stop-color="#5B3FC4"/></linearGradient></defs>
+<g transform="rotate(45 22 22)"><rect x="7" y="7" width="30" height="30" rx="2.5" fill="url(#bma)"/>
+<path d="M30 15 H15 V30 H25.5 V22.5 H20" fill="none" stroke="#fff" stroke-width="4.2"
+stroke-linecap="square" stroke-linejoin="miter"/></g></svg>업무 데스크</h1>
   <p class="site-sub">부서별로 반복되는 작업을 모아 둔 도구함입니다. 필요한 탭을 골라 쓰세요.</p>
 
   <div class="tabs" role="tablist" aria-label="업무 영역">
