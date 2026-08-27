@@ -12,133 +12,171 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
 <style>
 :root{
-  --indigo:#4F46E5; --indigo-d:#3730A3; --indigo-l:#EEF0FF; --indigo-b:#C7D2FE;
-  --ink:#111827; --body:#374151; --mute:#6B7280; --faint:#9CA3AF;
-  --bg:#FFFFFF; --soft:#F7F8FC; --line:#E5E7EB; --line-l:#F0F1F5;
+  --navy:#141C47; --navy-2:#1E2758; --navy-d:#0C1230;
+  --ink:#111528; --body:#3C4256; --mute:#6E738A; --faint:#9AA0B4;
+  --paper:#FFFFFF; --sand:#F5F3EF; --line:#E4E1DB; --line-2:#EFEDE8;
+  --steel:#5B6B87;
   --rose:#FEE2E2; --rose-t:#B91C1C;
   --sans:'Pretendard Variable',Pretendard,system-ui,-apple-system,sans-serif;
-  --r:14px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);
-  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1040px;margin:0 auto;padding:0 22px}
+body{margin:0;background:var(--paper);color:var(--body);font-family:var(--sans);
+  font-size:16.5px;line-height:1.72;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility}
 a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 34px}
 
-/* 빈칸 경고 — 채우기 전에 공개하는 사고를 막는다 */
+/* 임시값 경고 */
 #todo{display:none;background:var(--rose);color:var(--rose-t);
-  font-size:14px;padding:11px 22px;text-align:center;font-weight:600}
+  font-size:13.5px;padding:10px 22px;text-align:center;font-weight:600}
 #todo.on{display:block}
 
-/* 헤더 */
-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.hd{display:flex;align-items:center;gap:18px;height:64px}
-.logo{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.02em;
-  text-decoration:none;white-space:nowrap}
-.nav{margin-left:auto;display:flex;gap:22px}
-.nav a{font-size:14.5px;color:var(--mute);text-decoration:none;font-weight:600}
-.nav a:hover{color:var(--indigo)}
-.hd .cta{flex:none}
+/* ══ 네이비 프레임 — 헤더 + 히어로 ══════════════════════ */
+.top{background:var(--navy);padding-bottom:26px}
+.hd{display:flex;align-items:center;gap:20px;height:82px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none}
+.logo .mark{display:flex;gap:2.5px;align-items:flex-end;height:19px}
+.logo .mark i{display:block;width:4px;background:#fff;border-radius:1px}
+.logo .mark i:nth-child(1){height:11px;opacity:.55}
+.logo .mark i:nth-child(2){height:19px}
+.logo .mark i:nth-child(3){height:14px;opacity:.75}
+.logo b{color:#fff;font-size:18px;font-weight:800;letter-spacing:-.025em;
+  white-space:nowrap}
+.nav{margin-left:auto;display:flex;gap:30px}
+.nav a{color:rgba(255,255,255,.78);font-size:14.5px;font-weight:600;
+  text-decoration:none;letter-spacing:-.01em;transition:color .15s}
+.nav a:hover{color:#fff}
 
-/* 버튼 */
-.btn{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:700;
-  padding:11px 20px;border-radius:10px;text-decoration:none;white-space:nowrap;
-  border:1px solid transparent;transition:background .15s}
-.btn-p{background:var(--indigo);color:#fff}
-.btn-p:hover{background:var(--indigo-d)}
-.btn-o{background:#fff;color:var(--ink);border-color:var(--line)}
-.btn-o:hover{border-color:var(--indigo);color:var(--indigo)}
-.cta .btn{padding:8px 15px;font-size:14px}
+/* 히어로 카드 */
+.hero{position:relative;border-radius:26px;overflow:hidden;min-height:600px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:66px 58px 52px}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;z-index:0}
+.hero>*{position:relative;z-index:1}
+.hero h1{margin:0;color:#fff;font-size:clamp(44px,6.6vw,88px);line-height:1.06;
+  letter-spacing:-.045em;font-weight:500;max-width:14ch}
+.hero h1 span{display:block}
+.hero .ko{align-self:flex-end;text-align:right;color:rgba(255,255,255,.94);
+  font-size:clamp(15px,1.5vw,19px);line-height:1.8;font-weight:600;
+  letter-spacing:-.015em;text-shadow:0 1px 14px rgba(10,16,40,.5)}
 
-/* 히어로 */
-.hero{padding:78px 0 66px}
-.eyebrow{display:inline-block;font-size:12.5px;font-weight:700;color:var(--indigo);
-  background:var(--indigo-l);padding:5px 12px;border-radius:999px;letter-spacing:.02em}
-.hero h1{margin:20px 0 0;font-size:44px;line-height:1.28;letter-spacing:-.035em;
-  color:var(--ink);font-weight:800}
-.hero p{margin:20px 0 0;font-size:17.5px;color:var(--mute);max-width:620px}
-.hero .acts{margin-top:32px;display:flex;gap:11px;flex-wrap:wrap}
+/* ══ 버튼 ═══════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;
+  padding:13px 24px;border-radius:2px;text-decoration:none;white-space:nowrap;
+  border:1px solid transparent;letter-spacing:-.015em;transition:all .16s}
+.btn-p{background:var(--navy);color:#fff}
+.btn-p:hover{background:var(--navy-2)}
+.btn-o{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-o:hover{border-color:var(--navy);color:var(--navy)}
+.on-dark .btn-p{background:#fff;color:var(--navy)}
+.on-dark .btn-p:hover{background:#E8EAF2}
+.on-dark .btn-o{color:#fff;border-color:rgba(255,255,255,.34)}
+.on-dark .btn-o:hover{border-color:#fff;background:rgba(255,255,255,.06)}
 
-/* 공통 섹션 */
-section{padding:66px 0}
-section.alt{background:var(--soft);border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line)}
-h2{margin:0;font-size:29px;line-height:1.35;letter-spacing:-.03em;color:var(--ink);
-  font-weight:800}
-.lead{margin:13px 0 0;font-size:16px;color:var(--mute);max-width:640px}
-.grid{display:grid;gap:18px;margin-top:38px}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g2{grid-template-columns:repeat(2,1fr)}
-.g4{grid-template-columns:repeat(4,1fr)}
+/* ══ 섹션 공통 ══════════════════════════════════════════ */
+section{padding:104px 0}
+.sand{background:var(--sand)}
+.lbl{display:block;font-size:11.5px;font-weight:800;color:var(--steel);
+  letter-spacing:.16em;text-transform:uppercase;margin-bottom:22px}
+h2{margin:0;font-size:clamp(28px,3.4vw,40px);line-height:1.28;
+  letter-spacing:-.035em;color:var(--ink);font-weight:700}
+.lead{margin:20px 0 0;font-size:17px;color:var(--mute);max-width:56ch;
+  line-height:1.8}
 
-/* 전문 분야 */
-.focus{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px 24px}
-.focus .ic{font-size:26px;line-height:1}
-.focus h3{margin:15px 0 8px;font-size:17.5px;color:var(--ink);letter-spacing:-.02em}
-.focus p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.68}
+/* 소개 band */
+.state{padding:96px 0}
+.state p{margin:0;font-size:clamp(21px,2.6vw,31px);line-height:1.58;
+  letter-spacing:-.032em;color:var(--ink);font-weight:600;max-width:22ch}
+.state .sub{margin:26px 0 0;font-size:16.5px;color:var(--mute);font-weight:400;
+  letter-spacing:-.01em;max-width:52ch;line-height:1.82}
+.state .acts{margin-top:38px;display:flex;gap:11px;flex-wrap:wrap}
+
+/* 전문 분야 — 번호 + 헤어라인 */
+.rows{margin-top:58px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:78px 1fr 1.45fr;gap:30px;
+  padding:34px 0;border-bottom:1px solid var(--line);align-items:start}
+.row .no{font-size:13px;font-weight:800;color:var(--steel);letter-spacing:.1em;
+  padding-top:5px}
+.row h3{margin:0;font-size:21px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:700;line-height:1.4}
+.row p{margin:0;font-size:16px;color:var(--mute);line-height:1.8}
 
 /* 서비스 */
-.svc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px 24px}
-.svc h3{margin:0 0 9px;font-size:18.5px;color:var(--ink);letter-spacing:-.02em}
-.svc>p{margin:0 0 17px;font-size:14.5px;color:var(--mute);line-height:1.68}
-.svc ul{margin:0;padding:0;list-style:none;border-top:1px solid var(--line-l)}
-.svc li{font-size:14.5px;color:var(--body);padding:9px 0 9px 20px;position:relative;
-  border-bottom:1px solid var(--line-l)}
-.svc li:last-child{border-bottom:none}
-.svc li::before{content:"";position:absolute;left:4px;top:17px;width:5px;height:5px;
-  border-radius:50%;background:var(--indigo-b)}
+.svcs{margin-top:58px;display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1px;background:var(--line);border:1px solid var(--line)}
+.svc{background:var(--paper);padding:44px 40px}
+.svc .no{font-size:12px;font-weight:800;color:var(--steel);letter-spacing:.14em}
+.svc h3{margin:16px 0 12px;font-size:23px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:700}
+.svc>p{margin:0 0 26px;font-size:15.5px;color:var(--mute);line-height:1.78}
+.svc ul{margin:0;padding:0;list-style:none}
+.svc li{font-size:15px;color:var(--body);padding:10px 0;
+  border-top:1px solid var(--line-2);display:flex;gap:11px;align-items:baseline}
+.svc li::before{content:"—";color:var(--faint);flex:none;font-size:12px}
 
 /* 진행 방식 */
-.step{position:relative;padding-top:16px}
-.step .n{display:flex;align-items:center;justify-content:center;width:34px;height:34px;
-  border-radius:50%;background:var(--indigo);color:#fff;font-weight:800;font-size:15px}
-.step h3{margin:15px 0 7px;font-size:17px;color:var(--ink);letter-spacing:-.02em}
-.step p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.68}
+.steps{margin-top:58px;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.step{padding:30px 26px 30px 0;border-top:2px solid var(--navy)}
+.step .n{font-size:12.5px;font-weight:800;color:var(--steel);letter-spacing:.14em}
+.step h3{margin:14px 0 9px;font-size:19px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:700}
+.step p{margin:0;font-size:15px;color:var(--mute);line-height:1.76}
 
-/* 글 */
-.post{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--r);
-  padding:22px 22px;text-decoration:none;transition:border-color .15s}
-.post:hover{border-color:var(--indigo)}
-.post .cat{font-size:12px;font-weight:700;color:var(--indigo);letter-spacing:.02em}
-.post h3{margin:9px 0 9px;font-size:17px;color:var(--ink);letter-spacing:-.02em;
-  line-height:1.45}
-.post p{margin:0;font-size:14px;color:var(--faint)}
+/* 세무 자료 */
+.posts{margin-top:52px;border-top:1px solid var(--line)}
+.post{display:grid;grid-template-columns:150px 1fr auto;gap:26px;align-items:center;
+  padding:26px 0;border-bottom:1px solid var(--line);text-decoration:none;
+  transition:padding-left .18s,background .18s}
+.post:hover{padding-left:14px;background:var(--sand)}
+.post .cat{font-size:12px;font-weight:800;color:var(--steel);letter-spacing:.1em;
+  text-transform:uppercase}
+.post h3{margin:0;font-size:19px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:700;line-height:1.45}
+.post .dt{font-size:14px;color:var(--faint);white-space:nowrap}
 
 /* 문의 */
-.contact{background:var(--ink);color:#fff;border-radius:20px;padding:48px 44px;
-  display:flex;gap:36px;align-items:center;flex-wrap:wrap}
-.contact .l{flex:1;min-width:260px}
-.contact h2{color:#fff}
-.contact p{margin:13px 0 0;color:#D1D5DB;font-size:15.5px}
-.contact .r{display:flex;flex-direction:column;gap:10px;min-width:230px}
-.contact .btn-o{background:transparent;color:#fff;border-color:#4B5563}
-.contact .btn-o:hover{border-color:#fff;color:#fff}
-.contact .hours{font-size:13.5px;color:var(--faint);margin-top:5px}
+.cta{background:var(--navy);color:#fff;padding:104px 0}
+.cta h2{color:#fff}
+.cta .lead{color:rgba(255,255,255,.72)}
+.cta .box{display:grid;grid-template-columns:1.25fr 1fr;gap:60px;align-items:end}
+.cta .acts{display:flex;flex-direction:column;gap:11px}
+.cta .hours{margin-top:22px;font-size:14px;color:rgba(255,255,255,.55)}
 
 /* 푸터 */
-footer{border-top:1px solid var(--line);padding:38px 0 52px;font-size:13.5px;
-  color:var(--faint)}
-footer b{color:var(--body);font-size:14.5px}
-footer .biz{margin-top:11px;line-height:1.9}
-footer .notice{margin-top:20px;padding-top:18px;border-top:1px solid var(--line-l);
-  line-height:1.75}
-footer .desk{margin-top:16px}
-footer .desk a{color:var(--faint)}
+footer{background:var(--navy-d);color:rgba(255,255,255,.5);padding:56px 0 64px;
+  font-size:13.5px;line-height:1.9}
+footer .fname{color:#fff;font-size:16px;font-weight:700;letter-spacing:-.02em}
+footer .biz{margin-top:14px}
+footer .notice{margin-top:26px;padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.12);max-width:78ch;line-height:1.78;
+  color:rgba(255,255,255,.42)}
+footer .desk{margin-top:20px;font-size:13px}
+footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
 
-@media(max-width:860px){
-  .g3,.g4{grid-template-columns:repeat(2,1fr)}
-  .g2{grid-template-columns:1fr}
-  .hero h1{font-size:34px}
+@media(max-width:960px){
+  .wrap{padding:0 24px}
   .nav{display:none}
+  .hero{min-height:480px;padding:48px 34px 40px}
+  .row{grid-template-columns:52px 1fr;gap:18px}
+  .row p{grid-column:2}
+  .svcs{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .cta .box{grid-template-columns:1fr;gap:38px;align-items:start}
+  section,.state,.cta{padding:72px 0}
 }
-@media(max-width:520px){
-  .g3,.g4{grid-template-columns:1fr}
-  .hero{padding:52px 0 44px}
-  .hero h1{font-size:29px}
-  section{padding:48px 0}
-  .contact{padding:34px 24px}
+@media(max-width:560px){
+  .wrap{padding:0 20px}
+  .hd{height:66px}
+  .hero{min-height:430px;padding:36px 24px 30px;border-radius:18px}
+  .hero .ko{text-align:left;align-self:flex-start}
+  .steps{grid-template-columns:1fr}
+  .step{padding-right:0}
+  .svc{padding:34px 26px}
+  .post{grid-template-columns:1fr;gap:8px}
+  .post .dt{display:none}
+  section,.state,.cta{padding:60px 0}
 }
 </style>
 </head>
@@ -146,83 +184,160 @@ footer .desk a{color:var(--faint)}
 
 <div id="todo"></div>
 
-<header>
-  <div class="wrap hd">
-    <a class="logo" href="#top" id="logo">회계사무소</a>
-    <nav class="nav">
-      <a href="#focus">전문 분야</a>
-      <a href="#services">서비스</a>
-      <a href="#how">진행 방식</a>
-      <a href="#posts" id="nav-posts" hidden>세무 자료</a>
-      <a href="#contact">문의</a>
-    </nav>
-    <span class="cta"><a class="btn btn-p" href="#contact">상담 문의</a></span>
+<div class="top">
+  <div class="wrap">
+    <div class="hd">
+      <a class="logo" href="#top">
+        <span class="mark"><i></i><i></i><i></i></span>
+        <b id="logo">회계사무소</b>
+      </a>
+      <nav class="nav">
+        <a href="#focus">전문 분야</a>
+        <a href="#services">서비스</a>
+        <a href="#how">진행 방식</a>
+        <a href="#posts" id="nav-posts" hidden>세무 자료</a>
+        <a href="#contact">상담 문의</a>
+      </nav>
+    </div>
+
+    <div class="hero" id="top">
+      <!-- 사진 대신 직접 그린다. 외부 이미지에 의존하지 않는다. -->
+      <svg viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0.05" y1="0" x2="0.9" y2="1">
+            <stop offset="0%"   stop-color="#C6D6E4"/>
+            <stop offset="35%"  stop-color="#93AAC1"/>
+            <stop offset="70%"  stop-color="#5A7086"/>
+            <stop offset="100%" stop-color="#2E3B4E"/>
+          </linearGradient>
+          <linearGradient id="faceR" x1="0.1" y1="0" x2="1" y2="0.9">
+            <stop offset="0%"   stop-color="#1A2440"/>
+            <stop offset="55%"  stop-color="#0D1426"/>
+            <stop offset="100%" stop-color="#05080F"/>
+          </linearGradient>
+          <linearGradient id="faceL" x1="0" y1="0" x2="0.8" y2="1">
+            <stop offset="0%"   stop-color="#54677F"/>
+            <stop offset="50%"  stop-color="#2F3D53"/>
+            <stop offset="100%" stop-color="#141C2C"/>
+          </linearGradient>
+          <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#FFFFFF" stop-opacity=".42"/>
+            <stop offset="38%"  stop-color="#FFFFFF" stop-opacity=".06"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#E8F0FA" stop-opacity=".85"/>
+            <stop offset="100%" stop-color="#E8F0FA" stop-opacity=".08"/>
+          </linearGradient>
+          <pattern id="finsL" width="13" height="13" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(41)">
+            <line x1="0" y1="0" x2="0" y2="13" stroke="#FFFFFF" stroke-opacity=".085"
+                  stroke-width="3"/>
+          </pattern>
+          <pattern id="finsR" width="7" height="7" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(41)">
+            <line x1="0" y1="0" x2="0" y2="7" stroke="#FFFFFF" stroke-opacity=".055"
+                  stroke-width="1.6"/>
+          </pattern>
+          <linearGradient id="veil" x1="0.1" y1="0" x2="0.6" y2="1">
+            <stop offset="0%"   stop-color="#070C1A" stop-opacity=".50"/>
+            <stop offset="45%"  stop-color="#070C1A" stop-opacity=".06"/>
+            <stop offset="100%" stop-color="#070C1A" stop-opacity=".58"/>
+          </linearGradient>
+        </defs>
+
+        <!-- 하늘 -->
+        <rect width="1200" height="640" fill="url(#sky)"/>
+        <polygon points="0,0 560,0 0,470" fill="#FFFFFF" opacity=".16"/>
+
+        <!-- 건물 — 두 면이 620,640 ~ 1150,52 모서리에서 만난다 -->
+        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#faceL)"/>
+        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#finsL)"/>
+        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#glass)"/>
+
+        <polygon points="620,640 1150,52 1200,52 1200,640" fill="url(#faceR)"/>
+        <polygon points="620,640 1150,52 1200,52 1200,640" fill="url(#finsR)"/>
+
+        <!-- 두 면이 만나는 모서리에 하이라이트 -->
+        <polygon points="1150,52 1156,52 626,640 614,640" fill="url(#edge)"/>
+
+        <!-- 멀리 있는 낮은 동 -->
+        <polygon points="0,548 250,470 250,640 0,640" fill="#101828" opacity=".55"/>
+
+        <!-- 대기감 -->
+        <rect width="1200" height="640" fill="url(#veil)"/>
+      </svg>
+
+      <h1 id="hero-en"></h1>
+      <div class="ko" id="hero-ko"></div>
+    </div>
   </div>
-</header>
+</div>
 
-<main id="top">
+<main>
 
-  <div class="wrap hero">
-    <span class="eyebrow">병의원 세무 전문</span>
-    <h1 id="tagline"></h1>
-    <p id="intro"></p>
+  <div class="wrap state">
+    <span class="lbl">Who we are</span>
+    <p id="tagline"></p>
+    <p class="sub" id="intro"></p>
     <div class="acts" id="hero-acts"></div>
   </div>
 
-  <section class="alt" id="focus">
+  <section class="sand" id="focus">
     <div class="wrap">
-      <h2>무엇을 다루나</h2>
-      <p class="lead">병의원은 수입 구조와 인건비 처리가 일반 업종과 다릅니다.
-        그 차이에서 생기는 문제를 중심으로 봅니다.</p>
-      <div class="grid g3" id="focus-grid"></div>
+      <span class="lbl">Focus</span>
+      <h2>병의원은 다르게 봅니다</h2>
+      <p class="lead">수입 구조와 인건비 처리가 일반 업종과 다릅니다.
+        그 차이에서 실제로 문제가 생기는 지점을 중심으로 봅니다.</p>
+      <div class="rows" id="focus-grid"></div>
     </div>
   </section>
 
   <section id="services">
     <div class="wrap">
-      <h2>서비스</h2>
-      <p class="lead">필요한 범위만 골라 맡기실 수 있습니다.
-        무엇을 하고 비용이 얼마인지 먼저 말씀드립니다.</p>
-      <div class="grid g2" id="svc-grid"></div>
+      <span class="lbl">Services</span>
+      <h2>필요한 범위만 맡기실 수 있습니다</h2>
+      <p class="lead">무엇을 하고 비용이 얼마인지 먼저 말씀드립니다.
+        자료를 보기 전에 금액을 말하지 않습니다.</p>
+      <div class="svcs" id="svc-grid"></div>
     </div>
   </section>
 
-  <section class="alt" id="how">
+  <section class="sand" id="how">
     <div class="wrap">
-      <h2>진행 방식</h2>
-      <p class="lead">문의부터 계약까지 네 단계입니다.
-        자료를 보기 전에는 비용을 말씀드리지 않습니다.</p>
-      <div class="grid g4" id="step-grid"></div>
+      <span class="lbl">Process</span>
+      <h2>문의부터 계약까지 네 단계</h2>
+      <div class="steps" id="step-grid"></div>
     </div>
   </section>
 
   <section id="posts" hidden>
     <div class="wrap">
+      <span class="lbl">Insights</span>
       <h2>세무 자료</h2>
       <p class="lead">실무에서 자주 묻는 것을 정리해 두었습니다.</p>
-      <div class="grid g3" id="post-grid"></div>
+      <div class="posts" id="post-grid"></div>
     </div>
   </section>
 
-  <section>
-    <div class="wrap">
-      <div class="contact" id="contact">
-        <div class="l">
-          <h2>먼저 상황을 들려주세요</h2>
-          <p>지금 무엇이 문제인지부터 확인합니다.
-            간단한 질문이라면 상담 없이 답만 드리기도 합니다.</p>
-          <p class="hours" id="hours"></p>
-        </div>
-        <div class="r" id="contact-acts"></div>
+  <div class="cta on-dark" id="contact">
+    <div class="wrap box">
+      <div>
+        <span class="lbl" style="color:rgba(255,255,255,.5)">Contact</span>
+        <h2>먼저 상황을 들려주세요</h2>
+        <p class="lead">지금 무엇이 문제인지부터 확인합니다.
+          간단한 질문이라면 상담 없이 답만 드리기도 합니다.</p>
+        <p class="hours" id="hours"></p>
       </div>
+      <div class="acts" id="contact-acts"></div>
     </div>
-  </section>
+  </div>
 
 </main>
 
 <footer>
   <div class="wrap">
-    <b id="f-name"></b>
+    <div class="fname" id="f-name"></div>
     <div class="biz" id="f-biz"></div>
     <div class="notice" id="f-notice"></div>
     <div class="desk"><a href="./index.html">업무 데스크 →</a></div>
@@ -249,6 +364,7 @@ footer .desk a{color:var(--faint)}
     if (text != null) n.textContent = text;
     return n;
   }
+  function two(n) { return n < 10 ? "0" + n : String(n); }
 
   /* ── 안 채운 칸을 먼저 알린다 ─────────────────────────── */
   var LABEL = { name: "상호", owner: "대표 회계사", phone: "전화번호",
@@ -266,13 +382,11 @@ footer .desk a{color:var(--faint)}
     bar.textContent = msg.join(" · ")
       + ". src/data/firm.js 를 고친 뒤 외부에 주소를 알리세요.";
   }
-
-  // 임시값은 화면에서도 임시로 보이게 한다 (진짜로 오인하지 않도록)
   function isFake(k) { return (F.PLACEHOLDER || []).indexOf(k) !== -1 && !!F[k]; }
 
   /* ── 기본 정보 ────────────────────────────────────────── */
   var name = F.name || "회계사무소";
-  document.title = F.name ? F.name + " · 병의원 세무" : "회계사무소";
+  if (F.name) document.title = F.name + " · 병의원 세무";
   $("logo").textContent = name;
   $("tagline").textContent = F.tagline || "";
   $("intro").textContent = F.intro || "";
@@ -280,19 +394,26 @@ footer .desk a{color:var(--faint)}
   $("f-name").textContent = name + (F.owner ? " · " + F.owner : "");
   $("f-notice").textContent = F.notice || "";
 
+  /* 히어로 문구 */
+  (F.heroEn || []).forEach(function (line) {
+    $("hero-en").appendChild(el("span", null, line));
+  });
+  (F.heroKo || []).forEach(function (line) {
+    $("hero-ko").appendChild(el("div", null, line));
+  });
+
   var biz = [];
-  if (F.bizNo) biz.push("사업자등록번호 " + F.bizNo
-                        + (isFake("bizNo") ? " (등록 예정)" : ""));
+  if (F.bizNo) biz.push("사업자등록번호 " + F.bizNo + (isFake("bizNo") ? " (등록 예정)" : ""));
   if (F.address) biz.push(F.address);
   if (F.phone) biz.push("전화 " + F.phone);
   if (F.email) biz.push(F.email);
   $("f-biz").innerHTML = biz.map(esc).join("<br>");
 
   /* ── 연락 버튼 — 값이 있는 것만 만든다 ────────────────── */
-  function contactLinks(host, primaryFirst) {
+  function contactLinks(host) {
     var made = 0;
     if (F.kakao) {
-      var k = el("a", "btn " + (primaryFirst ? "btn-p" : "btn-o"), "💬 카카오톡 상담");
+      var k = el("a", "btn btn-p", "카카오톡 상담");
       k.href = F.kakao;
       k.target = "_blank";
       k.rel = "noopener noreferrer";
@@ -300,14 +421,13 @@ footer .desk a{color:var(--faint)}
       made++;
     }
     if (F.phone) {
-      var p = el("a", "btn " + (made || !primaryFirst ? "btn-o" : "btn-p"),
-                 "📞 " + F.phone);
+      var p = el("a", "btn " + (made ? "btn-o" : "btn-p"), F.phone);
       p.href = "tel:" + F.phone.replace(/[^0-9+]/g, "");
       host.appendChild(p);
       made++;
     }
     if (F.email) {
-      var m = el("a", "btn btn-o", "✉ " + F.email);
+      var m = el("a", "btn btn-o", F.email);
       m.href = "mailto:" + F.email;
       host.appendChild(m);
       made++;
@@ -317,36 +437,34 @@ footer .desk a{color:var(--faint)}
         "(연락처가 아직 등록되지 않았습니다 — src/data/firm.js)"));
     }
   }
-  contactLinks($("hero-acts"), true);
-  var svcBtn = el("a", "btn btn-o", "서비스 보기");
-  svcBtn.href = "#services";
-  $("hero-acts").appendChild(svcBtn);
-  contactLinks($("contact-acts"), true);
+  contactLinks($("hero-acts"));
+  contactLinks($("contact-acts"));
 
   /* ── 전문 분야 ────────────────────────────────────────── */
-  (F.focus || []).forEach(function (f) {
-    var c = el("div", "focus");
-    c.appendChild(el("div", "ic", f.icon || "•"));
-    c.appendChild(el("h3", null, f.title));
-    c.appendChild(el("p", null, f.desc));
-    $("focus-grid").appendChild(c);
+  (F.focus || []).forEach(function (f, i) {
+    var r = el("div", "row");
+    r.appendChild(el("div", "no", two(i + 1)));
+    r.appendChild(el("h3", null, f.title));
+    r.appendChild(el("p", null, f.desc));
+    $("focus-grid").appendChild(r);
   });
 
   /* ── 서비스 ───────────────────────────────────────────── */
-  (F.services || []).forEach(function (s) {
+  (F.services || []).forEach(function (s, i) {
     var c = el("div", "svc");
+    c.appendChild(el("div", "no", two(i + 1)));
     c.appendChild(el("h3", null, s.title));
     c.appendChild(el("p", null, s.desc));
     var ul = el("ul");
-    (s.items || []).forEach(function (i) { ul.appendChild(el("li", null, i)); });
+    (s.items || []).forEach(function (t) { ul.appendChild(el("li", null, t)); });
     c.appendChild(ul);
     $("svc-grid").appendChild(c);
   });
 
   /* ── 진행 방식 ────────────────────────────────────────── */
-  (F.steps || []).forEach(function (s) {
+  (F.steps || []).forEach(function (s, i) {
     var c = el("div", "step");
-    c.appendChild(el("div", "n", s.n));
+    c.appendChild(el("div", "n", two(i + 1)));
     c.appendChild(el("h3", null, s.title));
     c.appendChild(el("p", null, s.desc));
     $("step-grid").appendChild(c);
@@ -365,7 +483,7 @@ footer .desk a{color:var(--faint)}
       a.rel = "noopener noreferrer";
       a.appendChild(el("span", "cat", CAT[p.category] || "세무"));
       a.appendChild(el("h3", null, p.title));
-      a.appendChild(el("p", null, (p.publishedAt || "").slice(0, 10)));
+      a.appendChild(el("span", "dt", (p.publishedAt || "").slice(0, 10)));
       $("post-grid").appendChild(a);
     });
     $("posts").hidden = false;
