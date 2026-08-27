@@ -12,171 +12,234 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
 <style>
 :root{
-  --navy:#141C47; --navy-2:#1E2758; --navy-d:#0C1230;
+  --navy:#0F1A3C; --navy-2:#1A2757; --navy-d:#080E22;
   --ink:#111528; --body:#3C4256; --mute:#6E738A; --faint:#9AA0B4;
-  --paper:#FFFFFF; --sand:#F5F3EF; --line:#E4E1DB; --line-2:#EFEDE8;
-  --steel:#5B6B87;
+  --paper:#FFFFFF; --sand:#F6F5F2; --line:#E4E2DD; --line-2:#EFEEEA;
+  --steel:#5B6B87; --gold:#B08C4F;
   --rose:#FEE2E2; --rose-t:#B91C1C;
   --sans:'Pretendard Variable',Pretendard,system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--body);font-family:var(--sans);
-  font-size:16.5px;line-height:1.72;-webkit-font-smoothing:antialiased;
-  text-rendering:optimizeLegibility}
+  font-size:16.5px;line-height:1.72;-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.wrap{max-width:1180px;margin:0 auto;padding:0 34px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 32px}
 
-/* 임시값 경고 */
 #todo{display:none;background:var(--rose);color:var(--rose-t);
   font-size:13.5px;padding:10px 22px;text-align:center;font-weight:600}
 #todo.on{display:block}
 
-/* ══ 네이비 프레임 — 헤더 + 히어로 ══════════════════════ */
-.top{background:var(--navy);padding-bottom:26px}
-.hd{display:flex;align-items:center;gap:20px;height:82px}
-.logo{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none}
-.logo .mark{display:flex;gap:2.5px;align-items:flex-end;height:19px}
+/* ══ 헤더 ═══════════════════════════════════════════════ */
+header{position:sticky;top:0;z-index:40;background:var(--navy)}
+.hd{display:flex;align-items:center;gap:20px;height:74px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex:none}
+.logo .mark{display:flex;gap:2.5px;align-items:flex-end;height:18px}
 .logo .mark i{display:block;width:4px;background:#fff;border-radius:1px}
-.logo .mark i:nth-child(1){height:11px;opacity:.55}
-.logo .mark i:nth-child(2){height:19px}
-.logo .mark i:nth-child(3){height:14px;opacity:.75}
-.logo b{color:#fff;font-size:18px;font-weight:800;letter-spacing:-.025em;
+.logo .mark i:nth-child(1){height:10px;opacity:.5}
+.logo .mark i:nth-child(2){height:18px}
+.logo .mark i:nth-child(3){height:13px;opacity:.72}
+.logo b{color:#fff;font-size:17.5px;font-weight:800;letter-spacing:-.03em;
   white-space:nowrap}
-.nav{margin-left:auto;display:flex;gap:30px}
-.nav a{color:rgba(255,255,255,.78);font-size:14.5px;font-weight:600;
-  text-decoration:none;letter-spacing:-.01em;transition:color .15s}
+.nav{margin-left:auto;display:flex;gap:28px;align-items:center}
+.nav a{color:rgba(255,255,255,.76);font-size:14.5px;font-weight:600;
+  text-decoration:none;transition:color .15s}
 .nav a:hover{color:#fff}
+.nav .call{color:#fff;font-weight:800;letter-spacing:-.01em;
+  border-left:1px solid rgba(255,255,255,.2);padding-left:26px}
 
-/* 히어로 카드 */
-.hero{position:relative;border-radius:26px;overflow:hidden;min-height:600px;
-  display:flex;flex-direction:column;justify-content:space-between;
-  padding:66px 58px 52px}
-.hero svg{position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;z-index:0}
-.hero>*{position:relative;z-index:1}
-.hero h1{margin:0;color:#fff;font-size:clamp(44px,6.6vw,88px);line-height:1.06;
-  letter-spacing:-.045em;font-weight:500;max-width:14ch}
+/* ══ 히어로 ═════════════════════════════════════════════ */
+.hero{position:relative;background:var(--navy);overflow:hidden;
+  padding:104px 0 116px;color:#fff}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero .wrap{position:relative;z-index:1}
+.hero .lab{display:inline-flex;align-items:center;gap:9px;font-size:13px;
+  font-weight:700;color:#fff;letter-spacing:.01em;
+  border:1px solid rgba(255,255,255,.3);padding:7px 15px;border-radius:999px}
+.hero h1{margin:26px 0 0;font-size:clamp(32px,5vw,56px);line-height:1.24;
+  letter-spacing:-.045em;font-weight:800;color:#fff}
 .hero h1 span{display:block}
-.hero .ko{align-self:flex-end;text-align:right;color:rgba(255,255,255,.94);
-  font-size:clamp(15px,1.5vw,19px);line-height:1.8;font-weight:600;
-  letter-spacing:-.015em;text-shadow:0 1px 14px rgba(10,16,40,.5)}
+.hero .sub{margin:24px 0 0;font-size:clamp(15.5px,1.6vw,18px);
+  color:rgba(255,255,255,.78);max-width:46ch;line-height:1.82}
+.hero .acts{margin-top:38px;display:flex;gap:11px;flex-wrap:wrap}
 
 /* ══ 버튼 ═══════════════════════════════════════════════ */
 .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;
-  padding:13px 24px;border-radius:2px;text-decoration:none;white-space:nowrap;
+  padding:14px 26px;border-radius:3px;text-decoration:none;white-space:nowrap;
   border:1px solid transparent;letter-spacing:-.015em;transition:all .16s}
-.btn-p{background:var(--navy);color:#fff}
-.btn-p:hover{background:var(--navy-2)}
+.btn-p{background:var(--gold);color:#231A08}
+.btn-p:hover{background:#C79E5C}
 .btn-o{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn-o:hover{border-color:var(--navy);color:var(--navy)}
-.on-dark .btn-p{background:#fff;color:var(--navy)}
-.on-dark .btn-p:hover{background:#E8EAF2}
-.on-dark .btn-o{color:#fff;border-color:rgba(255,255,255,.34)}
-.on-dark .btn-o:hover{border-color:#fff;background:rgba(255,255,255,.06)}
+.on-dark .btn-o{color:#fff;border-color:rgba(255,255,255,.32)}
+.on-dark .btn-o:hover{border-color:#fff;background:rgba(255,255,255,.07)}
+
+/* ══ 상황별 갈래 ════════════════════════════════════════ */
+.paths{position:relative;z-index:5;margin-top:-58px}
+.paths .g{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+  box-shadow:0 18px 44px rgba(15,26,60,.13)}
+.path{background:#fff;padding:30px 28px 26px;text-decoration:none;display:block;
+  transition:background .16s}
+.path:hover{background:var(--sand)}
+.path .n{font-size:11.5px;font-weight:800;color:var(--gold);letter-spacing:.14em}
+.path h3{margin:13px 0 9px;font-size:18px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:700;line-height:1.45}
+.path p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.75}
+.path .go{margin-top:14px;font-size:13.5px;font-weight:700;color:var(--navy)}
 
 /* ══ 섹션 공통 ══════════════════════════════════════════ */
-section{padding:104px 0}
+section{padding:96px 0}
 .sand{background:var(--sand)}
-.lbl{display:block;font-size:11.5px;font-weight:800;color:var(--steel);
-  letter-spacing:.16em;text-transform:uppercase;margin-bottom:22px}
-h2{margin:0;font-size:clamp(28px,3.4vw,40px);line-height:1.28;
-  letter-spacing:-.035em;color:var(--ink);font-weight:700}
-.lead{margin:20px 0 0;font-size:17px;color:var(--mute);max-width:56ch;
+.lbl{display:block;font-size:11.5px;font-weight:800;color:var(--gold);
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px}
+h2{margin:0;font-size:clamp(26px,3.2vw,37px);line-height:1.3;
+  letter-spacing:-.038em;color:var(--ink);font-weight:800}
+.lead{margin:18px 0 0;font-size:16.5px;color:var(--mute);max-width:56ch;
   line-height:1.8}
 
-/* 소개 band */
-.state{padding:96px 0}
-.state p{margin:0;font-size:clamp(21px,2.6vw,31px);line-height:1.58;
-  letter-spacing:-.032em;color:var(--ink);font-weight:600;max-width:22ch}
-.state .sub{margin:26px 0 0;font-size:16.5px;color:var(--mute);font-weight:400;
-  letter-spacing:-.01em;max-width:52ch;line-height:1.82}
-.state .acts{margin-top:38px;display:flex;gap:11px;flex-wrap:wrap}
+/* ══ 대표 프로필 ════════════════════════════════════════ */
+.prof{display:grid;grid-template-columns:300px 1fr;gap:56px;align-items:start;
+  margin-top:46px}
+.pic{aspect-ratio:3/4;background:var(--navy);border-radius:3px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;position:relative}
+.pic img{width:100%;height:100%;object-fit:cover}
+.pic .ini{color:rgba(255,255,255,.9);font-size:56px;font-weight:800;
+  letter-spacing:-.04em}
+.pic .ph{position:absolute;bottom:14px;left:0;right:0;text-align:center;
+  font-size:11.5px;color:rgba(255,255,255,.42)}
+.prof .role{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:.1em}
+.prof .who{margin:12px 0 0;font-size:27px;color:var(--ink);letter-spacing:-.035em;
+  font-weight:800}
+.prof .line{margin:14px 0 0;font-size:16.5px;color:var(--mute);line-height:1.82;
+  max-width:48ch}
+.prof ul{margin:30px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.prof li{font-size:15.5px;color:var(--body);padding:13px 0;
+  border-bottom:1px solid var(--line);display:flex;gap:13px;align-items:baseline}
+.prof li::before{content:"";width:5px;height:5px;background:var(--gold);flex:none;
+  border-radius:50%;transform:translateY(-3px)}
 
-/* 전문 분야 — 번호 + 헤어라인 */
-.rows{margin-top:58px;border-top:1px solid var(--line)}
-.row{display:grid;grid-template-columns:78px 1fr 1.45fr;gap:30px;
-  padding:34px 0;border-bottom:1px solid var(--line);align-items:start}
-.row .no{font-size:13px;font-weight:800;color:var(--steel);letter-spacing:.1em;
+/* ══ 전문 분야 ══════════════════════════════════════════ */
+.rows{margin-top:50px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:66px 1fr 1.5fr;gap:28px;
+  padding:30px 0;border-bottom:1px solid var(--line);align-items:start}
+.row .no{font-size:12.5px;font-weight:800;color:var(--gold);letter-spacing:.1em;
   padding-top:5px}
-.row h3{margin:0;font-size:21px;color:var(--ink);letter-spacing:-.03em;
+.row h3{margin:0;font-size:20px;color:var(--ink);letter-spacing:-.03em;
   font-weight:700;line-height:1.4}
-.row p{margin:0;font-size:16px;color:var(--mute);line-height:1.8}
+.row p{margin:0;font-size:15.5px;color:var(--mute);line-height:1.8}
 
-/* 서비스 */
-.svcs{margin-top:58px;display:grid;grid-template-columns:repeat(2,1fr);
-  gap:1px;background:var(--line);border:1px solid var(--line)}
-.svc{background:var(--paper);padding:44px 40px}
-.svc .no{font-size:12px;font-weight:800;color:var(--steel);letter-spacing:.14em}
-.svc h3{margin:16px 0 12px;font-size:23px;color:var(--ink);letter-spacing:-.03em;
-  font-weight:700}
-.svc>p{margin:0 0 26px;font-size:15.5px;color:var(--mute);line-height:1.78}
+/* ══ 서비스 ═════════════════════════════════════════════ */
+.svcs{margin-top:50px;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.svc{background:var(--paper);padding:40px 36px}
+.svc .no{font-size:11.5px;font-weight:800;color:var(--gold);letter-spacing:.14em}
+.svc h3{margin:15px 0 11px;font-size:22px;color:var(--ink);letter-spacing:-.032em;
+  font-weight:800}
+.svc>p{margin:0 0 24px;font-size:15.5px;color:var(--mute);line-height:1.78}
 .svc ul{margin:0;padding:0;list-style:none}
 .svc li{font-size:15px;color:var(--body);padding:10px 0;
   border-top:1px solid var(--line-2);display:flex;gap:11px;align-items:baseline}
 .svc li::before{content:"—";color:var(--faint);flex:none;font-size:12px}
 
-/* 진행 방식 */
-.steps{margin-top:58px;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
-.step{padding:30px 26px 30px 0;border-top:2px solid var(--navy)}
-.step .n{font-size:12.5px;font-weight:800;color:var(--steel);letter-spacing:.14em}
-.step h3{margin:14px 0 9px;font-size:19px;color:var(--ink);letter-spacing:-.03em;
-  font-weight:700}
-.step p{margin:0;font-size:15px;color:var(--mute);line-height:1.76}
+/* ══ 진행 방식 ══════════════════════════════════════════ */
+.steps{margin-top:50px;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.step{padding:26px 24px 26px 0;border-top:2px solid var(--navy)}
+.step .n{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.14em}
+.step h3{margin:13px 0 8px;font-size:18px;color:var(--ink);letter-spacing:-.03em;
+  font-weight:800}
+.step p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.76}
 
-/* 세무 자료 */
-.posts{margin-top:52px;border-top:1px solid var(--line)}
-.post{display:grid;grid-template-columns:150px 1fr auto;gap:26px;align-items:center;
-  padding:26px 0;border-bottom:1px solid var(--line);text-decoration:none;
+/* ══ 중간 상담 띠 ═══════════════════════════════════════ */
+.band{background:var(--navy);color:#fff;padding:44px 0}
+.band .wrap{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.band b{font-size:clamp(18px,2.2vw,24px);letter-spacing:-.03em;font-weight:800;
+  flex:1;min-width:240px;line-height:1.5}
+.band .acts{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ══ FAQ ════════════════════════════════════════════════ */
+.faqs{margin-top:44px;border-top:1px solid var(--line)}
+.faq{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;padding:24px 44px 24px 0;
+  font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.028em;
+  position:relative;line-height:1.5}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:6px;top:22px;
+  font-size:24px;font-weight:400;color:var(--gold);line-height:1;
+  transition:transform .18s}
+.faq[open] summary::after{transform:rotate(45deg)}
+.faq .a{padding:0 60px 26px 0;font-size:15.5px;color:var(--mute);line-height:1.85}
+
+/* ══ 세무 자료 ══════════════════════════════════════════ */
+.posts{margin-top:44px;border-top:1px solid var(--line)}
+.post{display:grid;grid-template-columns:140px 1fr auto;gap:24px;align-items:center;
+  padding:24px 0;border-bottom:1px solid var(--line);text-decoration:none;
   transition:padding-left .18s,background .18s}
-.post:hover{padding-left:14px;background:var(--sand)}
-.post .cat{font-size:12px;font-weight:800;color:var(--steel);letter-spacing:.1em;
-  text-transform:uppercase}
-.post h3{margin:0;font-size:19px;color:var(--ink);letter-spacing:-.03em;
+.post:hover{padding-left:12px;background:#fff}
+.post .cat{font-size:11.5px;font-weight:800;color:var(--gold);letter-spacing:.1em}
+.post h3{margin:0;font-size:18px;color:var(--ink);letter-spacing:-.03em;
   font-weight:700;line-height:1.45}
-.post .dt{font-size:14px;color:var(--faint);white-space:nowrap}
+.post .dt{font-size:13.5px;color:var(--faint);white-space:nowrap}
 
-/* 문의 */
-.cta{background:var(--navy);color:#fff;padding:104px 0}
+/* ══ 오시는 길 · 문의 ═══════════════════════════════════ */
+.cta{background:var(--navy);color:#fff;padding:96px 0}
 .cta h2{color:#fff}
 .cta .lead{color:rgba(255,255,255,.72)}
-.cta .box{display:grid;grid-template-columns:1.25fr 1fr;gap:60px;align-items:end}
-.cta .acts{display:flex;flex-direction:column;gap:11px}
-.cta .hours{margin-top:22px;font-size:14px;color:rgba(255,255,255,.55)}
+.cta .box{display:grid;grid-template-columns:1.15fr 1fr;gap:64px;align-items:start}
+.info{margin-top:34px;border-top:1px solid rgba(255,255,255,.15)}
+.info div{display:grid;grid-template-columns:88px 1fr;gap:18px;padding:14px 0;
+  border-bottom:1px solid rgba(255,255,255,.11);font-size:15px}
+.info dt{color:rgba(255,255,255,.5);font-size:13.5px;font-weight:700}
+.info dd{margin:0;color:rgba(255,255,255,.94)}
+.cta .acts{display:flex;flex-direction:column;gap:11px;margin-top:34px}
+.cta .note{margin-top:20px;font-size:13.5px;color:rgba(255,255,255,.5);
+  line-height:1.8}
 
-/* 푸터 */
-footer{background:var(--navy-d);color:rgba(255,255,255,.5);padding:56px 0 64px;
+/* ══ 푸터 ═══════════════════════════════════════════════ */
+footer{background:var(--navy-d);color:rgba(255,255,255,.48);padding:50px 0 60px;
   font-size:13.5px;line-height:1.9}
-footer .fname{color:#fff;font-size:16px;font-weight:700;letter-spacing:-.02em}
-footer .biz{margin-top:14px}
-footer .notice{margin-top:26px;padding-top:22px;
+footer .fname{color:#fff;font-size:16px;font-weight:800;letter-spacing:-.025em}
+footer .biz{margin-top:13px}
+footer .notice{margin-top:24px;padding-top:20px;
   border-top:1px solid rgba(255,255,255,.12);max-width:78ch;line-height:1.78;
-  color:rgba(255,255,255,.42)}
-footer .desk{margin-top:20px;font-size:13px}
-footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
+  color:rgba(255,255,255,.4)}
+footer .desk{margin-top:18px;font-size:13px}
+footer .desk a{color:rgba(255,255,255,.44);text-decoration:underline}
+
+/* ══ 모바일 고정 상담 바 ════════════════════════════════ */
+.dock{display:none;position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:rgba(15,26,60,.97);padding:10px 14px;gap:8px;
+  border-top:1px solid rgba(255,255,255,.14)}
+.dock a{flex:1;justify-content:center;padding:13px 10px;font-size:14.5px}
 
 @media(max-width:960px){
-  .wrap{padding:0 24px}
-  .nav{display:none}
-  .hero{min-height:480px;padding:48px 34px 40px}
-  .row{grid-template-columns:52px 1fr;gap:18px}
+  .wrap{padding:0 22px}
+  .nav a:not(.call){display:none}
+  .hero{padding:76px 0 96px}
+  .paths .g{grid-template-columns:1fr}
+  .prof{grid-template-columns:1fr;gap:32px}
+  .pic{max-width:250px;aspect-ratio:1/1}
+  .row{grid-template-columns:48px 1fr;gap:16px}
   .row p{grid-column:2}
   .svcs{grid-template-columns:1fr}
   .steps{grid-template-columns:repeat(2,1fr)}
-  .cta .box{grid-template-columns:1fr;gap:38px;align-items:start}
-  section,.state,.cta{padding:72px 0}
+  .cta .box{grid-template-columns:1fr;gap:40px}
+  section,.cta{padding:68px 0}
 }
 @media(max-width:560px){
-  .wrap{padding:0 20px}
-  .hd{height:66px}
-  .hero{min-height:430px;padding:36px 24px 30px;border-radius:18px}
-  .hero .ko{text-align:left;align-self:flex-start}
+  .hd{height:62px}
+  .nav .call{padding-left:0;border:none;font-size:14px}
+  .hero{padding:56px 0 84px}
   .steps{grid-template-columns:1fr}
   .step{padding-right:0}
-  .svc{padding:34px 26px}
-  .post{grid-template-columns:1fr;gap:8px}
+  .svc{padding:32px 24px}
+  .post{grid-template-columns:1fr;gap:7px}
   .post .dt{display:none}
-  section,.state,.cta{padding:60px 0}
+  .faq summary{font-size:16.5px;padding-right:36px}
+  .faq .a{padding-right:24px;font-size:15px}
+  section,.cta{padding:56px 0}
+  body{padding-bottom:68px}
+  .dock{display:flex}
 }
 </style>
 </head>
@@ -184,104 +247,78 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
 
 <div id="todo"></div>
 
-<div class="top">
-  <div class="wrap">
-    <div class="hd">
-      <a class="logo" href="#top">
-        <span class="mark"><i></i><i></i><i></i></span>
-        <b id="logo">회계사무소</b>
-      </a>
-      <nav class="nav">
-        <a href="#focus">전문 분야</a>
-        <a href="#services">서비스</a>
-        <a href="#how">진행 방식</a>
-        <a href="#posts" id="nav-posts" hidden>세무 자료</a>
-        <a href="#contact">상담 문의</a>
-      </nav>
-    </div>
+<header>
+  <div class="wrap hd">
+    <a class="logo" href="#top">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <b id="logo">회계사무소</b>
+    </a>
+    <nav class="nav">
+      <a href="#profile">대표 소개</a>
+      <a href="#services">서비스</a>
+      <a href="#how">진행 방식</a>
+      <a href="#faq">자주 묻는 질문</a>
+      <a href="#posts" id="nav-posts" hidden>세무 자료</a>
+      <a class="call" id="nav-call" href="#contact">상담 문의</a>
+    </nav>
+  </div>
+</header>
 
-    <div class="hero" id="top">
-      <!-- 사진 대신 직접 그린다. 외부 이미지에 의존하지 않는다. -->
-      <svg viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <linearGradient id="sky" x1="0.05" y1="0" x2="0.9" y2="1">
-            <stop offset="0%"   stop-color="#C6D6E4"/>
-            <stop offset="35%"  stop-color="#93AAC1"/>
-            <stop offset="70%"  stop-color="#5A7086"/>
-            <stop offset="100%" stop-color="#2E3B4E"/>
-          </linearGradient>
-          <linearGradient id="faceR" x1="0.1" y1="0" x2="1" y2="0.9">
-            <stop offset="0%"   stop-color="#1A2440"/>
-            <stop offset="55%"  stop-color="#0D1426"/>
-            <stop offset="100%" stop-color="#05080F"/>
-          </linearGradient>
-          <linearGradient id="faceL" x1="0" y1="0" x2="0.8" y2="1">
-            <stop offset="0%"   stop-color="#54677F"/>
-            <stop offset="50%"  stop-color="#2F3D53"/>
-            <stop offset="100%" stop-color="#141C2C"/>
-          </linearGradient>
-          <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"   stop-color="#FFFFFF" stop-opacity=".42"/>
-            <stop offset="38%"  stop-color="#FFFFFF" stop-opacity=".06"/>
-            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-          </linearGradient>
-          <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="#E8F0FA" stop-opacity=".85"/>
-            <stop offset="100%" stop-color="#E8F0FA" stop-opacity=".08"/>
-          </linearGradient>
-          <pattern id="finsL" width="13" height="13" patternUnits="userSpaceOnUse"
-                   patternTransform="rotate(41)">
-            <line x1="0" y1="0" x2="0" y2="13" stroke="#FFFFFF" stroke-opacity=".085"
-                  stroke-width="3"/>
-          </pattern>
-          <pattern id="finsR" width="7" height="7" patternUnits="userSpaceOnUse"
-                   patternTransform="rotate(41)">
-            <line x1="0" y1="0" x2="0" y2="7" stroke="#FFFFFF" stroke-opacity=".055"
-                  stroke-width="1.6"/>
-          </pattern>
-          <linearGradient id="veil" x1="0.1" y1="0" x2="0.6" y2="1">
-            <stop offset="0%"   stop-color="#070C1A" stop-opacity=".50"/>
-            <stop offset="45%"  stop-color="#070C1A" stop-opacity=".06"/>
-            <stop offset="100%" stop-color="#070C1A" stop-opacity=".58"/>
-          </linearGradient>
-        </defs>
+<main id="top">
 
-        <!-- 하늘 -->
-        <rect width="1200" height="640" fill="url(#sky)"/>
-        <polygon points="0,0 560,0 0,470" fill="#FFFFFF" opacity=".16"/>
-
-        <!-- 건물 — 두 면이 620,640 ~ 1150,52 모서리에서 만난다 -->
-        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#faceL)"/>
-        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#finsL)"/>
-        <polygon points="620,640 1150,52 900,0 168,640" fill="url(#glass)"/>
-
-        <polygon points="620,640 1150,52 1200,52 1200,640" fill="url(#faceR)"/>
-        <polygon points="620,640 1150,52 1200,52 1200,640" fill="url(#finsR)"/>
-
-        <!-- 두 면이 만나는 모서리에 하이라이트 -->
-        <polygon points="1150,52 1156,52 626,640 614,640" fill="url(#edge)"/>
-
-        <!-- 멀리 있는 낮은 동 -->
-        <polygon points="0,548 250,470 250,640 0,640" fill="#101828" opacity=".55"/>
-
-        <!-- 대기감 -->
-        <rect width="1200" height="640" fill="url(#veil)"/>
-      </svg>
-
-      <h1 id="hero-en"></h1>
-      <div class="ko" id="hero-ko"></div>
+  <div class="hero on-dark">
+    <svg viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#16234E"/>
+          <stop offset="55%"  stop-color="#0F1A3C"/>
+          <stop offset="100%" stop-color="#080E24"/>
+        </linearGradient>
+        <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#5C7BB8" stop-opacity=".30"/>
+          <stop offset="100%" stop-color="#5C7BB8" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="au" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#B08C4F" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#B08C4F" stop-opacity="0"/>
+        </linearGradient>
+        <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse">
+          <path d="M52 0 L0 0 0 52" fill="none" stroke="#FFFFFF" stroke-opacity=".045"
+                stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="1200" height="520" fill="url(#bg)"/>
+      <rect width="1200" height="520" fill="url(#grid)"/>
+      <polygon points="700,0 1200,0 1200,520 930,520" fill="url(#sheen)"/>
+      <polygon points="1010,0 1200,0 1200,240" fill="url(#au)"/>
+      <line x1="760" y1="0" x2="1030" y2="520" stroke="#FFFFFF" stroke-opacity=".10"/>
+      <line x1="900" y1="0" x2="1170" y2="520" stroke="#B08C4F" stroke-opacity=".22"/>
+    </svg>
+    <div class="wrap">
+      <span class="lab" id="hero-label"></span>
+      <h1 id="hero-title"></h1>
+      <p class="sub" id="hero-sub"></p>
+      <div class="acts" id="hero-acts"></div>
     </div>
   </div>
-</div>
 
-<main>
+  <div class="wrap paths"><div class="g" id="path-grid"></div></div>
 
-  <div class="wrap state">
-    <span class="lbl">Who we are</span>
-    <p id="tagline"></p>
-    <p class="sub" id="intro"></p>
-    <div class="acts" id="hero-acts"></div>
-  </div>
+  <section id="profile">
+    <div class="wrap">
+      <span class="lbl">Profile</span>
+      <h2>누가 맡습니까</h2>
+      <div class="prof">
+        <div class="pic" id="pic"></div>
+        <div>
+          <div class="role" id="p-role"></div>
+          <div class="who" id="p-who"></div>
+          <p class="line" id="p-line"></p>
+          <ul id="p-career"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="sand" id="focus">
     <div class="wrap">
@@ -303,6 +340,13 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
     </div>
   </section>
 
+  <div class="band on-dark">
+    <div class="wrap">
+      <b>지금 상황만 알려주셔도 됩니다. 무엇이 문제인지부터 확인해 드립니다.</b>
+      <div class="acts" id="band-acts"></div>
+    </div>
+  </div>
+
   <section class="sand" id="how">
     <div class="wrap">
       <span class="lbl">Process</span>
@@ -311,11 +355,18 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
     </div>
   </section>
 
-  <section id="posts" hidden>
+  <section id="faq">
+    <div class="wrap">
+      <span class="lbl">FAQ</span>
+      <h2>자주 묻는 질문</h2>
+      <div class="faqs" id="faq-list"></div>
+    </div>
+  </section>
+
+  <section class="sand" id="posts" hidden>
     <div class="wrap">
       <span class="lbl">Insights</span>
       <h2>세무 자료</h2>
-      <p class="lead">실무에서 자주 묻는 것을 정리해 두었습니다.</p>
       <div class="posts" id="post-grid"></div>
     </div>
   </section>
@@ -325,11 +376,14 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
       <div>
         <span class="lbl" style="color:rgba(255,255,255,.5)">Contact</span>
         <h2>먼저 상황을 들려주세요</h2>
-        <p class="lead">지금 무엇이 문제인지부터 확인합니다.
-          간단한 질문이라면 상담 없이 답만 드리기도 합니다.</p>
-        <p class="hours" id="hours"></p>
+        <p class="lead">간단한 질문이라면 상담 없이 답만 드리기도 합니다.
+          방문 전에 연락 주시면 자료를 미리 준비해 두겠습니다.</p>
+        <div class="info" id="info"></div>
       </div>
-      <div class="acts" id="contact-acts"></div>
+      <div>
+        <div class="acts" id="contact-acts"></div>
+        <p class="note" id="c-note"></p>
+      </div>
     </div>
   </div>
 
@@ -343,6 +397,8 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
     <div class="desk"><a href="./index.html">업무 데스크 →</a></div>
   </div>
 </footer>
+
+<div class="dock on-dark" id="dock"></div>
 
 <script src="src/data/firm.js"></script>
 <script src="src/data/posts.js"></script>
@@ -366,11 +422,10 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
   }
   function two(n) { return n < 10 ? "0" + n : String(n); }
 
-  /* ── 안 채운 칸을 먼저 알린다 ─────────────────────────── */
+  /* 안 채운 칸 · 임시값 경고 */
   var LABEL = { name: "상호", owner: "대표 회계사", phone: "전화번호",
                 bizNo: "사업자등록번호", address: "주소", email: "이메일" };
   function label(k) { return LABEL[k] || k; }
-
   var missing = (F.REQUIRED || []).filter(function (k) { return !F[k]; });
   var fake = (F.PLACEHOLDER || []).filter(function (k) { return !!F[k]; });
   if (missing.length || fake.length) {
@@ -384,23 +439,18 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
   }
   function isFake(k) { return (F.PLACEHOLDER || []).indexOf(k) !== -1 && !!F[k]; }
 
-  /* ── 기본 정보 ────────────────────────────────────────── */
+  /* 기본 */
   var name = F.name || "회계사무소";
   if (F.name) document.title = F.name + " · 병의원 세무";
   $("logo").textContent = name;
-  $("tagline").textContent = F.tagline || "";
-  $("intro").textContent = F.intro || "";
-  $("hours").textContent = F.hours || "";
+  $("hero-label").textContent = F.heroLabel || "";
+  (F.heroTitle || []).forEach(function (t) {
+    $("hero-title").appendChild(el("span", null, t));
+  });
+  $("hero-sub").textContent = F.heroSub || "";
   $("f-name").textContent = name + (F.owner ? " · " + F.owner : "");
   $("f-notice").textContent = F.notice || "";
-
-  /* 히어로 문구 */
-  (F.heroEn || []).forEach(function (line) {
-    $("hero-en").appendChild(el("span", null, line));
-  });
-  (F.heroKo || []).forEach(function (line) {
-    $("hero-ko").appendChild(el("div", null, line));
-  });
+  if (F.phone) $("nav-call").textContent = F.phone;
 
   var biz = [];
   if (F.bizNo) biz.push("사업자등록번호 " + F.bizNo + (isFake("bizNo") ? " (등록 예정)" : ""));
@@ -409,38 +459,64 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
   if (F.email) biz.push(F.email);
   $("f-biz").innerHTML = biz.map(esc).join("<br>");
 
-  /* ── 연락 버튼 — 값이 있는 것만 만든다 ────────────────── */
-  function contactLinks(host) {
+  /* 연락 버튼 — 값이 있는 것만 만든다 */
+  function contactLinks(host, opt) {
+    opt = opt || {};
     var made = 0;
     if (F.kakao) {
-      var k = el("a", "btn btn-p", "카카오톡 상담");
-      k.href = F.kakao;
-      k.target = "_blank";
-      k.rel = "noopener noreferrer";
-      host.appendChild(k);
-      made++;
+      var k = el("a", "btn btn-p", opt.short ? "카톡 상담" : "카카오톡으로 상담");
+      k.href = F.kakao; k.target = "_blank"; k.rel = "noopener noreferrer";
+      host.appendChild(k); made++;
     }
     if (F.phone) {
-      var p = el("a", "btn " + (made ? "btn-o" : "btn-p"), F.phone);
+      var p = el("a", "btn " + (made ? "btn-o" : "btn-p"),
+                 opt.short ? "전화" : "전화 " + F.phone);
       p.href = "tel:" + F.phone.replace(/[^0-9+]/g, "");
-      host.appendChild(p);
-      made++;
+      host.appendChild(p); made++;
     }
-    if (F.email) {
+    if (F.email && !opt.short) {
       var m = el("a", "btn btn-o", F.email);
       m.href = "mailto:" + F.email;
-      host.appendChild(m);
-      made++;
+      host.appendChild(m); made++;
     }
-    if (!made) {
-      host.appendChild(el("span", null,
-        "(연락처가 아직 등록되지 않았습니다 — src/data/firm.js)"));
-    }
+    if (!made) host.appendChild(el("span", null,
+      "(연락처가 아직 등록되지 않았습니다 — src/data/firm.js)"));
   }
   contactLinks($("hero-acts"));
+  contactLinks($("band-acts"));
   contactLinks($("contact-acts"));
+  contactLinks($("dock"), { short: true });
 
-  /* ── 전문 분야 ────────────────────────────────────────── */
+  /* 상황별 갈래 */
+  (F.paths || []).forEach(function (p, i) {
+    var a = el("a", "path");
+    a.href = "#contact";
+    a.appendChild(el("div", "n", "CASE " + two(i + 1)));
+    a.appendChild(el("h3", null, p.title));
+    a.appendChild(el("p", null, p.desc));
+    a.appendChild(el("div", "go", "상담 문의 →"));
+    $("path-grid").appendChild(a);
+  });
+
+  /* 대표 프로필 */
+  var pr = F.profile || {};
+  if (pr.photo) {
+    var img = document.createElement("img");
+    img.src = pr.photo;
+    img.alt = (F.owner || "") + " 사진";
+    $("pic").appendChild(img);
+  } else {
+    $("pic").appendChild(el("div", "ini", (F.owner || "?").trim().charAt(0)));
+    $("pic").appendChild(el("div", "ph", "사진 준비 중"));
+  }
+  $("p-role").textContent = pr.role || "";
+  $("p-who").textContent = F.owner || "";
+  $("p-line").textContent = pr.line || "";
+  (pr.career || []).forEach(function (c) {
+    $("p-career").appendChild(el("li", null, c));
+  });
+
+  /* 전문 분야 */
   (F.focus || []).forEach(function (f, i) {
     var r = el("div", "row");
     r.appendChild(el("div", "no", two(i + 1)));
@@ -449,7 +525,7 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
     $("focus-grid").appendChild(r);
   });
 
-  /* ── 서비스 ───────────────────────────────────────────── */
+  /* 서비스 */
   (F.services || []).forEach(function (s, i) {
     var c = el("div", "svc");
     c.appendChild(el("div", "no", two(i + 1)));
@@ -461,16 +537,40 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
     $("svc-grid").appendChild(c);
   });
 
-  /* ── 진행 방식 ────────────────────────────────────────── */
+  /* 진행 방식 */
   (F.steps || []).forEach(function (s, i) {
     var c = el("div", "step");
-    c.appendChild(el("div", "n", two(i + 1)));
+    c.appendChild(el("div", "n", "STEP " + two(i + 1)));
     c.appendChild(el("h3", null, s.title));
     c.appendChild(el("p", null, s.desc));
     $("step-grid").appendChild(c);
   });
 
-  /* ── 글 — 발행을 마친 것만 내보낸다 ───────────────────── */
+  /* FAQ */
+  (F.faqs || []).forEach(function (f) {
+    var d = document.createElement("details");
+    d.className = "faq";
+    var sm = document.createElement("summary");
+    sm.textContent = f.q;
+    d.appendChild(sm);
+    d.appendChild(el("div", "a", f.a));
+    $("faq-list").appendChild(d);
+  });
+
+  /* 오시는 길 */
+  function infoRow(k, v) {
+    var row = el("div");
+    row.appendChild(el("dt", null, k));
+    row.appendChild(el("dd", null, v));
+    $("info").appendChild(row);
+  }
+  if (F.address) infoRow("주소", F.address);
+  if (F.phone) infoRow("전화", F.phone);
+  if (F.email) infoRow("이메일", F.email);
+  if (F.hours) infoRow("상담 시간", F.hours);
+  $("c-note").textContent = (F.directions || []).join(" ");
+
+  /* 글 — 발행을 마친 것만 */
   var CAT = { medical: "병의원 세무", transfer: "양도소득세" };
   var posts = (typeof POSTS === "undefined" ? [] : POSTS).filter(function (p) {
     return p.stage === "published" && p.publishedUrl;
@@ -478,9 +578,7 @@ footer .desk a{color:rgba(255,255,255,.45);text-decoration:underline}
   if (posts.length) {
     posts.slice(0, 6).forEach(function (p) {
       var a = el("a", "post");
-      a.href = p.publishedUrl;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
+      a.href = p.publishedUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
       a.appendChild(el("span", "cat", CAT[p.category] || "세무"));
       a.appendChild(el("h3", null, p.title));
       a.appendChild(el("span", "dt", (p.publishedAt || "").slice(0, 10)));
