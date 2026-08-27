@@ -54,7 +54,6 @@
     el.className = "fcard";
     el.innerHTML =
       '<div class="fcard-hd">' +
-        '<span class="fcard-ico">' + (card.icon || "✦") + "</span>" +
         '<div class="fcard-main">' +
           '<div class="fcard-title">' + escapeHtml(card.title) + "</div>" +
           '<div class="fcard-desc">' + escapeHtml(card.desc) + "</div>" +

@@ -111,7 +111,6 @@
     var card = el("div", "tcard");
 
     var hd = el("div", "tcard-hd");
-    hd.innerHTML = '<span class="tcard-ico">' + (cat.icon || "📁") + "</span>";
     var txt = el("span", "tcard-txt");
     txt.appendChild(el("b", null, cat.title));
     if (cat.desc) txt.appendChild(el("em", null, cat.desc));

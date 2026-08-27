@@ -9,8 +9,7 @@
  * 필드 설명
  *   id       고유 식별자 (영문·숫자·하이픈)
  *   tab      어느 탭에 나타날지 — "tax" | "blog" | "ads" (필요하면 새 탭 키를 만들고
- *            index.html에 <div class="card-grid" data-cards="새탭키"></div> 를 추가)
- *   icon     카드 왼쪽에 붙는 이모지 한 글자
+ *            index.html에 <div class="card-grid" data-cards="새탭키"></div>를 추가)
  *   title    기능명
  *   desc     한 줄 설명
  *   subagent 이 프롬프트가 호출할 서브에이전트 이름 (표시용 문자열)
@@ -25,7 +24,6 @@ const CARDS = [
   {
     id: "bk-monthly-close",
     tab: "tax",
-    icon: "🧮",
     title: "월 마감 기장 정리",
     desc: "은행·카드 거래내역을 받아 월 마감 분개를 정리하고 확인할 항목을 뽑습니다.",
     subagent: "bookkeeping-agent",
@@ -41,7 +39,6 @@ const CARDS = [
   {
     id: "tax-adjustment-check",
     tab: "tax",
-    icon: "🧾",
     title: "세무조정 항목 점검",
     desc: "결산서와 세무조정계산서를 비교해 누락·오류 가능성이 있는 조정 항목을 짚어줍니다.",
     subagent: "tax-adjustment-agent",

@@ -13,7 +13,7 @@
     { id: "t3", num: 3, name: "준비 중 3", locked: true },
     { id: "t4", num: 4, name: "준비 중 4", locked: true },
     { id: "t5", num: 5, name: "준비 중 5", locked: true },
-    { id: "hub", num: "🧰", name: "도구 모음", locked: false,
+    { id: "hub", num: "·", name: "도구 모음", locked: false,
       desc: "자주 쓰는 사이트와 도구를 한곳에 모아 둡니다." },
   ];
 
@@ -201,7 +201,7 @@
       b.setAttribute("role", "tab");
       b.setAttribute("aria-selected", t.id === activeTab ? "true" : "false");
       b.innerHTML = '<span class="subtab-n">' + t.num + "</span>"
-        + esc(t.name) + (t.locked ? ' <span class="lock">🔒</span>' : "");
+        + esc(t.name);
       b.addEventListener("click", function () {
         activeTab = t.id;
         renderSubtabs();
@@ -312,7 +312,7 @@
     }
 
     var lock = el("div", "lockcard");
-    lock.innerHTML = '<div class="lock-ico">🔒</div>'
+    lock.innerHTML = '<div class="lock-ico"></div>'
       + "<b>" + esc(tab.name) + " — 준비 중</b>"
       + "<p>골격만 잡아둔 자리입니다. 이 탭은 업로드 없이 위의 정산표를 그대로 받아 씁니다.</p>";
     p.appendChild(lock);
@@ -987,7 +987,7 @@
     acts.appendChild(copyButton("프롬프트 복사", function () {
       return WS.reasonPrompt(rows, cur.중요성금액);
     }));
-    var badge = el("span", "agent-badge", "🤖 audit-fs-analyzer");
+    var badge = el("span", "agent-badge", " audit-fs-analyzer");
     acts.appendChild(badge);
     box.appendChild(acts);
 
@@ -1007,7 +1007,7 @@
       persist();
       msg.className = "cap ok";
       msg.textContent = r.count + "개 반영했습니다."
-        + (r.unknown.length ? " 정산표에 없는 코드 " + r.unknown.length + "개는 버렸습니다." : "");
+        + (r.unknown.length ? "정산표에 없는 코드 " + r.unknown.length + "개는 버렸습니다." : "");
       renderPanel();
     });
     var act2 = el("div", "save-actions");
@@ -1121,7 +1121,7 @@
 
     var cur = S.current();
     box.appendChild(el("p", "cap", "내려받은 파일은 " + esc(S.workPath(cur))
-      + " 에 넣어 두세요. 이 폴더는 .gitignore로 막혀 있어 저장소에 올라가지 않습니다."));
+      + "에 넣어 두세요. 이 폴더는 .gitignore로 막혀 있어 저장소에 올라가지 않습니다."));
     box.appendChild(el("p", "cap", "정산표 시트의 전기·당기·수정분개·수정후·증감액·증감비율은 값이 아니라 "
       + "SUMIFS 수식입니다. PBC 시트나 수정분개 시트를 엑셀에서 고치면 정산표가 따라 갱신됩니다."));
     return box;
