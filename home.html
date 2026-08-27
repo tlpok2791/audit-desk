@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>회계사무소</title>
-<meta name="description" content="병의원 세무 전문 회계사무소. 기장, 종합소득세 세무조정, 세무조사 대응, 양도·상속 검토.">
+<!-- 아래 두 줄은 검색엔진·카톡 미리보기가 JS 없이 읽는 값이라 여기에도 둔다.
+     상호를 바꾸면 src/data/firm.js 와 함께 이 두 줄도 고칠 것. -->
+<title>세정회계법인 · 병의원 세무</title>
+<meta name="description" content="병의원 세무 전문. 기장 대리, 종합소득세 세무조정, 세무조사·소명 대응, 양도·상속 검토. 서동희 공인회계사.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
@@ -249,15 +251,24 @@ footer .desk a{color:var(--faint)}
   }
 
   /* ── 안 채운 칸을 먼저 알린다 ─────────────────────────── */
-  var LABEL = { name: "상호", owner: "대표 회계사", phone: "전화번호" };
+  var LABEL = { name: "상호", owner: "대표 회계사", phone: "전화번호",
+                bizNo: "사업자등록번호", address: "주소", email: "이메일" };
+  function label(k) { return LABEL[k] || k; }
+
   var missing = (F.REQUIRED || []).filter(function (k) { return !F[k]; });
-  if (missing.length) {
+  var fake = (F.PLACEHOLDER || []).filter(function (k) { return !!F[k]; });
+  if (missing.length || fake.length) {
+    var msg = [];
+    if (missing.length) msg.push("비어 있음 — " + missing.map(label).join(", "));
+    if (fake.length) msg.push("아직 임시값 — " + fake.map(label).join(", "));
     var bar = $("todo");
     bar.className = "on";
-    bar.textContent = "아직 채우지 않은 항목이 있습니다 — "
-      + missing.map(function (k) { return LABEL[k] || k; }).join(", ")
-      + ". src/data/firm.js 를 채운 뒤 외부에 주소를 알리세요.";
+    bar.textContent = msg.join(" · ")
+      + ". src/data/firm.js 를 고친 뒤 외부에 주소를 알리세요.";
   }
+
+  // 임시값은 화면에서도 임시로 보이게 한다 (진짜로 오인하지 않도록)
+  function isFake(k) { return (F.PLACEHOLDER || []).indexOf(k) !== -1 && !!F[k]; }
 
   /* ── 기본 정보 ────────────────────────────────────────── */
   var name = F.name || "회계사무소";
@@ -270,7 +281,8 @@ footer .desk a{color:var(--faint)}
   $("f-notice").textContent = F.notice || "";
 
   var biz = [];
-  if (F.bizNo) biz.push("사업자등록번호 " + F.bizNo);
+  if (F.bizNo) biz.push("사업자등록번호 " + F.bizNo
+                        + (isFake("bizNo") ? " (등록 예정)" : ""));
   if (F.address) biz.push(F.address);
   if (F.phone) biz.push("전화 " + F.phone);
   if (F.email) biz.push(F.email);
