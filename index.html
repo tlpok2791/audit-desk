@@ -529,8 +529,6 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
   <div class="tabs" role="tablist" aria-label="업무 영역">
     <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="audit">🗂️ 감사도구</button>
     <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="tax">🧮 기장 및 세무조정</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="blog">✍️ 블로그 작성</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="ads">📣 광고마케팅</button>
   </div>
 
   <section class="tab-panel active" data-tab="audit" role="tabpanel">
@@ -816,67 +814,7 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
   </section>
 
   <!-- 블로그 작성 -->
-  <section class="tab-panel" data-tab="blog" role="tabpanel" hidden>
 
-    <div class="flow" style="margin:0 0 26px">
-      <span>① Notion 에 건 등록</span><i>▸</i>
-      <span>② 파이프라인이 원고 생성</span><i>▸</i>
-      <span>③ 검토</span><i>▸</i>
-      <span>④ 붙여넣고 발행</span>
-    </div>
-
-    <div class="sec"><div class="num">1</div><h2>네이버 발행 대기</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      파이프라인이 자동으로 만든 원고입니다. 제목·본문·태그를 복사해 스마트에디터에
-      붙여넣으세요. 발행 후 "발행 완료"를 체크하면 마무리 명령이 나옵니다.
-      <b>자동 발행은 하지 않습니다.</b>
-    </p>
-    <div id="ready-list"></div>
-
-    <div class="callout" style="margin-top:26px">
-      <h3>원고는 이렇게 만들어집니다</h3>
-      <ul>
-        <li>Notion 세무 DB 에 상태를 <code>대기</code>로 둔 건이 생기면 파이프라인이 집어갑니다</li>
-        <li>Claude 가 첨부 서류를 읽고 → 수치를 정제하고 → 원고를 씁니다 (결제처 한 곳)</li>
-        <li>마크다운을 걷어낸 네이버 규격으로 나오고, 검토가 필요한 대목은 표시됩니다</li>
-        <li>자동 실행은 꺼 두었습니다 · Actions 탭에서 직접 누를 때만 돕니다</li>
-      </ul>
-    </div>
-
-    <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>직접 쓸 때 (선택)</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      파이프라인을 거치지 않고 손으로 주제를 잡고 싶을 때 쓰는 프롬프트입니다.
-      받은 초안은 <code>content/posts/drafts/</code>에 넣고
-      <code>/naver-ready &lt;경로&gt;</code>로 변환하면 위 1번에 함께 나타납니다.
-    </p>
-    <div class="card-grid" data-cards="blog"></div>
-    <div id="draft-list" style="margin-top:14px"></div>
-
-    <p class="cap" style="margin-top:16px">
-      목록은 <code>python3 build_posts.py</code>로 굽습니다.
-      파이프라인은 이걸 자동으로 돌리고 결과를 커밋합니다.
-    </p>
-  </section>
-
-  <!-- 광고마케팅 -->
-  <section class="tab-panel" data-tab="ads" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>적용할 규칙 고르기</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      노션 광고 KB에서 동기화한 규칙입니다. 필터로 고른 규칙이 아래 카드의 프롬프트에 그대로 들어갑니다.
-    </p>
-    <div id="ad-filters"></div>
-
-    <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>프롬프트</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      필드를 채우면 미리보기가 실시간으로 갱신됩니다. 위에서 고른 규칙이 함께 삽입됩니다.
-    </p>
-    <div class="card-grid" data-cards="ads"></div>
-
-    <p class="cap" style="margin-top:16px">
-      규칙은 <code>node scripts/sync-ad-rules.js</code>로 노션에서 내려받습니다.
-      노션에 속성을 추가하면 다시 동기화하는 것만으로 위 필터에 나타납니다.
-    </p>
-  </section>
 
 </div>
 
@@ -940,7 +878,6 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 })();
 </script>
 <script src="src/data/cards.js"></script>
-<script src="src/data/posts.js"></script>
 <script src="src/app.js"></script>
 <!-- 감사도구 세부탭 — SheetJS는 로컬 번들(브라우저 안에서만 처리, 서버 전송 없음) -->
 <script src="vendor/xlsx.full.min.js"></script>
