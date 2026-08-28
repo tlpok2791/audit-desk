@@ -16,20 +16,15 @@ from pathlib import Path
 SRC = Path(__file__).parent
 OUT = SRC / "web"
 
-# 브라우저 버전에 실을 파이썬 파일 (+ 계산기가 읽는 설정 JSON)
-# income_tax.py는 pdfplumber를 함수 안에서 지연 임포트하므로, pdfplumber를
-# REQUIREMENTS에 넣지 않아도 모듈 임포트 자체는 안전하다 — 브라우저에서는
-# receipt.available()이 False가 되어 PDF 업로드 UI만 자동으로 숨겨진다.
+# 브라우저 버전에 실을 파이썬 파일
 PY_FILES = [
     "app.py",
     "core/__init__.py", "core/env.py", "core/theme.py", "core/registry.py",
     "core/loader.py", "core/accounts.py", "core/report.py",
     "core/journal.py", "core/ledger.py",
-    "core/income_tax.py", "core/receipt.py",
     "modules/__init__.py", "modules/stub.py",
     "modules/edit.py",
-    "modules/lead.py", "modules/fs.py", "modules/jet.py", "modules/income_tax.py",
-    "config/income-tax-2025.json",
+    "modules/lead.py", "modules/fs.py", "modules/jet.py",
 ]
 
 # Pyodide에 기본 포함되지 않는 순수 파이썬 패키지만 적는다

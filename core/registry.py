@@ -9,7 +9,7 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from modules import edit, fs, income_tax, jet, lead, stub
+from modules import edit, fs, jet, lead, stub
 
 
 @dataclass
@@ -53,15 +53,6 @@ MODULES = [
         desc="총계정원장에서 기말 심야전표, 승인한도 직하, 중복 계상, "
              "벤포드 편차를 적출합니다.",
         render=jet.render,
-        status="ready",
-    ),
-    Module(
-        ref="IT-100",
-        label="종합소득세 계산",
-        desc="수입금액·필요경비·공제 항목을 홈택스 엑셀·영수증 PDF·직접입력으로 채우면 "
-             "사업소득금액부터 차감납부세액까지 신고서 흐름대로 계산합니다. 참고용 추정치이며 "
-             "실제 신고 전 세무사 확인이 필요합니다.",
-        render=income_tax.render,
         status="ready",
     ),
     # ── 아래는 자리만 잡아둔 것. 만들 때 status를 "ready"로 바꾸면 됩니다 ──
