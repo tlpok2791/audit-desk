@@ -21,8 +21,14 @@
  *   goto   (선택) 같은 감사도구 탭 안의 서브탭으로 이동. 값은 서브탭 id.
  *            현재 쓸 수 있는 값: "ws"(정산표 작성)
  *   soon   (선택) true 면 "준비 중"으로 회색 처리되고 눌리지 않습니다.
+ *   hi     (선택) true 면 그 카테고리의 대표 도구로, 테두리 상자로 강조합니다.
+ *            카드마다 하나만 쓰는 것이 좋습니다.
  *
- *   url · goto · soon 중 하나만 씁니다.
+ *   url · goto · soon 중 하나만 씁니다. hi 는 함께 쓸 수 있습니다.
+ *
+ * ── 카드 머리 아이콘 ────────────────────────────────────
+ *   카테고리 id 로 골라집니다 (src/audit/hub.js 의 ICONS).
+ *   새 id 를 쓰면 기본 아이콘이 나오니, 필요하면 거기에 한 줄 추가하세요.
  *
  * ── 새 항목 추가 예시 ───────────────────────────────────
  *   { id: "nts-law", name: "국세법령정보시스템", url: "https://taxlaw.nts.go.kr" },
@@ -33,15 +39,15 @@ const TOOLS = [
   {
     id: "mine",
     title: "내 감사도구",
-    desc: "이 저장소 안에서 도는 도구. 파일은 브라우저 밖으로 나가지 않습니다",
+    desc: "파일이 브라우저 밖으로 나가지 않는 도구",
     items: [
-      { id: "ws", name: "정산표 작성", goto: "ws",
+      { id: "ws", name: "정산표 작성", goto: "ws", hi: true,
         desc: "전기 재무제표와 당기 시산표로 살아있는 정산표를 만듭니다" },
       { id: "jl", name: "분개장 · 계정별원장 편집", url: "./tool.html",
         desc: "회사별 분개장과 계정별원장을 한 화면에서 편집합니다" },
       { id: "lead", name: "리드시트 자동생성", soon: true },
       { id: "je-test", name: "전표 이상징후 추출", soon: true },
-      { id: "ocr", name: "OCR — 스캔 서류 텍스트 추출", soon: true },
+      { id: "ocr", name: "OCR 텍스트 추출", soon: true },
     ],
   },
   {
@@ -145,7 +151,7 @@ const TOOLS = [
     items: [
       { id: "materiality", name: "중요성금액 산정", soon: true },
       { id: "depreciation", name: "감가상각 스케줄", soon: true },
-      { id: "pv", name: "현재가치 · 유효이자율", soon: true },
+      { id: "pv", name: "현재가치 계산", soon: true },
       { id: "sampling", name: "표본 추출", soon: true },
     ],
   },

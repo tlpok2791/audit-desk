@@ -40,6 +40,40 @@
     saveFavs(favs);
   }
 
+  /* ── 카테고리 아이콘 ──────────────────────────────────────
+     카테고리 id 로 찾는다. 없으면 기본 아이콘이 나온다.
+     src/data/tools.js 에 새 카테고리를 넣으면 여기에도 한 줄 추가하면 된다. */
+  var ICONS = {
+    mine:       '<rect x="3" y="8" width="18" height="11" rx="1.5"/>'
+              + '<path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>',
+    nts:        '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h5"/>',
+    disclosure: '<path d="M4 20h16"/><rect x="6" y="11" width="3" height="6"/>'
+              + '<rect x="10.5" y="7" width="3" height="10"/>'
+              + '<rect x="15" y="13" width="3" height="4"/>',
+    registry:   '<path d="M12 4v15M6 19h12M4 8h16"/>'
+              + '<path d="M7 8l-3 5h6zM17 8l3 5h-6z"/>',
+    market:     '<circle cx="12" cy="12" r="8"/>'
+              + '<path d="M4 12h16M12 4c2.4 2.7 2.4 12.3 0 16M12 4c-2.4 2.7-2.4 12.3 0 16"/>',
+    labor:      '<circle cx="9" cy="8" r="3"/><path d="M3 19a6 6 0 0 1 12 0"/>'
+              + '<path d="M16 5.6a3 3 0 0 1 0 5.8M17 14.2A5.5 5.5 0 0 1 21 19"/>',
+    trade:      '<path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/>'
+              + '<path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
+    calc:       '<rect x="5" y="3" width="14" height="18" rx="1.5"/>'
+              + '<rect x="8" y="6.5" width="8" height="3"/>'
+              + '<path d="M8.6 13.5h.01M12 13.5h.01M15.4 13.5h.01'
+              + 'M8.6 17.2h.01M12 17.2h.01M15.4 17.2h.01"/>',
+    fav:        '<path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2l.9-5.5-4-3.9L9.5 9z"/>',
+    _default:   '<rect x="4" y="4" width="16" height="16" rx="2"/>'
+              + '<path d="M8 9h8M8 13h8M8 17h5"/>'
+  };
+
+  function icon(id) {
+    var box = document.createElement("div");
+    box.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+                  + (ICONS[id] || ICONS._default) + "</svg>";
+    return box.firstChild;
+  }
+
   /* ── 유틸 ─────────────────────────────────────────────── */
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -62,7 +96,8 @@
 
   /* ── 도구 한 줄 ───────────────────────────────────────── */
   function renderItem(cat, item, favs, refresh) {
-    var row = el("div", "trow" + (item.soon ? " soon" : ""));
+    var row = el("div", "trow" + (item.soon ? " soon" : "")
+                              + (item.hi ? " hi" : ""));
 
     var main;
     if (item.soon) {
@@ -89,6 +124,7 @@
     main.appendChild(el("span", "trow-name", item.name));
     if (item.soon) main.appendChild(el("span", "trow-badge", "준비 중"));
     else if (item.url && isExternal(item.url)) main.appendChild(el("span", "trow-ext", "↗"));
+    else if (item.hi) main.appendChild(el("span", "trow-ext", "→"));
     row.appendChild(main);
 
     var key = keyOf(cat, item);
@@ -107,19 +143,22 @@
   }
 
   /* ── 카테고리 카드 ────────────────────────────────────── */
-  function renderCard(cat, items, favs, refresh) {
-    var card = el("div", "tcard");
+  // pairs 는 [{ cat: 카테고리, item: 도구 }, ...].
+  // 즐겨찾기 카드는 도구마다 원래 카테고리가 다르므로 짝으로 받는다.
+  function renderCard(head, pairs, favs, refresh, cls) {
+    var card = el("div", "tcard" + (cls ? " " + cls : ""));
 
     var hd = el("div", "tcard-hd");
-    var txt = el("span", "tcard-txt");
-    txt.appendChild(el("b", null, cat.title));
-    if (cat.desc) txt.appendChild(el("em", null, cat.desc));
-    hd.appendChild(txt);
+    var top = el("div", "t");
+    top.appendChild(icon(head.id));
+    top.appendChild(el("b", null, head.title));
+    hd.appendChild(top);
+    if (head.desc) hd.appendChild(el("em", null, head.desc));
     card.appendChild(hd);
 
     var body = el("div", "tcard-body");
-    items.forEach(function (item) {
-      body.appendChild(renderItem(cat, item, favs, refresh));
+    pairs.forEach(function (p) {
+      body.appendChild(renderItem(p.cat, p.item, favs, refresh));
     });
     card.appendChild(body);
     return card;
@@ -129,6 +168,10 @@
   function render(host, goto) {
     onGoto = goto || onGoto;
     host.innerHTML = "";
+    // 도구는 칸이 많아 본문보다 넓게 쓴다. 그 폭을 잡아 주는 상자.
+    var box = el("div", "thub");
+    host.appendChild(box);
+    host = box;
 
     var all = (typeof TOOLS === "undefined") ? [] : TOOLS;
     if (!all.length) {
@@ -169,24 +212,22 @@
     });
 
     if (picked.length) {
-      host.appendChild(el("div", "tsec", "자주 쓰는 도구"));
-      var favBox = el("div", "tfav");
-      picked.forEach(function (p) {
-        favBox.appendChild(renderItem(p.cat, p.item, favs, refresh));
-      });
-      host.appendChild(favBox);
+      // 즐겨찾기도 같은 카드 모양. 폭이 넓어 안에서 여러 단으로 나뉜다.
+      host.appendChild(renderCard(
+        { id: "fav", title: "자주 쓰는 도구", desc: "★ 를 누른 항목만 모아 둡니다" },
+        picked, favs, refresh, "tfav"));
     }
 
     /* 카테고리 그리드 */
     var grid = el("div", "tgrid");
     var shown = 0;
     all.forEach(function (cat) {
-      var items = (cat.items || []).filter(function (item) {
-        return matches(cat, item);
-      });
-      if (!items.length) return;
-      shown += items.length;
-      grid.appendChild(renderCard(cat, items, favs, refresh));
+      var pairs = (cat.items || [])
+        .filter(function (item) { return matches(cat, item); })
+        .map(function (item) { return { cat: cat, item: item }; });
+      if (!pairs.length) return;
+      shown += pairs.length;
+      grid.appendChild(renderCard(cat, pairs, favs, refresh));
     });
 
     if (!shown) {

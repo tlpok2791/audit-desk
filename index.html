@@ -287,44 +287,65 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
   font-family:var(--sans)}
 .tag-box{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
 
-/* ── 도구 모음 (감사도구 >도구 모음) ───────────────── */
+/* ── 도구 모음 (감사도구 > 도구 모음) ───────────────── */
+/* 어두운 머리 + 아이콘, 그 아래 얇은 줄 목록. 별은 오른쪽 끝. */
+/* 도구 목록만 본문(940px)보다 넓게 쓴다. 칸이 많아 3열로는 성기다. */
+.thub{width:min(1280px,calc(100vw - 56px));margin-left:50%;
+  transform:translateX(-50%)}
+@media(max-width:1040px){.thub{width:100%;margin-left:0;transform:none}}
 .tsearch{margin:2px 0 18px}
 .tsearch input{width:100%;box-sizing:border-box;font:inherit;font-size:14px;
-  padding:10px 14px;border:1px solid var(--line);border-radius:var(--r);
+  padding:10px 14px;border:1px solid var(--line);border-radius:3px;
   background:var(--card);color:var(--ink)}
 .tsearch input:focus{outline:none;border-color:var(--indigo);
   box-shadow:0 0 0 3px var(--indigo-l)}
 .tsec{font-size:13px;font-weight:700;color:var(--faint);letter-spacing:.02em;
   margin:0 0 9px}
-.tfav{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  overflow:hidden;margin-bottom:26px}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px}
-.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  overflow:hidden;display:flex;flex-direction:column}
-.tcard-hd{display:flex;align-items:flex-start;gap:11px;padding:14px 16px;
-  background:var(--ink);color:#fff}
-.tcard-ico{font-size:17px;line-height:1.2;flex:none}
-.tcard-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
-.tcard-txt b{font-size:15px;font-weight:700;letter-spacing:-.01em}
-.tcard-txt em{font-style:normal;font-size:12px;color:#D1D5DB;line-height:1.5}
-.tcard-body{padding:4px 0}
+
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));
+  gap:14px;align-items:stretch}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:3px;
+  overflow:hidden;display:flex;flex-direction:column;min-height:262px}
+.tcard-hd{padding:13px 15px 12px;background:#2B2B2B;color:#fff}
+.tcard-hd .t{display:flex;align-items:center;gap:9px}
+.tcard-hd svg{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.92}
+.tcard-hd b{font-size:14.5px;font-weight:700;letter-spacing:-.02em}
+.tcard-hd em{display:block;margin-top:7px;font-style:normal;font-size:11.5px;
+  color:#B7BAC4;line-height:1.55}
+.tcard-body{padding:8px 14px 14px}
+
+/* 자주 쓰는 도구 — 가로로 넓은 카드 하나. 안에서만 여러 단으로 나눈다 */
+.tfav{margin-bottom:24px;min-height:0}
+.tfav .tcard-body{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0 26px}
+
 .trow{display:flex;align-items:center;border-bottom:1px solid var(--line-l)}
-.trow:last-child{border-bottom:none}
 .trow-main{flex:1;min-width:0;display:flex;align-items:center;gap:7px;
-  padding:10px 6px 10px 16px;font:inherit;font-size:14px;color:var(--ink);
+  padding:9px 4px;font:inherit;font-size:13.5px;color:var(--body);
   text-align:left;text-decoration:none;background:none;border:none;cursor:pointer}
-a.trow-main:hover,button.trow-main:hover{background:var(--indigo-l);color:var(--indigo-d)}
+a.trow-main:hover,button.trow-main:hover{color:var(--indigo)}
+a.trow-main:hover .trow-name,button.trow-main:hover .trow-name{text-decoration:underline}
 .trow-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.trow-ext{flex:none;font-size:11px;color:var(--line)}
+.trow-ext{flex:none;font-size:10px;color:var(--line)}
 a.trow-main:hover .trow-ext{color:var(--indigo)}
-.trow-badge{flex:none;font-size:11px;padding:2px 7px;border-radius:var(--r-pill);
-  background:var(--line-l);color:var(--mute)}
+.trow-badge{flex:none;font-size:10px;padding:1px 6px;border-radius:var(--r-pill);
+  background:var(--line-l);color:var(--faint)}
 .trow.soon .trow-main{cursor:default;color:var(--faint)}
-.trow-star{flex:none;padding:10px 14px;font-size:14px;line-height:1;
-  color:var(--line);background:none;border:none;cursor:pointer}
+.trow-star{flex:none;padding:8px 0 8px 10px;font-size:13px;line-height:1;
+  color:#D6D8E2;background:none;border:none;cursor:pointer}
 .trow-star:hover{color:var(--faint)}
 .trow-star.on{color:#F59E0B}
-@media(max-width:520px){.tgrid{grid-template-columns:1fr}}
+
+/* 대표 도구 한 줄 — 테두리 상자로 눈에 띄게 (tools.js 의 hi:true) */
+.trow.hi{border-bottom:none;padding:4px 0 10px}
+.trow.hi .trow-main{border:1px solid var(--indigo-b);border-radius:6px;
+  padding:9px 12px;color:var(--indigo);font-weight:600;background:var(--card)}
+.trow.hi .trow-main:hover{background:var(--indigo-l);color:var(--indigo-d)}
+.trow.hi .trow-main:hover .trow-name{text-decoration:none}
+.trow.hi .trow-star{padding-left:8px}
+
+@media(max-width:520px){.tgrid{grid-template-columns:1fr}.tcard{min-height:0}}
 
 /* 본문 조각 · 이미지 자리 — 네이버에 순서대로 옮겨 붙이기 위한 뷰 */
 .seg{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:9px}
