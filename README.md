@@ -41,8 +41,8 @@ core/theme.py       색 · 서체
 modules/edit.py     JL-100 분개장·계정별원장 편집 (화면 하나, 자료 종류만 선택)
 modules/            기능별 화면
 build_web.py        tool.html 생성기
-index.html          홈페이지 — 감사도구 · 기장/세무조정 · 블로그 작성 · 광고마케팅 4개 탭
-src/data/cards.js   탭 2~4의 "기능 카드" 정의 (아래 '홈페이지 카드 추가' 참고)
+index.html          홈페이지 — 감사도구 · 블로그 작성 · 광고마케팅 3개 탭
+src/data/cards.js   탭 2~3의 "기능 카드" 정의 (아래 '홈페이지 카드 추가' 참고)
 src/data/posts.js   블로그 발행 목록 (build_posts.py 결과물 · 직접 고치지 말 것)
 src/app.js          탭 전환 · 카드 렌더링 · 프롬프트 미리보기·복사 · 발행목록 스크립트
 content/posts/      네이버 블로그 발행 파이프라인 (아래 '네이버 블로그 발행' 참고)
@@ -85,14 +85,14 @@ cp web/tool.html .        # 최상단에 반영
 
 ## 홈페이지 카드 추가
 
-`index.html`의 기장/세무조정·블로그 작성·광고마케팅 탭은 "기능 카드"로 채워지며,
+`index.html`의 블로그 작성·광고마케팅 탭은 "기능 카드"로 채워지며,
 카드는 전부 `src/data/cards.js`의 `CARDS` 배열에서 나온다. 새 카드를 넣으려면
 `index.html`·`src/app.js`는 건드릴 필요 없이 이 배열에 객체 하나만 추가하면 된다.
 
 ```js
 {
   id: "고유id",
-  tab: "tax",                 // "tax" | "blog" | "ads"
+  tab: "blog",                // "blog" | "ads"
   icon: "🧮",
   title: "기능명",
   desc: "한 줄 설명",
@@ -128,6 +128,16 @@ python3 build_posts.py                           # 홈페이지 블로그 탭에
 단정적 표현·절세 보장 문구·의료광고 소지를 `검토 필요`로 플래그한다.
 
 자세한 형식은 `content/posts/README.md` 참고.
+
+## 세무 기능은 다른 저장소로 옮겼습니다
+
+소득세·법인세·부가세·원천세 관련 기능은 **[tax](https://github.com/tlpok2791/tax)**
+저장소로 분리했습니다. 종합소득세 계산기(IT-100)와 기장·세무조정 프롬프트 카드가
+그쪽에 있습니다.
+
+이 저장소에는 감사도구만 남습니다. `config/standard-coa.json`의 "법인세비용"·
+"부가세대급금" 같은 항목이나 리드시트 참조번호 `K 법인세`는 **세무 신고 기능이 아니라
+감사조서가 쓰는 표준 계정과목**이므로 그대로 둡니다.
 
 ## 감사도구 세부탭
 

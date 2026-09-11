@@ -217,6 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# build_web.py 출력 — 최상단 tool.html로 복사해서 커밋하므로 중간 산출물은 안 담는다
+/web/
+
 # 감사 작업 데이터 — 절대 커밋하지 않는다 (과세정보·개인정보 포함)
 work/*
 !work/README.md
