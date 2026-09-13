@@ -14,14 +14,17 @@
  * 두 가지 방식으로 쓸 수 있습니다.
  *
  * ① 카드에서 가져오기 — 기장·블로그·광고 탭의 기능 카드
- *      { card: "bk-monthly-close" }
- *    src/data/cards.js 의 같은 id 를 찾아 icon·title·desc·tab 을 그대로 씁니다.
+ *      { card: "bk-monthly-close", svg: "calc" }
+ *    src/data/cards.js 의 같은 id 를 찾아 title·desc·tab 을 그대로 씁니다.
+ *    아이콘만은 svg 로 따로 지정합니다 (카드는 이모지, 홈 타일은 그린 아이콘).
  *    카드 내용을 고치면 홈 타일도 같이 바뀌므로 두 군데 고칠 일이 없습니다.
  *
  * ② 직접 적기 — 카드가 아닌 기능 (감사도구 등)
  *      name   타일 제목
  *      desc   한 줄 설명
- *      icon   이모지 하나
+ *      svg    아이콘 이름 — src/app.js 의 ICONS 에 있는 키
+ *             worksheet · ledger · grid · calc · docCheck
+ *             pen · layers · send · shield · trend
  *      tab    이동할 탭 키 ("audit" | "tax" | "blog" | "ads")
  *      sub    (선택) 감사도구 안의 서브탭 id ("ws" | "hub")
  *      url    (선택) 탭 대신 주소로 이동. http 면 새 창, 상대경로면 같은 창
@@ -36,11 +39,11 @@ const HOME_GROUPS = [
     title: "감사",
     color: "indigo",
     tiles: [
-      { name: "정산표 작성", icon: "📋", tab: "audit", sub: "ws",
+      { name: "정산표 작성", svg: "worksheet", tab: "audit", sub: "ws",
         desc: "전기 재무제표와 당기 시산표로 살아있는 정산표" },
-      { name: "분개장 · 원장 편집", icon: "📒", url: "./tool.html",
+      { name: "분개장 · 원장 편집", svg: "ledger", url: "./tool.html",
         desc: "회사별 분개장과 계정별원장을 한 화면에서" },
-      { name: "도구 모음", icon: "🧰", tab: "audit", sub: "hub", badge: "tools",
+      { name: "도구 모음", svg: "grid", tab: "audit", sub: "hub", badge: "tools",
         desc: "홈택스 · DART · 등기소 등 자주 쓰는 사이트" },
     ],
   },
@@ -49,8 +52,8 @@ const HOME_GROUPS = [
     title: "기장 · 세무조정",
     color: "green",
     tiles: [
-      { card: "bk-monthly-close" },
-      { card: "tax-adjustment-check" },
+      { card: "bk-monthly-close", svg: "calc" },
+      { card: "tax-adjustment-check", svg: "docCheck" },
     ],
   },
   {
@@ -58,9 +61,9 @@ const HOME_GROUPS = [
     title: "블로그",
     color: "orange",
     tiles: [
-      { card: "blog-draft" },
-      { card: "blog-series-outline" },
-      { name: "발행 대기 원고", icon: "📮", tab: "blog", badge: "ready",
+      { card: "blog-draft", svg: "pen" },
+      { card: "blog-series-outline", svg: "layers" },
+      { name: "발행 대기 원고", svg: "send", tab: "blog", badge: "ready",
         desc: "변환을 마치고 네이버에 올리기를 기다리는 글" },
     ],
   },
@@ -69,8 +72,8 @@ const HOME_GROUPS = [
     title: "광고마케팅",
     color: "rose",
     tiles: [
-      { card: "ad-compliance-check" },
-      { card: "ad-keyword-effect" },
+      { card: "ad-compliance-check", svg: "shield" },
+      { card: "ad-keyword-effect", svg: "trend" },
     ],
   },
 ];

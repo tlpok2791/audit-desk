@@ -7,6 +7,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     renderAllCards();
     renderPosts();
+    decorateTabs();
     setupTabs();
     renderHome();
     loadAdRules();
@@ -746,6 +747,48 @@
     });
   }
 
+  /* 홈 타일 아이콘 — 이모지 대신 직접 그린다.
+   * 이모지는 폰트마다 크기·두께·색이 달라 나란히 두면 정돈이 안 된다.
+   * 전부 24×24 뷰박스, 선 두께 1.8, 둥근 끝으로 규격을 맞췄다. */
+  var ICONS = {
+    worksheet: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+    ledger:    '<path d="M5 4a2 2 0 0 1 2-2h12v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h6"/>',
+    grid:      '<rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/>'
+             + '<rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/>',
+    calc:      '<rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01'
+             + 'M8 15h.01M12 15h.01M16 15h.01M8 19h8"/>',
+    docCheck:  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/>',
+    pen:       '<path d="M12 20h9"/><path d="M16.4 3.6a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    layers:    '<path d="M12 2l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/>',
+    send:      '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+    shield:    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+    trend:     '<path d="M3 17l6-6 4 4 7-7"/><path d="M14 7h6v6"/>',
+    home:      '<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/>',
+    folder:    '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2l6 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M19 6.5a8 8 0 0 1 0 11"/>',
+  };
+
+  /* 상단 탭 버튼의 이모지도 같은 아이콘으로 바꾼다.
+   * 타일만 그려 놓으면 탭이 따로 놀아 오히려 정돈이 덜 돼 보인다. */
+  var TAB_ICONS = {
+    home: "home", audit: "folder", tax: "calc", blog: "pen", ads: "megaphone",
+  };
+
+  function decorateTabs() {
+    document.querySelectorAll(".tab-btn").forEach(function (b) {
+      var key = TAB_ICONS[b.dataset.tab];
+      if (!key) return;
+      var label = b.textContent.replace(/^\s*\S+\s*/, "").trim();  // 앞 이모지 제거
+      b.innerHTML = iconSvg(key) + "<span>" + escapeHtml(label) + "</span>";
+    });
+  }
+
+  function iconSvg(name) {
+    var d = ICONS[name] || ICONS.grid;
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+      + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
+  }
+
   /* ── 홈(런처) ──────────────────────────────────────────
    * 타일은 src/data/home.js 의 HOME_GROUPS 에서 나온다.
    * { card: "id" } 형태는 CARDS 에서 icon·title·desc·tab 을 끌어다 쓴다.
@@ -775,7 +818,7 @@
       .find(function (x) { return x.id === t.card; });
     if (!c) return null;                       // 카드가 지워졌으면 타일도 빠진다
     return {
-      name: c.title, desc: c.desc, icon: c.icon, tab: c.tab,
+      name: c.title, desc: c.desc, svg: t.svg, tab: c.tab,
       badge: t.badge, sub: t.sub,
     };
   }
@@ -799,7 +842,7 @@
 
     var n = badgeValue(t.badge);
     b.innerHTML =
-      '<span class="tile-ic ' + color + '">' + (t.icon || "✦") + "</span>" +
+      '<span class="tile-ic ' + color + '">' + iconSvg(t.svg) + "</span>" +
       '<span class="tile-tx"><b>' + escapeHtml(t.name) + "</b>" +
       "<span>" + escapeHtml(t.desc || "") + "</span></span>" +
       (t.badge && n ? '<span class="tile-bdg">' + n + "</span>" : "");
