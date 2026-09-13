@@ -144,6 +144,16 @@ python3 build_posts.py                       # 글을 추가·발행했으면 po
 
 `index.html`·`src/app.js`는 카드를 추가할 때 건드릴 필요가 없다.
 
+### 폰에 설치해 쓰는 앱(PWA)이다
+
+홈 화면에 추가하면 오프라인에서도 열린다. `sw.js` 가 자산을 캐시하기 때문이다.
+
+**파일을 추가·삭제했으면 `sw.js` 의 `ASSETS` 를 고치고 `VERSION` 을 올린다.**
+버전을 올리지 않으면 설치된 폰이 옛 캐시를 계속 쓴다. 배포해도 바뀌지 않는다.
+
+아이콘은 `icons/` 에 있고 `scripts/make-icons.js` 로 다시 굽는다.
+색을 바꾸려면 그 스크립트와 `manifest.webmanifest` 의 `theme_color` 를 같이 고친다.
+
 ## 테스트
 
 ```bash

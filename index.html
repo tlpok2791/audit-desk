@@ -2,8 +2,21 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>업무 데스크</title>
+
+<!-- 폰에서 홈 화면에 추가하면 앱처럼 열린다 (PWA) -->
+<meta name="theme-color" content="#2F80DE">
+<meta name="description" content="감사조서 · 기장/세무조정 · 사무소 신고 기한 · 블로그를 한 곳에서.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- iOS 는 manifest 를 거의 안 읽는다. 아래 두 줄이 전체화면과 상태바를 담당한다. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="업무데스크">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -181,6 +194,9 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 /* ── 상단 하늘색 밴드 ───────────────────── */
 .band{background:linear-gradient(160deg,#4EA8F0 0%,#2F80DE 55%,#2563C9 100%);
   padding:30px 0 62px;margin-bottom:-46px;position:relative}
+/* 홈 화면 앱으로 열면 상태바 아래까지 내용이 올라온다. 노치만큼 띄운다. */
+.band{padding-top:calc(30px + env(safe-area-inset-top,0px))}
+body{padding-bottom:env(safe-area-inset-bottom,0px)}
 .band .wrap{padding-top:0;padding-bottom:0}
 .site-eyebrow{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;
          color:rgba(255,255,255,.82);margin-bottom:11px}
@@ -1089,5 +1105,17 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 <script src="src/data/tools.js"></script>
 <script src="src/audit/hub.js"></script>
 <script src="src/audit/tabs.js"></script>
+
+<!-- 홈 화면 앱으로 쓸 때 오프라인에서도 열리게 한다. 자세한 건 sw.js -->
+<script>
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function (e) {
+      // 등록이 실패해도 사이트는 그대로 돌아간다. 오프라인만 안 될 뿐이다.
+      console.warn("서비스 워커 등록 실패:", e);
+    });
+  });
+}
+</script>
 </body>
 </html>
