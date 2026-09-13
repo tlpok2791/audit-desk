@@ -818,7 +818,7 @@
       .find(function (x) { return x.id === t.card; });
     if (!c) return null;                       // 카드가 지워졌으면 타일도 빠진다
     return {
-      name: c.title, desc: c.desc, svg: t.svg, tab: c.tab,
+      name: c.title, desc: c.desc, svg: t.svg, color: t.color, tab: c.tab,
       badge: t.badge, sub: t.sub,
     };
   }
@@ -835,14 +835,15 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function tileEl(t, color) {
+  function tileEl(t) {
     var b = document.createElement("button");
     b.className = "tile";
     b.type = "button";
+    if (t.desc) b.title = t.name + " — " + t.desc;   // 설명은 툴팁으로
 
     var n = badgeValue(t.badge);
     b.innerHTML =
-      '<span class="tile-ic ' + color + '">' + iconSvg(t.svg) + "</span>" +
+      '<span class="tile-ic ' + (t.color || "indigo") + '">' + iconSvg(t.svg) + "</span>" +
       '<span class="tile-tx"><b>' + escapeHtml(t.name) + "</b>" +
       "<span>" + escapeHtml(t.desc || "") + "</span></span>" +
       (t.badge && n ? '<span class="tile-bdg">' + n + "</span>" : "");
@@ -855,21 +856,17 @@
     var host = document.getElementById("home-groups");
     if (!host || typeof HOME_GROUPS === "undefined") return;
 
+    /* 그룹별로 나누지 않고 한 격자에 모은다.
+     * 10개뿐이라 나누면 줄마다 빈칸이 생겨 오히려 성겨 보인다.
+     * 색이 영역을 구분해 주므로(파랑=감사, 초록=세무, 주황=블로그, 빨강=광고)
+     * 제목 없이도 읽힌다. home.js 의 그룹은 순서와 정리를 위해 남겨 둔다. */
+    var grid = el("div", "hgrid");
     HOME_GROUPS.forEach(function (g) {
-      var tiles = (g.tiles || []).map(resolveTile).filter(Boolean);
-      if (!tiles.length) return;
-
-      var sec = el("section", "hgroup");
-      var hd = el("div", "hgroup-hd");
-      hd.appendChild(el("b", null, g.title));
-      hd.appendChild(el("i"));
-      sec.appendChild(hd);
-
-      var grid = el("div", "hgrid");
-      tiles.forEach(function (t) { grid.appendChild(tileEl(t, g.color || "indigo")); });
-      sec.appendChild(grid);
-      host.appendChild(sec);
+      (g.tiles || []).map(resolveTile).filter(Boolean).forEach(function (t) {
+        grid.appendChild(tileEl(t));
+      });
     });
+    host.appendChild(grid);
 
     // 인사줄 — 실제 숫자만 쓴다
     var sub = document.getElementById("hi-sub");

@@ -7,14 +7,13 @@
  * ── 그룹 ────────────────────────────────────────────────
  *   id     내부 구분용
  *   title  그룹 제목
- *   color  타일 아이콘 배경색 키 — "indigo" | "green" | "orange" | "rose"
  *   tiles  아래 타일 목록
  *
  * ── 타일 한 개 ──────────────────────────────────────────
  * 두 가지 방식으로 쓸 수 있습니다.
  *
  * ① 카드에서 가져오기 — 기장·블로그·광고 탭의 기능 카드
- *      { card: "bk-monthly-close", svg: "calc" }
+ *      { card: "bk-monthly-close", svg: "calc", color: "emerald" }
  *    src/data/cards.js 의 같은 id 를 찾아 title·desc·tab 을 그대로 씁니다.
  *    아이콘만은 svg 로 따로 지정합니다 (카드는 이모지, 홈 타일은 그린 아이콘).
  *    카드 내용을 고치면 홈 타일도 같이 바뀌므로 두 군데 고칠 일이 없습니다.
@@ -28,6 +27,9 @@
  *      tab    이동할 탭 키 ("audit" | "tax" | "blog" | "ads")
  *      sub    (선택) 감사도구 안의 서브탭 id ("ws" | "hub")
  *      url    (선택) 탭 대신 주소로 이동. http 면 새 창, 상대경로면 같은 창
+ *      color  아이콘 색 — indigo · violet · blue · emerald · teal
+ *             amber · orange · rose · red · pink
+ *             같은 계열끼리 묶여 있어 색만 봐도 어느 영역인지 알 수 있습니다
  *      badge  (선택) 숫자 뱃지 종류 — "tools"(도구 개수) | "ready"(발행 대기 원고 수)
  *
  *   tab · url 중 하나만 씁니다.
@@ -37,43 +39,39 @@ const HOME_GROUPS = [
   {
     id: "audit",
     title: "감사",
-    color: "indigo",
     tiles: [
-      { name: "정산표 작성", svg: "worksheet", tab: "audit", sub: "ws",
+      { name: "정산표 작성", svg: "worksheet", color: "indigo", tab: "audit", sub: "ws",
         desc: "전기 재무제표와 당기 시산표로 살아있는 정산표" },
-      { name: "분개장 · 원장 편집", svg: "ledger", url: "./tool.html",
+      { name: "분개장 · 원장 편집", svg: "ledger", color: "violet", url: "./tool.html",
         desc: "회사별 분개장과 계정별원장을 한 화면에서" },
-      { name: "도구 모음", svg: "grid", tab: "audit", sub: "hub", badge: "tools",
+      { name: "도구 모음", svg: "grid", color: "blue", tab: "audit", sub: "hub", badge: "tools",
         desc: "홈택스 · DART · 등기소 등 자주 쓰는 사이트" },
     ],
   },
   {
     id: "tax",
     title: "기장 · 세무조정",
-    color: "green",
     tiles: [
-      { card: "bk-monthly-close", svg: "calc" },
-      { card: "tax-adjustment-check", svg: "docCheck" },
+      { card: "bk-monthly-close", svg: "calc", color: "emerald" },
+      { card: "tax-adjustment-check", svg: "docCheck", color: "teal" },
     ],
   },
   {
     id: "blog",
     title: "블로그",
-    color: "orange",
     tiles: [
-      { card: "blog-draft", svg: "pen" },
-      { card: "blog-series-outline", svg: "layers" },
-      { name: "발행 대기 원고", svg: "send", tab: "blog", badge: "ready",
+      { card: "blog-draft", svg: "pen", color: "amber" },
+      { card: "blog-series-outline", svg: "layers", color: "orange" },
+      { name: "발행 대기 원고", svg: "send", color: "rose", tab: "blog", badge: "ready",
         desc: "변환을 마치고 네이버에 올리기를 기다리는 글" },
     ],
   },
   {
     id: "ads",
     title: "광고마케팅",
-    color: "rose",
     tiles: [
-      { card: "ad-compliance-check", svg: "shield" },
-      { card: "ad-keyword-effect", svg: "trend" },
+      { card: "ad-compliance-check", svg: "shield", color: "red" },
+      { card: "ad-keyword-effect", svg: "trend", color: "pink" },
     ],
   },
 ];

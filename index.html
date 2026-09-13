@@ -189,35 +189,44 @@ code{font-family:var(--mono);font-size:12px;background:var(--line-l);
 .hgroup-hd{display:flex;align-items:center;gap:9px;margin-bottom:11px}
 .hgroup-hd b{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
 .hgroup-hd i{flex:1;height:1px;background:var(--line);display:block}
-.hgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.tile{display:flex;align-items:center;gap:13px;text-align:left;width:100%;
-  background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:15px 15px;cursor:pointer;font:inherit;position:relative;
-  transition:border-color .18s,box-shadow .18s,transform .12s}
-.tile:hover{border-color:var(--indigo-b);box-shadow:0 6px 18px -12px rgba(17,24,39,.4)}
-.tile:active{transform:translateY(1px)}
-.tile:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
-.tile-tx{flex:1;min-width:0}
-.tile-tx b{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
-  letter-spacing:-.02em;line-height:1.4}
-.tile-tx span{display:block;margin-top:3px;font-size:12.5px;color:var(--mute);
-  line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
-  -webkit-line-clamp:2;-webkit-box-orient:vertical}
-.tile-ic{flex:none;width:46px;height:46px;border-radius:13px;display:flex;
+/* 앱 서랍식 아이콘 격자 — 가로로 긴 카드 대신 촘촘하게 */
+.hgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:9px;
+  background:none;border:0;border-radius:14px;padding:14px 6px 13px;
+  cursor:pointer;font:inherit;position:relative;
+  transition:background .16s,transform .12s}
+.tile:hover{background:var(--card)}
+.tile:active{transform:scale(.96)}
+.tile:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+.tile-tx{width:100%;min-width:0}
+.tile-tx b{display:block;font-size:12.5px;font-weight:600;color:var(--body);
+  letter-spacing:-.025em;line-height:1.35;text-align:center;word-break:keep-all;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tile:hover .tile-tx b{color:var(--ink)}
+.tile-tx span{display:none}                 /* 설명은 툴팁으로만 */
+.tile-ic{flex:none;width:52px;height:52px;border-radius:16px;display:flex;
   align-items:center;justify-content:center;color:#fff;
-  box-shadow:0 4px 10px -4px var(--sh),inset 0 1px 0 rgba(255,255,255,.28)}
-.tile-ic svg{width:23px;height:23px;display:block}
-.tile-ic.indigo{background:linear-gradient(145deg,#7C7AF5,#4F46E5);--sh:rgba(79,70,229,.55)}
-.tile-ic.green {background:linear-gradient(145deg,#34D399,#059669);--sh:rgba(5,150,105,.5)}
-.tile-ic.orange{background:linear-gradient(145deg,#FBBF24,#EA8A0B);--sh:rgba(217,119,6,.5)}
-.tile-ic.rose  {background:linear-gradient(145deg,#FB7185,#E11D48);--sh:rgba(225,29,72,.5)}
-.tile-bdg{position:absolute;top:10px;right:10px;min-width:20px;height:20px;padding:0 6px;
-  border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:800;
-  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
-  box-shadow:0 2px 6px -2px rgba(239,68,68,.7)}
-@media(max-width:560px){
-  .hgrid{grid-template-columns:1fr}
-}
+  box-shadow:0 5px 12px -5px var(--sh),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .16s,box-shadow .16s}
+.tile:hover .tile-ic{transform:translateY(-2px);box-shadow:0 9px 18px -6px var(--sh),
+  inset 0 1px 0 rgba(255,255,255,.3)}
+.tile-ic svg{width:26px;height:26px;display:block}
+.tile-ic.indigo {background:linear-gradient(145deg,#818CF8,#4F46E5);--sh:rgba(79,70,229,.6)}
+.tile-ic.violet {background:linear-gradient(145deg,#A78BFA,#7C3AED);--sh:rgba(124,58,237,.6)}
+.tile-ic.blue   {background:linear-gradient(145deg,#60A5FA,#2563EB);--sh:rgba(37,99,235,.6)}
+.tile-ic.emerald{background:linear-gradient(145deg,#34D399,#059669);--sh:rgba(5,150,105,.55)}
+.tile-ic.teal   {background:linear-gradient(145deg,#2DD4BF,#0D9488);--sh:rgba(13,148,136,.55)}
+.tile-ic.amber  {background:linear-gradient(145deg,#FBBF24,#D97706);--sh:rgba(217,119,6,.55)}
+.tile-ic.orange {background:linear-gradient(145deg,#FB923C,#EA580C);--sh:rgba(234,88,12,.55)}
+.tile-ic.rose   {background:linear-gradient(145deg,#FB7185,#E11D48);--sh:rgba(225,29,72,.55)}
+.tile-ic.red    {background:linear-gradient(145deg,#F87171,#DC2626);--sh:rgba(220,38,38,.55)}
+.tile-ic.pink   {background:linear-gradient(145deg,#E879F9,#C026D3);--sh:rgba(192,38,211,.55)}
+.tile-bdg{position:absolute;top:9px;right:calc(50% - 32px);min-width:19px;height:19px;
+  padding:0 6px;border-radius:999px;background:#EF4444;color:#fff;font-size:10.5px;
+  font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);border:2px solid var(--bg);box-sizing:content-box}
+@media(max-width:760px){ .hgrid{grid-template-columns:repeat(4,1fr)} }
+@media(max-width:460px){ .hgrid{grid-template-columns:repeat(3,1fr)} }
 
 .tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;
       margin:24px 0 30px;padding-bottom:2px;scrollbar-width:none}
