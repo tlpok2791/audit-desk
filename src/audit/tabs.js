@@ -56,6 +56,17 @@
     S.init().then(renderAll);
   });
 
+  /* 홈 런처 타일이 서브탭까지 바로 열 수 있게 내보낸다.
+   * 잠긴 탭으로는 보내지 않는다. */
+  window.AuditTabs = {
+    goto: function (id) {
+      var t = TABS.find(function (x) { return x.id === id; });
+      if (!t || t.locked) return;
+      activeTab = id;
+      renderAll();
+    },
+  };
+
   function renderAll() {
     renderEngagementBar();
     renderSubtabs();

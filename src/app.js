@@ -8,8 +8,16 @@
     renderAllCards();
     renderPosts();
     setupTabs();
+    renderHome();
     loadAdRules();
   });
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -738,6 +746,100 @@
     });
   }
 
+  /* ── 홈(런처) ──────────────────────────────────────────
+   * 타일은 src/data/home.js 의 HOME_GROUPS 에서 나온다.
+   * { card: "id" } 형태는 CARDS 에서 icon·title·desc·tab 을 끌어다 쓴다.
+   * 두 군데 고칠 일이 없도록 카드가 원본이다. */
+  var activateTab = null;   // setupTabs 가 채운다
+
+  function countTools() {
+    if (typeof TOOLS === "undefined") return 0;
+    return TOOLS.reduce(function (n, c) { return n + (c.items || []).length; }, 0);
+  }
+
+  function countReady() {
+    if (typeof POSTS === "undefined") return 0;
+    return POSTS.filter(function (p) { return p.stage === "ready"; }).length;
+  }
+
+  function badgeValue(kind) {
+    if (kind === "tools") return countTools();
+    if (kind === "ready") return countReady();
+    return 0;
+  }
+
+  /** { card: "id" } 를 실제 타일 정보로 편다 */
+  function resolveTile(t) {
+    if (!t.card) return t;
+    var c = (typeof CARDS === "undefined" ? [] : CARDS)
+      .find(function (x) { return x.id === t.card; });
+    if (!c) return null;                       // 카드가 지워졌으면 타일도 빠진다
+    return {
+      name: c.title, desc: c.desc, icon: c.icon, tab: c.tab,
+      badge: t.badge, sub: t.sub,
+    };
+  }
+
+  function goTile(t) {
+    if (t.url) {
+      if (/^https?:/i.test(t.url)) window.open(t.url, "_blank", "noopener");
+      else location.href = t.url;
+      return;
+    }
+    if (!t.tab || !activateTab) return;
+    activateTab(t.tab, true);
+    if (t.sub && window.AuditTabs && window.AuditTabs.goto) window.AuditTabs.goto(t.sub);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function tileEl(t, color) {
+    var b = document.createElement("button");
+    b.className = "tile";
+    b.type = "button";
+
+    var n = badgeValue(t.badge);
+    b.innerHTML =
+      '<span class="tile-ic ' + color + '">' + (t.icon || "✦") + "</span>" +
+      '<span class="tile-tx"><b>' + escapeHtml(t.name) + "</b>" +
+      "<span>" + escapeHtml(t.desc || "") + "</span></span>" +
+      (t.badge && n ? '<span class="tile-bdg">' + n + "</span>" : "");
+
+    b.addEventListener("click", function () { goTile(t); });
+    return b;
+  }
+
+  function renderHome() {
+    var host = document.getElementById("home-groups");
+    if (!host || typeof HOME_GROUPS === "undefined") return;
+
+    HOME_GROUPS.forEach(function (g) {
+      var tiles = (g.tiles || []).map(resolveTile).filter(Boolean);
+      if (!tiles.length) return;
+
+      var sec = el("section", "hgroup");
+      var hd = el("div", "hgroup-hd");
+      hd.appendChild(el("b", null, g.title));
+      hd.appendChild(el("i"));
+      sec.appendChild(hd);
+
+      var grid = el("div", "hgrid");
+      tiles.forEach(function (t) { grid.appendChild(tileEl(t, g.color || "indigo")); });
+      sec.appendChild(grid);
+      host.appendChild(sec);
+    });
+
+    // 인사줄 — 실제 숫자만 쓴다
+    var sub = document.getElementById("hi-sub");
+    if (sub) {
+      var bits = [];
+      var r = countReady();
+      if (r) bits.push("발행 대기 원고 " + r + "건");
+      var tn = countTools();
+      if (tn) bits.push("도구 " + tn + "개");
+      sub.textContent = bits.join(" · ");
+    }
+  }
+
   function setupTabs() {
     var btns = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
     var panels = {};
@@ -766,7 +868,9 @@
       b.addEventListener("click", function () { activate(b.dataset.tab, true); });
     });
 
+    activateTab = activate;          // 홈 타일이 탭을 바꿀 때 쓴다
+
     var initial = (location.hash || "").replace("#", "");
-    activate(panels[initial] ? initial : "audit", false);
+    activate(panels[initial] ? initial : "home", false);
   }
 })();
