@@ -31,13 +31,14 @@
 
 | 이름 | 하는 일 | 누가 부르나 |
 |---|---|---|
+| `office-agent` | 월 마감 자료 요청 문구 · 신고 브리핑 | 사무소 탭 카드 |
 | `blog-agent` | 시리즈 기획 · 글 초안 · 네이버 발행용 변환 | `/naver-ready`, 블로그 탭 카드 |
 | `ad-agent` | 캠페인 기획 · 성과 분석 · 소재 규정 점검 | 광고마케팅 탭 카드 |
 | `audit-fs-analyzer` | 중요성 초과 계정의 증감사유 초안 | 감사도구 탭1 5단계 |
 | `bookkeeping-agent` | 월 마감 분개 정리 | 기장 탭 카드 (카드는 placeholder) |
 | `tax-adjustment-agent` | 세무조정 항목 점검 | 세무조정 탭 카드 (카드는 placeholder) |
 
-다섯 개 다 `.claude/agents/` 에 있다.
+여섯 개 다 `.claude/agents/` 에 있다.
 
 `bookkeeping-agent` · `tax-adjustment-agent` 는 부르는 카드가 아직 placeholder라
 **작업 절차가 확정되지 않았다.** 그래서 이 둘은 구체적 절차 대신 이 문서의 공통 원칙

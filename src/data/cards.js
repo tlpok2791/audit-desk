@@ -8,7 +8,7 @@
  *
  * 필드 설명
  *   id       고유 식별자 (영문·숫자·하이픈)
- *   tab      어느 탭에 나타날지 — "tax" | "blog" | "ads" (필요하면 새 탭 키를 만들고
+ *   tab      어느 탭에 나타날지 — "office" | "tax" | "blog" | "ads" (필요하면 새 탭 키를 만들고
  *            index.html에 <div class="card-grid" data-cards="새탭키"></div> 를 추가)
  *   icon     카드 왼쪽에 붙는 이모지 한 글자
  *   title    기능명
@@ -21,6 +21,41 @@
  */
 
 const CARDS = [
+  // ── 사무소 ──────────────────────────────────────────────────
+  {
+    id: "of-doc-request",
+    tab: "office",
+    icon: "📨",
+    title: "자료 요청 문구",
+    desc: "이번 달 신고 대상 거래처에 보낼 자료 요청 문구를 거래처별로 만듭니다.",
+    subagent: "office-agent",
+    fields: [
+      { key: "month", label: "대상 월", placeholder: "2026년 10월" },
+      { key: "source", label: "거래처 파일", placeholder: "work/office/거래처.json" },
+    ],
+    template:
+      "{source} 의 거래처로 {month} 신고 대상을 뽑아, 거래처마다 자료 요청 문구를 만들어줘. " +
+      "신고 종류에서 받아야 할 자료를 정하고, 회수 기한은 신고 기한에서 역산해 적어줘. " +
+      "세액 계산이나 세법 판단은 하지 말고, 결과는 work/office/ 아래에만 저장해줘.",
+  },
+  {
+    id: "of-brief",
+    tab: "office",
+    icon: "🗓️",
+    title: "월 마감 브리핑",
+    desc: "이번 달 신고 건을 기한 순으로 한 장에 정리합니다.",
+    subagent: "office-agent",
+    fields: [
+      { key: "month", label: "대상 월", placeholder: "2026년 10월" },
+      { key: "source", label: "거래처 파일", placeholder: "work/office/거래처.json" },
+    ],
+    template:
+      "{source} 의 거래처로 {month} 월 마감 브리핑을 만들어줘. " +
+      "신고 건을 기한 순으로 정리하고, 자료 회수 기한을 역산해 같이 적어줘. " +
+      "기한이 주말·공휴일에 걸리는 건과 속성이 비어 신고 종류를 특정할 수 없는 건은 " +
+      "'확인 필요'로 따로 빼줘. 결과는 work/office/ 아래에만 저장해줘.",
+  },
+
   // ── 기장 및 세무조정 (placeholder 2개) ──────────────────────
   {
     id: "bk-monthly-close",

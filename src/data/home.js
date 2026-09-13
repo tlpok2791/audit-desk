@@ -45,6 +45,8 @@ const HOME_GROUPS = [
         desc: "거래처별로 이번 달 무엇을 신고해야 하는지" },
       { name: "거래처 관리", svg: "users", color: "cyan", tab: "office", badge: "clients",
         desc: "고객 명부 — 이 브라우저에만 저장됩니다" },
+      { card: "of-doc-request", svg: "send", color: "teal" },
+      { card: "of-brief", svg: "docCheck", color: "indigo" },
     ],
   },
   {
