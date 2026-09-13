@@ -855,21 +855,17 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
   <!-- 광고마케팅 -->
   <section class="tab-panel" data-tab="ads" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>적용할 규칙 고르기</h2></div>
+    <div class="sec"><div class="num">1</div><h2>프롬프트</h2></div>
     <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      노션 광고 KB에서 동기화한 규칙입니다. 필터로 고른 규칙이 아래 카드의 프롬프트에 그대로 들어갑니다.
-    </p>
-    <div id="ad-filters"></div>
-
-    <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>프롬프트</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      필드를 채우면 미리보기가 실시간으로 갱신됩니다. 위에서 고른 규칙이 함께 삽입됩니다.
+      필드를 채우면 미리보기가 실시간으로 갱신됩니다.
+      전문직 광고 규정은 <code>ad-agent</code>가 이미 들고 있어 따로 고를 필요가 없습니다.
     </p>
     <div class="card-grid" data-cards="ads"></div>
 
     <p class="cap" style="margin-top:16px">
-      규칙은 <code>node scripts/sync-ad-rules.js</code>로 노션에서 내려받습니다.
-      노션에 속성을 추가하면 다시 동기화하는 것만으로 위 필터에 나타납니다.
+      기준은 공인회계사법 제15조의2 · 한국공인회계사회 광고규정 · 표시광고법이며
+      <code>.claude/agents/ad-agent.md</code>에 정리되어 있습니다.
+      병의원 주제를 다룰 때는 의료법 저촉 여부도 함께 봅니다.
     </p>
   </section>
 

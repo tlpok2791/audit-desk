@@ -90,62 +90,46 @@ const CARDS = [
   },
 
   // ── 광고마케팅 ──────────────────────────────────────────────
-  // injectRules: true 인 카드는 광고 탭 상단 필터로 고른 규칙이
-  // template 안의 {rules} 자리에 삽입된다. {rules}가 없으면 맨 뒤에 붙는다.
-  {
-    id: "ad-campaign-plan",
-    tab: "ads",
-    icon: "📊",
-    title: "캠페인 기획",
-    desc: "목표와 예산을 주면 타깃·메시지·채널믹스를 잡아줍니다. 위에서 고른 규칙을 지켜서 기획합니다.",
-    subagent: "ad-agent",
-    injectRules: true,
-    fields: [
-      { key: "goal", label: "캠페인 목표", placeholder: "신규 상담 문의 30건" },
-      { key: "budget", label: "예산", placeholder: "월 300만원" },
-      { key: "period", label: "기간", placeholder: "2026년 4분기" },
-    ],
-    template:
-      "목표가 '{goal}'이고 예산은 '{budget}', 기간은 '{period}'인 광고 캠페인 기획안을 만들어줘. " +
-      "타깃 오디언스, 핵심 메시지, 채널 믹스, 대략적 일정을 포함해줘.\n\n" +
-      "{rules}\n\n" +
-      "위 규칙에 어긋나는 제안은 하지 말고, 규칙과 충돌하는 지점이 있으면 먼저 알려줘.",
-  },
-  {
-    id: "ad-performance-review",
-    tab: "ads",
-    icon: "📈",
-    title: "성과 분석",
-    desc: "집행 결과를 주면 무엇이 문제인지 진단하고 다음 조치를 제안합니다.",
-    subagent: "ad-agent",
-    injectRules: true,
-    fields: [
-      { key: "channel", label: "채널", placeholder: "구글 검색광고" },
-      { key: "period", label: "분석 기간", placeholder: "2026년 10월" },
-      { key: "metrics", label: "주요 지표", placeholder: "노출 12만, 클릭 900, 문의 8건, 비용 280만원" },
-    ],
-    template:
-      "'{channel}'의 '{period}' 광고 성과를 분석해줘. 지표는 다음과 같아: {metrics}.\n" +
-      "어느 단계(노출·클릭·랜딩·문의)에서 이탈이 큰지 짚고, 원인 가설과 다음 조치를 우선순위로 제안해줘.\n\n" +
-      "{rules}\n\n" +
-      "진단과 제안은 위 규칙에 비추어 판단해줘.",
-  },
+  // 전문직 광고 규정(공인회계사법 제15조의2 · 한공회 광고규정 · 표시광고법)은
+  // .claude/agents/ad-agent.md 가 직접 들고 있다. 고정된 법이라 노션으로 받지 않는다.
+  // 그래서 이 카드들에는 injectRules 를 쓰지 않는다.
   {
     id: "ad-compliance-check",
     tab: "ads",
     icon: "🔍",
-    title: "소재 점검",
-    desc: "작성한 광고 소재가 규칙에 어긋나지 않는지 문구 단위로 점검합니다.",
+    title: "준법 점검",
+    desc: "블로그 글이나 광고 문구가 전문직 광고 규정에 걸리는지 문구 단위로 점검합니다.",
     subagent: "ad-agent",
-    injectRules: true,
     fields: [
-      { key: "channel", label: "채널", placeholder: "네이버 검색광고" },
-      { key: "copy", label: "점검할 소재", placeholder: "병의원 세무 1위, 100% 절세 보장" },
+      { key: "where", label: "실을 곳", placeholder: "네이버 블로그 본문" },
+      { key: "copy", label: "점검할 문구",
+        placeholder: "병의원 세무 전문, 무료 상담, 100% 절세 보장" },
     ],
     template:
-      "'{channel}'에 집행할 아래 광고 소재를 점검해줘.\n\n소재: {copy}\n\n" +
-      "{rules}\n\n" +
-      "규칙을 어긴 문구를 그대로 인용하고, 어떤 규칙에 걸리는지와 대체 문구를 함께 제시해줘. " +
-      "판단이 애매한 문구는 임의로 결론내지 말고 확인이 필요하다고 표시해줘.",
+      "'{where}'에 실을 아래 문구를 전문직 광고 규정 기준으로 점검해줘.\n\n문구: {copy}\n\n" +
+      "걸리는 문구를 그대로 인용하고, 어떤 규정의 어느 항목에 걸리는지와 대체 문구를 함께 줘. " +
+      "판단이 애매한 것은 결론내지 말고 확인이 필요하다고 표시해줘.",
+  },
+  {
+    id: "ad-keyword-effect",
+    tab: "ads",
+    icon: "📈",
+    title: "키워드 효과 분석",
+    desc: "네이버 블로그 통계를 붙여넣으면 의도한 키워드와 실제 유입 검색어의 차이를 봅니다.",
+    subagent: "ad-agent",
+    fields: [
+      { key: "post", label: "글", placeholder: "병의원 가족 인건비, 어디까지 인정되나" },
+      { key: "intended", label: "의도한 키워드",
+        placeholder: "병의원 가족 인건비, 가족 급여, 필요경비" },
+      { key: "stats", label: "네이버 블로그 통계",
+        placeholder: "가족 인건비 세금 41 / 병원 직원 급여 12 / 배우자 급여 신고 8 · 조회 312 · 평균 1분 12초" },
+    ],
+    template:
+      "'{post}' 글의 키워드 효과를 봐줘.\n\n" +
+      "의도한 키워드: {intended}\n" +
+      "네이버 블로그 통계(유입 검색어별 유입수 · 조회수 · 평균 사용시간): {stats}\n\n" +
+      "의도한 키워드 중 실제 유입에 잡힌 것과 안 잡힌 것을 나눠줘. " +
+      "예상 못 한 유입어 중 다음 글 주제가 될 만한 것을 골라주고, " +
+      "표본이 작으면 경향이라고 말하지 말고 한계를 먼저 밝혀줘.",
   },
 ];
