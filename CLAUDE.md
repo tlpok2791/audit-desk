@@ -25,20 +25,25 @@
 
 ## 서브에이전트
 
-여기저기서 이름으로 호출되지만 **`.claude/agents/` 에 정의된 것은 아직 없다.**
-새로 만들 때는 아래 이름을 그대로 쓴다. 실제로 쓸 것부터 하나씩 만든다.
+**영역당 하나로 묶는다.** 일마다 에이전트를 쪼개면 규칙이 갈라지고 서로 어긋난다.
+(실제로 그런 적이 있다 — 블로그 작성 에이전트는 마크다운을 만들고, 네이버 변환
+에이전트는 그걸 걷어내고 있었다. 그래서 `blog-agent` 하나로 합쳤다.)
 
-| 이름 | 하는 일 | 누가 부르나 |
-|---|---|---|
-| `naver-post-formatter` | 초안 → 네이버 발행용 원고 변환 | `/naver-ready` (Agent 도구로 직접 호출) |
-| `audit-fs-analyzer` | 중요성 초과 계정의 증감사유 초안 | 감사도구 탭1 |
-| `bookkeeping-agent` | 기장 | 홈페이지 카드 (`src/data/cards.js`) |
-| `tax-adjustment-agent` | 세무조정 | 〃 |
-| `blog-writer-agent` | 블로그 작성 | 〃 |
-| `content-planner-agent` | 콘텐츠 기획 | 〃 |
-| `ad-analyst-agent` | 광고 성과 분석 | 〃 |
-| `ad-reviewer-agent` | 광고 소재 점검 | 〃 |
-| `campaign-strategist-agent` | 캠페인 기획 | 〃 |
+| 이름 | 하는 일 | 누가 부르나 | 상태 |
+|---|---|---|---|
+| `blog-agent` | 시리즈 기획 · 글 초안 · 네이버 발행용 변환 | `/naver-ready`, 블로그 탭 카드 | ✅ 있음 |
+| `ad-agent` | 캠페인 기획 · 성과 분석 · 소재 규정 점검 | 광고마케팅 탭 카드 | ✅ 있음 |
+| `audit-fs-analyzer` | 중요성 초과 계정의 증감사유 초안 | 감사도구 탭1 5단계 | ❌ 없음 |
+| `bookkeeping-agent` | 월 마감 분개 정리 | 기장 탭 카드 | ❌ 없음 (카드도 placeholder) |
+| `tax-adjustment-agent` | 세무조정 항목 점검 | 세무조정 탭 카드 | ❌ 없음 (카드도 placeholder) |
+
+없는 것은 **실제로 그 일을 할 때 만든다.** 미리 다 만들면 안 쓰게 되고 규칙만 낡는다.
+
+새로 만들 때 지킬 것:
+
+- 파일은 `.claude/agents/<이름>.md`, 프론트매터의 `name` 과 파일명과
+  `src/data/cards.js` 의 `subagent` 값이 **셋 다 같아야 한다**
+- 도구는 필요한 것만 준다 (`ad-agent` 는 글만 다루므로 `Read` 뿐이다)
 
 **총괄 에이전트는 따로 두지 않는다.** 메인 세션이 총괄하고, 공통 규칙은 이 문서가 담는다.
 순서대로 이어 돌릴 일은 슬래시 커맨드로 만든다 (`/naver-ready`가 그 예).

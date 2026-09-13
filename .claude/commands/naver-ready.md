@@ -36,9 +36,10 @@ allowed-tools: Read, Write, Glob, Bash, Agent
 
 KB와 초안이 어긋나면 KB를 신뢰하되, 어긋난 지점을 기록해 두었다가 마지막 보고에 포함한다.
 
-**4. naver-post-formatter 에이전트에 위임**
+**4. blog-agent 에이전트에 위임**
 
-Agent 도구로 `naver-post-formatter` 서브에이전트를 호출한다. 변환은 직접 하지 않는다.
+Agent 도구로 `blog-agent` 서브에이전트를 호출한다. 변환은 직접 하지 않는다.
+변환 작업임이 분명하도록 초안 전문과 저장 경로를 함께 넘긴다.
 
 전달할 것:
 - 초안 전문 (프론트매터 포함)

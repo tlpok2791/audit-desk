@@ -62,7 +62,7 @@ const CARDS = [
     icon: "✍️",
     title: "블로그 초안 작성",
     desc: "주제와 핵심 키워드를 주면 SEO 구조에 맞춰 블로그 글 초안을 작성합니다.",
-    subagent: "blog-writer-agent",
+    subagent: "blog-agent",
     fields: [
       { key: "topic", label: "주제", placeholder: "1인 사업자 부가세 신고 방법" },
       { key: "keyword", label: "핵심 키워드", placeholder: "부가세 신고, 홈택스" },
@@ -78,7 +78,7 @@ const CARDS = [
     icon: "🗂️",
     title: "블로그 시리즈 목차 기획",
     desc: "주제 하나로 시리즈 발행용 목차와 각 편의 핵심 메시지를 잡아줍니다.",
-    subagent: "content-planner-agent",
+    subagent: "blog-agent",
     fields: [
       { key: "topic", label: "시리즈 주제", placeholder: "스타트업 초기 세무 가이드" },
       { key: "count", label: "편수", placeholder: "5편" },
@@ -98,7 +98,7 @@ const CARDS = [
     icon: "📊",
     title: "캠페인 기획",
     desc: "목표와 예산을 주면 타깃·메시지·채널믹스를 잡아줍니다. 위에서 고른 규칙을 지켜서 기획합니다.",
-    subagent: "campaign-strategist-agent",
+    subagent: "ad-agent",
     injectRules: true,
     fields: [
       { key: "goal", label: "캠페인 목표", placeholder: "신규 상담 문의 30건" },
@@ -117,7 +117,7 @@ const CARDS = [
     icon: "📈",
     title: "성과 분석",
     desc: "집행 결과를 주면 무엇이 문제인지 진단하고 다음 조치를 제안합니다.",
-    subagent: "ad-analyst-agent",
+    subagent: "ad-agent",
     injectRules: true,
     fields: [
       { key: "channel", label: "채널", placeholder: "구글 검색광고" },
@@ -136,7 +136,7 @@ const CARDS = [
     icon: "🔍",
     title: "소재 점검",
     desc: "작성한 광고 소재가 규칙에 어긋나지 않는지 문구 단위로 점검합니다.",
-    subagent: "ad-reviewer-agent",
+    subagent: "ad-agent",
     injectRules: true,
     fields: [
       { key: "channel", label: "채널", placeholder: "네이버 검색광고" },
