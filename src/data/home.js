@@ -28,14 +28,25 @@
  *      sub    (선택) 감사도구 안의 서브탭 id ("ws" | "hub")
  *      url    (선택) 탭 대신 주소로 이동. http 면 새 창, 상대경로면 같은 창
  *      color  아이콘 색 — indigo · violet · blue · emerald · teal
- *             amber · orange · rose · red · pink
+ *             sky · cyan · amber · orange · rose · red · pink
  *             같은 계열끼리 묶여 있어 색만 봐도 어느 영역인지 알 수 있습니다
- *      badge  (선택) 숫자 뱃지 종류 — "tools"(도구 개수) | "ready"(발행 대기 원고 수)
+ *      badge  (선택) 숫자 뱃지 — "tools"(도구 개수) | "ready"(발행 대기 원고 수)
+ *             | "clients"(거래처 수) | "due"(이번 달 신고 건수)
  *
  *   tab · url 중 하나만 씁니다.
  */
 
 const HOME_GROUPS = [
+  {
+    id: "office",
+    title: "사무소",
+    tiles: [
+      { name: "신고 기한", svg: "calendar", color: "sky", tab: "office", badge: "due",
+        desc: "거래처별로 이번 달 무엇을 신고해야 하는지" },
+      { name: "거래처 관리", svg: "users", color: "cyan", tab: "office", badge: "clients",
+        desc: "고객 명부 — 이 브라우저에만 저장됩니다" },
+    ],
+  },
   {
     id: "audit",
     title: "감사",

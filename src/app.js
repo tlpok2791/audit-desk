@@ -766,12 +766,15 @@
     home:      '<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/>',
     folder:    '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
     megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2l6 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M19 6.5a8 8 0 0 1 0 11"/>',
+    users:     '<path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"/><circle cx="9" cy="7" r="3.5"/><path d="M17 4.2a3.5 3.5 0 0 1 0 6.6"/><path d="M22 20v-1.5a4 4 0 0 0-3-3.8"/>',
+    calendar:  '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h3"/>',
+    building:  '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M15 9h3a2 2 0 0 1 2 2v10"/><path d="M8 7h3M8 11h3M8 15h3M2 21h20"/>',
   };
 
   /* 상단 탭 버튼의 이모지도 같은 아이콘으로 바꾼다.
    * 타일만 그려 놓으면 탭이 따로 놀아 오히려 정돈이 덜 돼 보인다. */
   var TAB_ICONS = {
-    home: "home", audit: "folder", tax: "calc", blog: "pen", ads: "megaphone",
+    home: "home", office: "building", audit: "folder", tax: "calc", blog: "pen", ads: "megaphone",
   };
 
   function decorateTabs() {
@@ -808,6 +811,9 @@
   function badgeValue(kind) {
     if (kind === "tools") return countTools();
     if (kind === "ready") return countReady();
+    // 거래처는 이 브라우저에만 있으므로 OfficeClients 에 물어본다
+    if (kind === "clients") return window.OfficeClients ? window.OfficeClients.count() : 0;
+    if (kind === "due") return window.OfficeClients ? window.OfficeClients.dueCount() : 0;
     return 0;
   }
 
