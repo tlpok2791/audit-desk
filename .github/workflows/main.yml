@@ -1,9 +1,19 @@
 name: 병의원 세무·마케팅 자동화 파이프라인
 
+# 매일 09:00 자동 실행은 껐다.
+#
+# 시크릿(OPENAI_API_KEY 등 5개)이 등록된 적이 없어 이 파이프라인은 한 번도 돈 적이
+# 없다. 매일 crewai·chromadb 200MB 를 받은 뒤 "시크릿 확인" 단계에서 죽었다.
+#
+# 이 파이프라인이 하던 일은 Claude 에이전트로 옮겼다:
+#   /from-docs <서류폴더>  → doc-reader-agent 판독 → 초안
+#   /naver-ready <초안>    → blog-agent 변환 + ad-agent 준법 점검 (병렬)
+#
+# 코드는 지우지 않고 둔다. 되살리려면 아래 schedule 두 줄의 주석을 풀고
+# 시크릿을 등록하면 된다. 수동 실행(workflow_dispatch)은 그대로 열려 있다.
 on:
-  schedule:
-    # 매일 09:00 KST (UTC 00:00). cron 은 UTC 로 해석된다.
-    - cron: "0 0 * * *"
+  # schedule:
+  #   - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       limit:
