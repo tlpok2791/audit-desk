@@ -10,6 +10,7 @@
     decorateTabs();
     setupTabs();
     renderHome();
+    renderRefs();
     loadAdRules();
   });
 
@@ -454,6 +455,48 @@
       copyButton("명령 복사", function () { return "/naver-ready " + p.path; })
     );
     return el;
+  }
+
+  /* ── 참고·공부 목록 (src/data/refs.js) ──────────────────── */
+
+  function renderRefs() {
+    var host = document.getElementById("ref-list");
+    if (!host || typeof REFS === "undefined") return;
+    host.innerHTML = "";
+
+    REFS.forEach(function (g) {
+      var box = el("div", "refgroup");
+      box.appendChild(el("h3", "refgroup-t", g.title));
+      if (g.note) box.appendChild(el("p", "refgroup-n", g.note));
+
+      g.links.forEach(function (l) {
+        var row = el("div", "reflink");
+        var a = el("a", "reflink-a", l.name);
+        a.href = l.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        row.appendChild(a);
+        row.appendChild(el("span", "reflink-u", l.url));
+        row.appendChild(el("p", "reflink-d", l.desc));
+        box.appendChild(row);
+      });
+      host.appendChild(box);
+    });
+
+    if (typeof REF_HOWTO === "undefined") return;
+
+    var how = el("div", "refhow");
+    how.appendChild(el("h3", "refgroup-t", REF_HOWTO.title));
+    var ol = el("ol", "refhow-l");
+    REF_HOWTO.steps.forEach(function (st) {
+      var li = el("li");
+      li.appendChild(el("b", null, st.what));
+      li.appendChild(el("p", null, st.why));
+      ol.appendChild(li);
+    });
+    how.appendChild(ol);
+    how.appendChild(el("p", "refhow-c", REF_HOWTO.caution));
+    host.appendChild(how);
   }
 
   function renderPosts() {

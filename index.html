@@ -191,6 +191,28 @@ tr.sum td{background:#FAFBFD;font-weight:700}
 code{font-family:var(--mono);font-size:12px;background:var(--line-l);
      padding:2px 7px;border-radius:5px;color:var(--indigo-d)}
 
+/* ── 참고·공부 목록 ─────────────────────── */
+.refgroup{border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px;
+  background:var(--card)}
+.refgroup-t{font-size:15px;font-weight:800;color:var(--ink);margin:0 0 6px}
+.refgroup-n{font-size:13.5px;color:var(--mute);margin:0 0 16px;line-height:1.6}
+.reflink{padding:13px 0;border-top:1px solid var(--line-l)}
+.reflink:first-of-type{border-top:0;padding-top:2px}
+.reflink-a{display:inline-block;font-size:14.5px;font-weight:700;color:var(--indigo);
+  text-decoration:none;margin-right:8px}
+.reflink-a:hover{text-decoration:underline}
+.reflink-u{font-family:var(--mono);font-size:11.5px;color:var(--faint);word-break:break-all}
+.reflink-d{font-size:13.5px;color:var(--body);line-height:1.68;margin:6px 0 0}
+.refhow{border:1px solid var(--indigo-b);background:var(--indigo-l);border-radius:14px;
+  padding:18px 20px;margin-top:18px}
+.refhow-l{margin:10px 0 0;padding-left:20px}
+.refhow-l li{margin-bottom:13px;font-size:13.5px;line-height:1.68}
+.refhow-l li b{color:var(--ink);font-weight:700}
+.refhow-l li p{margin:3px 0 0;color:var(--body)}
+.refhow-c{margin:14px 0 0;padding-top:13px;border-top:1px solid var(--indigo-b);
+  font-size:13px;color:var(--indigo-d);line-height:1.65;font-weight:600}
+@media(max-width:560px){.refgroup,.refhow{padding:16px 15px}}
+
 /* ── 상단 하늘색 밴드 ───────────────────── */
 .band{background:linear-gradient(160deg,#4EA8F0 0%,#2F80DE 55%,#2563C9 100%);
   padding:30px 0 62px;margin-bottom:-46px;position:relative}
@@ -1011,6 +1033,13 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
       목록은 <code>python3 build_posts.py</code>로 굽습니다.
       파이프라인은 이걸 자동으로 돌리고 결과를 커밋합니다.
     </p>
+
+    <div class="sec" style="margin-top:38px"><div class="num">3</div><h2>참고·공부</h2></div>
+    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
+      글 하나를 쓰는 순서대로 묶었습니다. 무슨 글을 쓸지 고르고 → 내용을 확인하고 →
+      형식을 다듬는 흐름입니다.
+    </p>
+    <div id="ref-list"></div>
   </section>
 
   <!-- 광고마케팅 -->
@@ -1092,6 +1121,7 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 </script>
 <script src="src/data/cards.js"></script>
 <script src="src/data/posts.js"></script>
+<script src="src/data/refs.js"></script>
 <script src="src/data/home.js"></script>
 <script src="src/office/deadlines.js"></script>
 <script src="src/office/clients.js"></script>
