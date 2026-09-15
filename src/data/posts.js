@@ -360,5 +360,23 @@ const POSTS = [
     "publishedUrl": "",
     "publishedAt": "",
     "convertedAlready": true
+  },
+  {
+    "file": "종합소득세-신고서-확인.md",
+    "path": "content/posts/drafts/종합소득세-신고서-확인.md",
+    "stage": "drafts",
+    "title": "종합소득세 신고서, 서명 전에 원장이 직접 볼 수 있는 것",
+    "category": "medical",
+    "keywords": [
+      "종합소득세 신고서 확인",
+      "개원의 종합소득세",
+      "필요경비 합계",
+      "소득금액 계산",
+      "병의원 종합소득세"
+    ],
+    "kbRefs": [],
+    "status": "draft",
+    "publishedUrl": "",
+    "publishedAt": ""
   }
 ];
