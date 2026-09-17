@@ -30,7 +30,7 @@ GitHub Actions 가 커밋한다. 자동 생성분은 프론트매터에 `generat
 ```yaml
 ---
 title: 병의원 가족 인건비, 어디까지 인정되나
-category: medical          # medical | transfer
+category: income           # content/categories.json 의 items[].id
 keywords: [병의원 가족 인건비, 가족 직원 급여]   # 핵심 검색어 3~5개
 tags: [병의원세무, 개원의, 가족인건비]           # 네이버 태그 10개
 kb_refs: [content/kb/병의원-가족인건비.md]
@@ -40,7 +40,9 @@ published_at: ""
 ---
 ```
 
-- `category` — `medical`(병의원) 또는 `transfer`(양도). 홈페이지 블로그 탭이 이 값으로 묶는다.
+- `category` — `content/categories.json` 의 `items[].id` 중 하나. 네이버 블로그
+  카테고리와 1:1로 맞춰 둔 값이다. 홈페이지 블로그 탭이 이 값으로 묶는다.
+  모르는 값을 쓰면 `build_posts.py` 가 경고를 찍는다 (죽지는 않는다).
 - `keywords` — **핵심 검색어.** 본문에서 몇 번 나오는지 코드가 센다. 태그와 다르다.
 - `tags` — 네이버에 붙일 태그 전체. 없으면 `=== 태그 ===` 구획에서 읽는다.
 - `kb_refs` — 사실관계 보강에 쓸 KB 파일 경로. `/naver-ready`는 **여기 적힌 파일만** 읽는다.

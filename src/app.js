@@ -144,9 +144,47 @@
 
   /* ── 네이버 발행 목록 ──────────────────────────────── */
 
-  var CAT_LABEL = { medical: "병의원", transfer: "양도" };
+  /* 카테고리는 content/categories.json 이 원본이다.
+     build_posts.py 가 src/data/categories.js 로 구워 준다. 여기서 이름을 짓지 않는다. */
 
-  function catLabel(c) { return CAT_LABEL[c] || "미분류"; }
+  function catIndex() {
+    var idx = {};
+    (typeof CATEGORIES === "undefined" ? [] : CATEGORIES).forEach(function (g) {
+      if (!g.items || !g.items.length) {
+        idx[g.id] = { label: g.label, group: g.id, groupLabel: g.label };
+        return;
+      }
+      g.items.forEach(function (it) {
+        idx[it.id] = { label: it.label, group: g.id, groupLabel: g.label };
+      });
+    });
+    return idx;
+  }
+
+  function catLabel(c) {
+    var hit = catIndex()[c];
+    return hit ? hit.label : (c ? c + " (모르는 분류)" : "미분류");
+  }
+
+  /* 상위 묶음 이름을 덧붙일지. 묶음 이름이 하위 이름을 이미 품고 있으면
+     ("부가가치세 · 종합소득세 · 양도소득세" 안의 "종합소득세") 보태봐야 겹쳐 읽힌다. */
+  function showGroup(meta) {
+    if (!meta || meta.groupLabel === meta.label) return false;
+    return meta.groupLabel.indexOf(meta.label) === -1;
+  }
+
+  /** 카테고리 정의 순서 그대로. 정의에 없는 값은 뒤에 붙인다 — 숨기지 않는다. */
+  function catOrder(posts) {
+    var out = [];
+    (typeof CATEGORIES === "undefined" ? [] : CATEGORIES).forEach(function (g) {
+      if (!g.items || !g.items.length) { out.push(g.id); return; }
+      g.items.forEach(function (it) { out.push(it.id); });
+    });
+    posts.forEach(function (p) {
+      if (out.indexOf(p.category) === -1) out.push(p.category);
+    });
+    return out;
+  }
 
   // 발행 체크 상태는 이 브라우저에만 남는다 (파일을 고치지는 못한다)
   function pubKey(file) { return "naver-pub:" + file; }
@@ -511,18 +549,18 @@
         readyBox.innerHTML = '<div class="empty">발행 대기 중인 글이 없습니다. '
           + "<code>/naver-ready &lt;초안경로&gt;</code>로 초안을 변환하세요.</div>";
       } else {
-        ["medical", "transfer"].concat(
-          // 위 두 분류에 안 잡히는 값이 있으면 뒤에 붙인다
-          ready.map(function (p) { return p.category; })
-               .filter(function (c) { return c !== "medical" && c !== "transfer"; })
-        ).filter(function (c, i, a) { return a.indexOf(c) === i; })
-         .forEach(function (cat) {
+        var idx = catIndex();
+        catOrder(ready).forEach(function (cat) {
           var list = ready.filter(function (p) { return p.category === cat; });
           if (!list.length) return;
+          var meta = idx[cat];
           var block = document.createElement("div");
           block.className = "cat-block";
           block.innerHTML = '<div class="cat-hd"><b>' + escapeHtml(catLabel(cat))
-            + "</b><span>" + list.length + "건</span></div>";
+            + "</b>"
+            + (showGroup(meta)
+                ? '<span class="cat-up">' + escapeHtml(meta.groupLabel) + "</span>" : "")
+            + "<span>" + list.length + "건</span></div>";
           list.forEach(function (p) { block.appendChild(renderReadyPost(p)); });
           readyBox.appendChild(block);
         });

@@ -25,7 +25,10 @@ allowed-tools: Read, Write, Glob, Bash, Agent
 **2. 프론트매터 확인**
 
 `title`, `category`, `keywords`, `kb_refs`가 있는지 본다. (`tags`는 없으면 변환하며 채운다.)
-`category`는 `medical` 또는 `transfer`여야 한다.
+`category`는 `content/categories.json` 의 `items[].id` 중 하나여야 한다.
+값을 지어내지 말고 그 파일을 Read해서 고른다. 없는 분류가 필요하면
+**임의로 만들지 말고** 무엇이 필요한지 알리고 멈춘다 — 카테고리는 네이버 블로그
+메뉴와 맞춰야 하므로 사람이 정한다.
 필수 항목이 비어 있으면 무엇이 없는지 알려주고 멈춘다. 임의로 채우지 않는다.
 
 **3. KB 사실관계 보강 — kb_refs에 적힌 파일만**

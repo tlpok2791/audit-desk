@@ -59,6 +59,21 @@
 지휘하는 것은 메인 세션뿐이다. `orchestrator.md` 같은 파일을 만들어 두면
 불리지 않는 문서가 하나 늘 뿐이다. 지휘 순서는 `.claude/commands/` 에 적는다.
 
+### 블로그 카테고리는 한 곳에서 온다
+
+`content/categories.json` 이 원본이다. **네이버 블로그 메뉴와 1:1로 맞춰 둔 것**이라
+여기서 마음대로 늘리거나 이름을 바꾸면 블로그와 어긋난다.
+
+원고 프론트매터의 `category` 에는 `items[].id` 를 적는다. `build_posts.py` 가
+`src/data/categories.js` 로 구워 주고, 모르는 값이 있으면 경고를 찍는다
+(글 굽기를 막지는 않는다 — 한 글 때문에 전체가 안 나오면 안 된다).
+
+**`id` 는 바꾸지 않는다.** 바꾸면 이미 쓴 원고의 `category` 가 전부 미아가 된다.
+표시 이름(`label`)만 고치는 것은 안전하다.
+
+에이전트는 분류를 **지어내지 않는다.** 맞는 것이 없으면 멈추고 알린다.
+카테고리는 사람이 정한다.
+
 ### 서류에서 발행까지
 
 ```
@@ -158,6 +173,7 @@ python3 build_posts.py                       # 글을 추가·발행했으면 po
 |---|---|
 | 새 모듈 (Streamlit 화면) | `modules/새기능.py` + `core/registry.py` 한 줄 |
 | 홈페이지 기능 카드 | `src/data/cards.js` 의 `CARDS` 배열에 객체 하나 |
+| 블로그 카테고리 | `content/categories.json` → `python3 build_posts.py` |
 | 감사도구 세부탭 | `src/audit/tabs.js` (탭2~5는 아직 잠금 placeholder) |
 
 `index.html`·`src/app.js`는 카드를 추가할 때 건드릴 필요가 없다.

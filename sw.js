@@ -9,7 +9,7 @@
  * 캐시는 코드와 화면만 담는다. 거래처 명부와 감사 데이터는
  * localStorage 에 있고 이 워커가 건드리지 않는다.
  */
-const VERSION = "v4";
+const VERSION = "v5";
 const CACHE = "audit-desk-" + VERSION;
 
 const ASSETS = [
@@ -26,6 +26,7 @@ const ASSETS = [
   "./src/audit/worksheet.js",
   "./src/data/cards.js",
   "./src/data/home.js",
+  "./src/data/categories.js",
   "./src/data/posts.js",
   "./src/data/refs.js",
   "./src/data/tools.js",

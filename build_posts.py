@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 POSTS = ROOT / "content" / "posts"
 OUT = ROOT / "src" / "data" / "posts.js"
+CATS_IN = ROOT / "content" / "categories.json"
+CATS_OUT = ROOT / "src" / "data" / "categories.js"
 
 # ready/ 파일의 섹션 구분자 — content/posts/README.md 의 규약과 같아야 한다
 SECTIONS = ["제목 후보", "본문", "이미지 제작 목록", "태그", "리포트", "검토 필요"]
@@ -24,6 +26,29 @@ REQUIRED = ["제목 후보", "본문", "태그", "리포트"]
 # 새 규격은 [이미지 1 삽입 위치], 예전 원고는 [이미지: 설명]. 둘 다 받는다.
 IMAGE_MARKER = re.compile(
     r"^[ \t]*\[이미지\s*(\d+)?\s*(?:삽입\s*위치)?\s*[:：]?\s*([^\]]*)\][ \t]*$", re.M)
+
+
+# ── 카테고리 ────────────────────────────────────────────
+# content/categories.json 이 원본이다. 여기서 읽어 검증에 쓰고, 화면용으로 굽는다.
+
+def load_categories() -> dict:
+    if not CATS_IN.exists():
+        return {"groups": [], "retired": {}}
+    return json.loads(CATS_IN.read_text(encoding="utf-8"))
+
+
+def category_index(cats: dict) -> dict:
+    """id → {label, group, groupLabel}. 하위가 없는 묶음은 묶음 자체가 항목이 된다."""
+    idx = {}
+    for g in cats.get("groups", []):
+        if not g.get("items"):
+            idx[g["id"]] = {"label": g["label"], "group": g["id"],
+                            "groupLabel": g["label"]}
+            continue
+        for it in g["items"]:
+            idx[it["id"]] = {"label": it["label"], "group": g["id"],
+                             "groupLabel": g["label"]}
+    return idx
 
 
 def split_frontmatter(text: str) -> tuple[dict, str]:
@@ -154,7 +179,7 @@ def count_keywords(body: str, keywords: list) -> list:
     return [{"k": k, "n": text.count(k)} for k in keywords if k]
 
 
-def read_post(path: Path, stage: str) -> dict:
+def read_post(path: Path, stage: str, cidx: dict) -> dict:
     text = path.read_text(encoding="utf-8")
     fm, body = split_frontmatter(text)
     post = {
@@ -163,6 +188,9 @@ def read_post(path: Path, stage: str) -> dict:
         "stage": stage,
         "title": fm.get("title") or path.stem,
         "category": fm.get("category") or "",
+        "categoryLabel": cidx.get(fm.get("category") or "", {}).get("label", ""),
+        "categoryGroup": cidx.get(fm.get("category") or "", {}).get("group", ""),
+        "categoryGroupLabel": cidx.get(fm.get("category") or "", {}).get("groupLabel", ""),
         "keywords": fm.get("keywords") or [],
         "kbRefs": fm.get("kb_refs") or [],
         "status": fm.get("status") or stage,
@@ -200,6 +228,8 @@ def read_post(path: Path, stage: str) -> dict:
 
 
 def main():
+    cats = load_categories()
+    cidx = category_index(cats)
     posts = []
     for stage in ("ready", "published", "drafts"):
         folder = POSTS / stage
@@ -207,7 +237,7 @@ def main():
             continue
         for path in sorted(folder.glob("*.md")):
             try:
-                posts.append(read_post(path, stage))
+                posts.append(read_post(path, stage, cidx))
             except Exception as e:  # 한 파일이 깨져도 나머지는 굽는다
                 print(f"  건너뜀 {path.name} — {e}")
 
@@ -227,11 +257,33 @@ def main():
         encoding="utf-8",
     )
 
+    CATS_OUT.write_text(
+        "/* 자동 생성 파일 — 직접 고치지 말 것.\n"
+        " * content/categories.json 을 고친 뒤 `python3 build_posts.py` 로 다시 만든다. */\n"
+        f"const CATEGORIES = {json.dumps(cats.get('groups', []), ensure_ascii=False, indent=2)};\n",
+        encoding="utf-8",
+    )
+
     by = {}
     for p in posts:
         by[p["stage"]] = by.get(p["stage"], 0) + 1
     summary = " · ".join(f"{k} {v}개" for k, v in by.items()) or "글 없음"
     print(f"src/data/posts.js 생성 완료 — {summary}")
+    print(f"src/data/categories.js 생성 완료 — 묶음 {len(cats.get('groups', []))}개 "
+          f"· 항목 {len(cidx)}개")
+
+    # 모르는 category 는 죽이지 않고 알려만 준다. 글을 못 굽게 만들면 안 된다.
+    retired = cats.get("retired", {})
+    unknown = {}
+    for p in posts:
+        c = p["category"]
+        if c and c not in cidx:
+            unknown.setdefault(c, []).append(p["file"])
+    for c, files in sorted(unknown.items()):
+        hint = f" → '{retired[c]}' 로 바꾸세요" if c in retired else ""
+        print(f"  ! 모르는 category '{c}'{hint} — {', '.join(sorted(set(files)))}")
+    if not unknown:
+        print("  카테고리 이상 없음")
 
 
 if __name__ == "__main__":
