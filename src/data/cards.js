@@ -68,7 +68,7 @@ const CARDS = [
     fields: [
       { key: "where", label: "실을 곳", placeholder: "네이버 블로그 본문" },
       { key: "copy", label: "점검할 문구",
-        placeholder: "병의원 세무 전문, 무료 상담, 100% 절세 보장" },
+        placeholder: "비상장주식 평가 전문, 무료 상담, 100% 절세 보장" },
     ],
     template:
       "'{where}'에 실을 아래 문구를 전문직 광고 규정 기준으로 점검해줘.\n\n문구: {copy}\n\n" +
@@ -83,11 +83,11 @@ const CARDS = [
     desc: "네이버 블로그 통계를 붙여넣으면 의도한 키워드와 실제 유입 검색어의 차이를 봅니다.",
     subagent: "ad-agent",
     fields: [
-      { key: "post", label: "글", placeholder: "병의원 가족 인건비, 어디까지 인정되나" },
+      { key: "post", label: "글", placeholder: "1세대 1주택 비과세, 놓치기 쉬운 요건" },
       { key: "intended", label: "의도한 키워드",
-        placeholder: "병의원 가족 인건비, 가족 급여, 필요경비" },
+        placeholder: "1세대 1주택, 양도소득세 비과세, 보유기간" },
       { key: "stats", label: "네이버 블로그 통계",
-        placeholder: "가족 인건비 세금 41 / 병원 직원 급여 12 / 배우자 급여 신고 8 · 조회 312 · 평균 1분 12초" },
+        placeholder: "1세대1주택 비과세 41 / 양도세 보유기간 12 / 일시적2주택 8 · 조회 312 · 평균 1분 12초" },
     ],
     template:
       "'{post}' 글의 키워드 효과를 봐줘.\n\n" +
