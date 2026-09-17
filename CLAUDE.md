@@ -198,7 +198,6 @@ python3 build_posts.py    # 글이나 카테고리를 고쳤으면 반드시
 
 ```bash
 node --check src/app.js                   # 문법
-node scripts/sync-ad-rules.test.js        # 노션 동기화 (타입 변환·페이지네이션·오류)
 python3 build_posts.py                    # 카테고리 검증까지 같이 돈다
 ```
 

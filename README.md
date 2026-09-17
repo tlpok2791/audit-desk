@@ -67,7 +67,7 @@ src/
   app.js            화면
   data/             cards · home · refs (손으로 고침)
                     posts · categories (build_posts.py 가 굽는다)
-scripts/            아이콘 생성 · 노션 광고 KB 동기화
+scripts/            아이콘 생성
 work/               고객 자료. 커밋되지 않는다
 ```
 
