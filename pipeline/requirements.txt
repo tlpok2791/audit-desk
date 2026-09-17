@@ -1,8 +1,0 @@
-# 병의원 세무·마케팅 무인 자동화 파이프라인
-crewai>=0.80
-langchain-google-genai>=2.0      # Agent 1 — OCR/서류 분석
-langchain-openai>=0.2            # Agent 2 — JSON 정제
-langchain-anthropic>=0.3         # Agent 3 — 칼럼/리포트 작성
-notion-client>=2.2
-python-dotenv>=1.0
-httpx>=0.27                      # Notion 첨부파일 내려받기

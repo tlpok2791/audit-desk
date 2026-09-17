@@ -38,45 +38,15 @@
 
 const HOME_GROUPS = [
   {
-    id: "office",
-    title: "사무소",
-    tiles: [
-      { name: "신고 기한", svg: "calendar", color: "sky", tab: "office", badge: "due",
-        desc: "거래처별로 이번 달 무엇을 신고해야 하는지" },
-      { name: "거래처 관리", svg: "users", color: "cyan", tab: "office", badge: "clients",
-        desc: "고객 명부 — 이 브라우저에만 저장됩니다" },
-      { card: "of-doc-request", svg: "send", color: "teal" },
-      { card: "of-brief", svg: "docCheck", color: "indigo" },
-    ],
-  },
-  {
-    id: "audit",
-    title: "감사",
-    tiles: [
-      { name: "정산표 작성", svg: "worksheet", color: "indigo", tab: "audit", sub: "ws",
-        desc: "전기 재무제표와 당기 시산표로 살아있는 정산표" },
-      { name: "분개장 · 원장 편집", svg: "ledger", color: "violet", url: "./tool.html",
-        desc: "회사별 분개장과 계정별원장을 한 화면에서" },
-      { name: "도구 모음", svg: "grid", color: "blue", tab: "audit", sub: "hub", badge: "tools",
-        desc: "홈택스 · DART · 등기소 등 자주 쓰는 사이트" },
-    ],
-  },
-  {
-    id: "tax",
-    title: "기장 · 세무조정",
-    tiles: [
-      { card: "bk-monthly-close", svg: "calc", color: "emerald" },
-      { card: "tax-adjustment-check", svg: "docCheck", color: "teal" },
-    ],
-  },
-  {
     id: "blog",
     title: "블로그",
     tiles: [
-      { card: "blog-draft", svg: "pen", color: "amber" },
-      { card: "blog-series-outline", svg: "layers", color: "orange" },
       { name: "발행 대기 원고", svg: "send", color: "rose", tab: "blog", badge: "ready",
         desc: "변환을 마치고 네이버에 올리기를 기다리는 글" },
+      { card: "blog-draft", svg: "pen", color: "amber" },
+      { card: "blog-series-outline", svg: "layers", color: "orange" },
+      { name: "참고 · 공부", svg: "folder", color: "blue", tab: "blog",
+        desc: "키워드 · 1차 출처 · 노출 원리" },
     ],
   },
   {

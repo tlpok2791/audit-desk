@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>업무 데스크</title>
+<title>블로그 데스크</title>
 
 <!-- 폰에서 홈 화면에 추가하면 앱처럼 열린다 (PWA) -->
 <meta name="theme-color" content="#2F80DE">
-<meta name="description" content="감사조서 · 기장/세무조정 · 사무소 신고 기한 · 블로그를 한 곳에서.">
+<meta name="description" content="회계사 블로그 — 카테고리별 원고 작성 · 준법 점검 · 네이버 발행.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <!-- iOS 는 manifest 를 거의 안 읽는다. 아래 두 줄이 전체화면과 상태바를 담당한다. -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="업무데스크">
+<meta name="apple-mobile-web-app-title" content="블로그데스크">
 <meta name="mobile-web-app-capable" content="yes">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -667,9 +667,9 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
 <div class="band">
   <div class="wrap">
-    <div class="site-eyebrow">내부 업무 도구</div>
-    <h1 class="site-h1">업무 데스크</h1>
-    <p class="site-sub">반복되는 일을 모아 둔 도구함입니다. 필요한 것을 골라 쓰세요.</p>
+    <div class="site-eyebrow">회계사 블로그</div>
+    <h1 class="site-h1">블로그 데스크</h1>
+    <p class="site-sub">카테고리별로 글을 쓰고, 점검하고, 네이버에 올립니다.</p>
   </div>
 </div>
 
@@ -677,9 +677,6 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 
   <div class="tabs" role="tablist" aria-label="업무 영역">
     <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="home">🏠 홈</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="office">🏢 사무소</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="audit">🗂️ 감사도구</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="tax">🧮 기장 및 세무조정</button>
     <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="blog">✍️ 블로그 작성</button>
     <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="ads">📣 광고마케팅</button>
   </div>
@@ -694,307 +691,8 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
   </section>
 
   <!-- 사무소 — 거래처와 신고 기한 -->
-  <section class="tab-panel" data-tab="office" role="tabpanel" hidden>
-    <div id="office-app">
-      <div class="sec"><div class="num">1</div><h2>신고 기한</h2>
-        <select id="office-month" class="msel" aria-label="월 선택"></select>
-      </div>
-      <p class="sub" style="margin:-8px 0 16px;font-size:14px">
-        거래처 속성(개인·법인 / 과세·면세 / 직원 유무 / 결산월)에서 자동으로 뽑습니다.
-      </p>
-      <div id="office-due"></div>
-
-      <div class="sec" style="margin-top:34px"><div class="num">2</div><h2>거래처</h2></div>
-      <div id="office-list"></div>
-      <div id="office-form" style="margin-top:22px"></div>
-      <div id="office-io" style="margin-top:18px"></div>
-
-      <div class="sec" style="margin-top:34px"><div class="num">3</div><h2>월 마감 요청</h2></div>
-      <p class="sub" style="margin:-8px 0 16px;font-size:14px">
-        이번 달 신고 대상을 보고 자료 요청 문구와 브리핑을 만듭니다. 보내는 것은 직접 합니다.
-      </p>
-      <div class="card-grid" data-cards="office"></div>
-    </div>
-  </section>
-
-  <section class="tab-panel" data-tab="audit" role="tabpanel" hidden>
-
-  <div class="eyebrow">내부 도구 · 감사본부</div>
-  <h1>감사 데스크</h1>
-  <p class="sub">엑셀을 올리면 조서가 나옵니다. 반복 작업만 골라 담은 개인 도구함입니다.</p>
-
-  <div class="pills">
-    <span class="pill hi">로컬 전용</span>
-    <span class="pill">가동 4개</span>
-    <span class="pill">📊 xlsx · xls · csv</span>
-    <span class="pill">🧾 조서 자동생성</span>
-    <span class="pill soft">🔒 외부 전송 없음</span>
-  </div>
-
-  <a class="launch" href="./tool.html">
-    <span class="launch-ico">▶</span>
-    <span class="launch-txt">
-      <b>브라우저에서 바로 실행</b>
-      <em>설치 없이 열립니다 · 파일은 브라우저 밖으로 나가지 않습니다</em>
-    </span>
-    <span class="launch-arrow">→</span>
-  </a>
-
-  <div class="callout">
-    <h3>이 도구로 할 수 있는 것</h3>
-    <ul>
-      <li>시산표 한 장으로 표지와 계정그룹별 리드시트를 통째로 만든다</li>
-      <li>증감분석·비율분석을 돌리고 코멘트 초안까지 받는다</li>
-      <li>총계정원장에서 이상징후 전표를 골라내 조서로 남긴다</li>
-    </ul>
-  </div>
-
-  <hr>
-
-  <!-- 정산표 워크플로 (세부탭) -->
-  <div id="audit-app"></div>
-
-  <hr>
-
-  <!-- 1. 모듈 -->
-  <div class="sec"><div class="num">1</div><h2>사용 가능한 모듈</h2></div>
-  <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-    분개장·계정별원장 편집을 비롯한 모듈은 <a href="./tool.html" style="color:var(--indigo);font-weight:600">브라우저 실행 도구</a>에서 씁니다.
-    카드를 눌러 무엇을 하는 모듈인지 펼쳐볼 수 있습니다.
-  </p>
-
-  <a class="launch" href="./tool.html" style="margin-top:0;margin-bottom:20px">
-    <span class="launch-ico">▶</span>
-    <span class="launch-txt">
-      <b>분개장 · 계정별원장 편집 열기</b>
-      <em>JL-100 · 설치 없이 브라우저에서 바로 실행 · 파일은 브라우저 밖으로 나가지 않습니다</em>
-    </span>
-    <span class="launch-arrow">→</span>
-  </a>
-
-  <!-- JL -->
-  <div class="mod" id="m-jl">
-    <button class="mod-hd" data-t="m-jl">
-      <span class="mod-ico">🗂️</span>
-      <span class="mod-main">
-        <span class="mod-name">JL-100_분개장·계정별원장편집</span>
-        <span class="mod-desc">화면 하나에서 자료 종류만 고릅니다. 분개장은 서식이 어떻든 표준 형태로 펴 차대 일치를 검증하고, 계정별원장은 계정마다 나뉜 시트를 하나의 통합 원장으로 합쳐 원장에 찍힌 [누계]와 대조합니다.</span>
-        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">분개장·원장 통합</span><span class="tag">서식 무관</span></span>
-      </span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="mod-body">
-      <div class="sublabel">분개장</div>
-      <div class="flow"><span>분개장 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>정규화</span><i>▸</i><span>검증</span><i>▸</i><span>xlsx</span></div>
-      <div class="tbl-wrap"><table>
-        <tr><th>항목</th><th>내용</th></tr>
-        <tr><td class="k">총 차변 = 총 대변</td><td>전체 합계 일치 여부</td></tr>
-        <tr class="flag"><td class="k">전표별 대차평형</td><td>총계가 맞아도 전표별로는 틀릴 수 있음</td></tr>
-        <tr><td class="k">차·대 동시 기재</td><td>한 행에 차변·대변이 모두 있는 경우</td></tr>
-        <tr><td class="k">회계기간 범위</td><td>결산기간 밖 일자</td></tr>
-      </table></div>
-      <p class="cap">병합셀로 빈 전표번호, 소계행, 반복 머리글, "1,234,000원" 같은 문자열 금액, 부호로만 구분된 금액을 모두 처리합니다. 합계는 <code>=SUM()</code>으로 들어가 전체 범위에 걸립니다.</p>
-
-      <div class="sublabel">계정별원장 — 실제 실행 결과 101개 시트</div>
-      <div class="flow"><span>원장 업로드</span><i>▸</i><span>시트 인식</span><i>▸</i><span>정리 기준</span><i>▸</i><span>통합·검증</span><i>▸</i><span>xlsx</span></div>
-      <div class="tbl-wrap"><table>
-        <tr><th>단계</th><th>결과</th></tr>
-        <tr><td class="k">시트 인식</td><td>101개 · 119,275행</td></tr>
-        <tr><td class="k">통합 후</td><td>117,534행 (소계·머리글 1,741행 제외)</td></tr>
-        <tr><td class="k">원장 [누계] 대조</td><td>92개 계정 전부 일치</td></tr>
-        <tr class="flag"><td class="k">차대 검증</td><td>289,200원 불일치 — 원장에서 빠진 계정 적출</td></tr>
-      </table></div>
-      <p class="cap">계정과목이 시트 이름에만 있어도 열로 만듭니다. [전기이월]·[월계]·[누계]는 걷어내되, 적요에 쓰인 대괄호([잡코리아]유료서비스 등)는 건드리지 않습니다.</p>
-
-      <p class="cap">서로 다른 컬럼명·금액 표기·소계 표기 관행을 쓰는 여러 회사 자료로 <code>tests/</code>의 pytest 회귀 테스트를 돌려, 서식이 달라도 정규화·통합·검증 결과가 같은 숫자로 수렴하는지 확인해 두었습니다.</p>
-    </div>
-  </div>
-
-  <!-- WP -->
-  <div class="mod" id="m-wp">
-    <button class="mod-hd" data-t="m-wp">
-      <span class="mod-ico">📋</span>
-      <span class="mod-main">
-        <span class="mod-name">WP-300_조서작성</span>
-        <span class="mod-desc">시산표를 올리면 표지와 계정그룹별 리드시트를 참조번호·검토표시란까지 갖춰 만듭니다.</span>
-        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 40초</span><span class="tag">시산표 입력</span></span>
-      </span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="mod-body">
-      <div class="flow"><span>시산표 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>표지 정보</span><i>▸</i><span>리드시트 선택</span><i>▸</i><span>xlsx</span></div>
-      <div class="sublabel">산출물 미리보기 — A 유동자산 리드시트</div>
-      <div class="tbl-wrap"><table>
-        <tr><th>조서참조</th><th>계정과목</th><th>전기금액</th><th>당기금액</th><th>증감률</th><th>검토</th></tr>
-        <tr class="flag"><td class="k">A-01</td><td>매출채권</td><td class="n">4,150,000,000</td><td class="n">5,893,000,000</td><td class="n">42.0%</td><td>✓</td></tr>
-        <tr class="flag"><td class="k">A-02</td><td>재고자산</td><td class="n">2,980,000,000</td><td class="n">4,112,400,000</td><td class="n">38.0%</td><td>③</td></tr>
-        <tr><td class="k">A-03</td><td>현금및현금성자산</td><td class="n">1,820,000,000</td><td class="n">1,934,801,000</td><td class="n">6.3%</td><td>②</td></tr>
-        <tr><td class="k">A-04</td><td>단기금융상품</td><td class="n">900,000,000</td><td class="n">1,064,140,000</td><td class="n">18.2%</td><td>②</td></tr>
-        <tr><td class="k">A-05</td><td>대손충당금</td><td class="n">(83,000,000)</td><td class="n">(87,150,000)</td><td class="n">5.0%</td><td>✓</td></tr>
-        <tr class="sum"><td></td><td>합계</td><td class="n">9,767,000,000</td><td class="n">12,917,191,000</td><td class="n">32.3%</td><td></td></tr>
-      </table></div>
-      <p class="cap">음영 = 수행중요성 초과 · 합계는 <code>=SUM()</code> 수식으로 들어가 숫자를 고치면 다시 계산됩니다.</p>
-      <div class="sublabel">같이 나오는 것</div>
-      <ul class="bullets">
-        <li>표지 — 회사명·대상기간·작성자·검토자·수행중요성·조서 목차</li>
-        <li>계정그룹별 리드시트 — A 유동자산부터 K 법인세까지</li>
-        <li>tick mark 범례 — 원장 대조, 전기조서 대조, 외부조회, 표본검사</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- FS -->
-  <div class="mod" id="m-fs">
-    <button class="mod-hd" data-t="m-fs">
-      <span class="mod-ico">📈</span>
-      <span class="mod-main">
-        <span class="mod-name">FS-200_재무제표분석</span>
-        <span class="mod-desc">2개년 시산표로 증감분석·비율분석을 돌리고 유의적 변동 코멘트 초안까지 뽑습니다.</span>
-        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 30초</span><span class="tag">비율 10종</span></span>
-      </span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="mod-body">
-      <div class="flow"><span>시산표 업로드</span><i>▸</i><span>계정 분류 확인</span><i>▸</i><span>유의성 기준</span><i>▸</i><span>분석</span><i>▸</i><span>xlsx</span></div>
-      <div class="sublabel">비율분석 — 샘플 실행 결과</div>
-      <div class="tbl-wrap"><table>
-        <tr><th>지표</th><th>당기</th><th>전기</th><th>증감</th></tr>
-        <tr class="flag"><td class="k">매출채권회전율</td><td class="n">4.61회</td><td class="n">5.90회</td><td class="n">-1.29회</td></tr>
-        <tr class="flag"><td class="k">재고자산회전율</td><td class="n">4.68회</td><td class="n">5.92회</td><td class="n">-1.24회</td></tr>
-        <tr><td class="k">유동비율</td><td class="n">268.1%</td><td class="n">187.7%</td><td class="n">+80.5%p</td></tr>
-        <tr><td class="k">부채비율</td><td class="n">80.9%</td><td class="n">95.5%</td><td class="n">-14.7%p</td></tr>
-        <tr><td class="k">매출총이익률</td><td class="n">29.3%</td><td class="n">28.0%</td><td class="n">+1.3%p</td></tr>
-        <tr><td class="k">이자보상배율</td><td class="n">5.04배</td><td class="n">4.50배</td><td class="n">+0.54배</td></tr>
-      </table></div>
-      <div class="sublabel">코멘트 초안 — 자동 생성</div>
-      <div class="quote"><b>매출채권</b>이 전기 대비 +42.0%(1,743,000,000원) 변동하여 매출 증가율 +11.0%를 31%p 상회함. 회수기간 장기화 또는 기말 매출인식 시점 검토가 필요함.</div>
-      <div class="quote"><b>대손충당금 설정률</b>이 전기 2.00%에서 당기 1.48%로 하락함. 채권 연령분석표를 입수하여 설정률 산정근거의 타당성을 확인할 것.</div>
-      <p class="cap">단순 증감이 아니라 관련 계정 간 정합성을 봅니다 — 매출채권↔매출, 재고↔매출원가, 판관비↔매출, 차입금↔이자비용. 규칙이 만든 문장이므로 근거 확인 후 수정하여 사용합니다.</p>
-    </div>
-  </div>
-
-  <!-- JE -->
-  <div class="mod" id="m-je">
-    <button class="mod-hd" data-t="m-je">
-      <span class="mod-ico">🔍</span>
-      <span class="mod-main">
-        <span class="mod-name">JE-100_전표이상징후</span>
-        <span class="mod-desc">총계정원장에서 기말 심야전표·한도직하·중복계상·벤포드 편차를 적출합니다.</span>
-        <span class="mod-tags"><span class="tag on">가동</span><span class="tag">약 25초</span><span class="tag">테스트 5종</span></span>
-      </span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="mod-body">
-      <div class="flow"><span>원장 업로드</span><i>▸</i><span>컬럼 연결</span><i>▸</i><span>적출 기준</span><i>▸</i><span>테스트</span><i>▸</i><span>xlsx</span></div>
-      <div class="sublabel">적출 결과 — 샘플 3,015건 / 69.3억</div>
-      <div class="tbl-wrap"><table>
-        <tr><th>테스트</th><th>건수</th><th>금액</th><th>비중</th></tr>
-        <tr class="flag"><td class="k">기말 심야 입력</td><td class="n">12</td><td class="n">806,000,000</td><td class="n">11.6%</td></tr>
-        <tr class="flag"><td class="k">승인한도 직하</td><td class="n">40</td><td class="n">390,670,000</td><td class="n">5.6%</td></tr>
-        <tr><td class="k">중복 계상</td><td class="n">32</td><td class="n">235,436,000</td><td class="n">3.4%</td></tr>
-        <tr><td class="k">금액 상위 10건</td><td class="n">10</td><td class="n">782,040,000</td><td class="n">11.3%</td></tr>
-      </table></div>
-      <div class="sublabel">조절 가능한 기준</div>
-      <ul class="bullets">
-        <li>기말 기준일 · 심야 기준시각 — 회사 결산 관행에 맞춰 조절</li>
-        <li>승인한도 금액 · 직하 구간 % — 내부통제 규정에 맞춰 조절</li>
-        <li>벤포드 카이제곱 검정 — 첫자리 분포의 자연발생 패턴 이탈 여부</li>
-      </ul>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- 2. 대기 -->
-  <div class="sec"><div class="num">2</div><h2>만드는 중</h2></div>
-  <div class="mod" style="opacity:.62">
-    <div class="mod-hd" style="cursor:default">
-      <span class="mod-ico">🔗</span>
-      <span class="mod-main">
-        <span class="mod-name">RC-400_계정대사</span>
-        <span class="mod-desc">총계정원장과 보조부·은행거래내역을 대사해 미일치 항목만 추립니다.</span>
-        <span class="mod-tags"><span class="tag wait">대기</span></span>
-      </span>
-    </div>
-  </div>
-  <div class="mod" style="opacity:.62">
-    <div class="mod-hd" style="cursor:default">
-      <span class="mod-ico">🎲</span>
-      <span class="mod-main">
-        <span class="mod-name">SM-500_표본추출</span>
-        <span class="mod-desc">금액가중(MUS) 또는 무작위 표본을 뽑고 추출 근거를 함께 기록합니다.</span>
-        <span class="mod-tags"><span class="tag wait">대기</span></span>
-      </span>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- 3. 후보 -->
-  <div class="sec"><div class="num">3</div><h2>다음에 넣을 기능</h2></div>
-  <p class="sub" style="margin:-8px 0 18px;font-size:14px">눌러서 골라보세요. 오른쪽 아래에 절감 시간이 쌓입니다.</p>
-
-  <div class="pick" id="pick">
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="4">
-      <div class="box">✓</div><div>
-        <div class="row-t">계정 대사 (RC-400)</div>
-        <div class="row-d">원장과 은행거래내역·보조부를 대사해 미일치만 추립니다. 금액·일자 허용오차 조절.</div>
-        <span class="row-m">감사 1건당 약 4시간</span>
-      </div></div>
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="3">
-      <div class="box">✓</div><div>
-        <div class="row-t">전기 조서 대조</div>
-        <div class="row-d">전기 조서 엑셀과 당기 시산표를 붙여 기초잔액 불일치를 자동으로 잡아냅니다.</div>
-        <span class="row-m">감사 1건당 약 3시간</span>
-      </div></div>
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="3">
-      <div class="box">✓</div><div>
-        <div class="row-t">거래처 원장 표준화</div>
-        <div class="row-d">고객사마다 제각각인 원장 서식을 표준 형태로 정리해 다른 모듈에 넘깁니다.</div>
-        <span class="row-m">감사 1건당 약 3시간</span>
-      </div></div>
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
-      <div class="box">✓</div><div>
-        <div class="row-t">감사조정 분개 관리</div>
-        <div class="row-d">조정분개를 쌓으면 수정후시산표와 조정 총괄표가 자동으로 갱신됩니다.</div>
-        <span class="row-m">감사 1건당 약 2시간</span>
-      </div></div>
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
-      <div class="box">✓</div><div>
-        <div class="row-t">채권 연령분석</div>
-        <div class="row-d">거래처별 채권을 연령구간으로 나누고 대손충당금 설정률 적정성을 검토합니다.</div>
-        <span class="row-m">감사 1건당 약 2시간</span>
-      </div></div>
-    <div class="row" role="checkbox" aria-checked="false" tabindex="0" data-h="2">
-      <div class="box">✓</div><div>
-        <div class="row-t">표본 추출 (SM-500)</div>
-        <div class="row-d">MUS·무작위 표본과 추출 근거·난수시드를 함께 기록해 재현 가능하게 남깁니다.</div>
-        <span class="row-m">감사 1건당 약 2시간</span>
-      </div></div>
-  </div>
-
-  <p class="foot">
-    모듈을 추가하려면 <code>modules/</code>에 파일을 만들고 <code>core/registry.py</code>에 한 줄만 등록하면
-    메뉴와 홈 화면에 자동으로 나타납니다.<br>
-    브라우저에서 실행할 때도 파이썬이 서버가 아니라 사용자의 브라우저 안에서 돌기 때문에,
-    올린 파일은 어디로도 전송되지 않습니다. 다만 10만 행이 넘는 큰 파일은 PC 설치본이 훨씬 빠릅니다.
-  </p>
-
-  </section>
-
-  <!-- 기장 및 세무조정 -->
-  <section class="tab-panel" data-tab="tax" role="tabpanel" hidden>
-    <div class="sec"><div class="num">1</div><h2>기장 및 세무조정</h2></div>
-    <p class="sub" style="margin:-8px 0 18px;font-size:14px">
-      필드를 채우면 아래 미리보기가 실시간으로 갱신됩니다. 완성된 프롬프트를 복사해 표시된 서브에이전트에게 넘기세요.
-    </p>
-    <div class="card-grid" data-cards="tax"></div>
-    <p class="cap" style="margin-top:16px">
-      카드는 우선 예시 2개입니다. <code>src/data/cards.js</code>에 항목만 추가하면 화면에 그대로 나타납니다.
-    </p>
-  </section>
-
-  <!-- 블로그 작성 -->
+      <!-- 기장 및 세무조정 -->
+    <!-- 블로그 작성 -->
   <section class="tab-panel" data-tab="blog" role="tabpanel" hidden>
 
     <div class="flow" style="margin:0 0 26px">
@@ -1126,18 +824,8 @@ body:not(.tab-audit-active) .dock-sum{display:none!important}
 <script src="src/data/posts.js"></script>
 <script src="src/data/refs.js"></script>
 <script src="src/data/home.js"></script>
-<script src="src/office/deadlines.js"></script>
-<script src="src/office/clients.js"></script>
 <script src="src/app.js"></script>
 <!-- 감사도구 세부탭 — SheetJS는 로컬 번들(브라우저 안에서만 처리, 서버 전송 없음) -->
-<script src="vendor/xlsx.full.min.js"></script>
-<script src="src/audit/worksheet.js"></script>
-<script src="src/audit/coa.js"></script>
-<script src="src/audit/export.js"></script>
-<script src="src/audit/state.js"></script>
-<script src="src/data/tools.js"></script>
-<script src="src/audit/hub.js"></script>
-<script src="src/audit/tabs.js"></script>
 
 <!-- 홈 화면 앱으로 쓸 때 오프라인에서도 열리게 한다. 자세한 건 sw.js -->
 <script>

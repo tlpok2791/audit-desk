@@ -855,7 +855,7 @@
   /* 상단 탭 버튼의 이모지도 같은 아이콘으로 바꾼다.
    * 타일만 그려 놓으면 탭이 따로 놀아 오히려 정돈이 덜 돼 보인다. */
   var TAB_ICONS = {
-    home: "home", office: "building", audit: "folder", tax: "calc", blog: "pen", ads: "megaphone",
+    home: "home", blog: "pen", ads: "megaphone",
   };
 
   function decorateTabs() {
@@ -879,22 +879,27 @@
    * 두 군데 고칠 일이 없도록 카드가 원본이다. */
   var activateTab = null;   // setupTabs 가 채운다
 
-  function countTools() {
-    if (typeof TOOLS === "undefined") return 0;
-    return TOOLS.reduce(function (n, c) { return n + (c.items || []).length; }, 0);
-  }
 
   function countReady() {
     if (typeof POSTS === "undefined") return 0;
     return POSTS.filter(function (p) { return p.stage === "ready"; }).length;
   }
 
+  /** 아직 /naver-ready 로 변환하지 않은 초안 수 */
+  function countDrafts() {
+    if (typeof POSTS === "undefined") return 0;
+    return POSTS.filter(function (p) {
+      return p.stage === "drafts" && !p.convertedAlready;
+    }).length;
+  }
+
+  /** 블로그 카테고리 항목 수 (묶음이 아니라 실제로 글을 넣는 자리) */
+  function countCategories() {
+    return Object.keys(catIndex()).length;
+  }
+
   function badgeValue(kind) {
-    if (kind === "tools") return countTools();
     if (kind === "ready") return countReady();
-    // 거래처는 이 브라우저에만 있으므로 OfficeClients 에 물어본다
-    if (kind === "clients") return window.OfficeClients ? window.OfficeClients.count() : 0;
-    if (kind === "due") return window.OfficeClients ? window.OfficeClients.dueCount() : 0;
     return 0;
   }
 
@@ -918,7 +923,6 @@
     }
     if (!t.tab || !activateTab) return;
     activateTab(t.tab, true);
-    if (t.sub && window.AuditTabs && window.AuditTabs.goto) window.AuditTabs.goto(t.sub);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -961,8 +965,10 @@
       var bits = [];
       var r = countReady();
       if (r) bits.push("발행 대기 원고 " + r + "건");
-      var tn = countTools();
-      if (tn) bits.push("도구 " + tn + "개");
+      var d = countDrafts();
+      if (d) bits.push("변환 대기 초안 " + d + "건");
+      var c = countCategories();
+      if (c) bits.push("카테고리 " + c + "개");
       sub.textContent = bits.join(" · ");
     }
   }

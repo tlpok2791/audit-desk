@@ -9,30 +9,19 @@
  * 캐시는 코드와 화면만 담는다. 거래처 명부와 감사 데이터는
  * localStorage 에 있고 이 워커가 건드리지 않는다.
  */
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = "audit-desk-" + VERSION;
 
 const ASSETS = [
   "./",
   "./index.html",
-  "./tool.html",
   "./manifest.webmanifest",
   "./src/app.js",
-  "./src/audit/coa.js",
-  "./src/audit/export.js",
-  "./src/audit/hub.js",
-  "./src/audit/state.js",
-  "./src/audit/tabs.js",
-  "./src/audit/worksheet.js",
   "./src/data/cards.js",
-  "./src/data/home.js",
   "./src/data/categories.js",
+  "./src/data/home.js",
   "./src/data/posts.js",
   "./src/data/refs.js",
-  "./src/data/tools.js",
-  "./src/office/clients.js",
-  "./src/office/deadlines.js",
-  "./vendor/xlsx.full.min.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",

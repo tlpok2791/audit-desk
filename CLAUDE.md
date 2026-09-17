@@ -1,25 +1,23 @@
 # audit-desk
 
-회계사 개인 업무 도구. 감사조서 작성 · 기장/세무조정 · 블로그 · 광고마케팅.
+회계사 블로그. **에이전트로 글을 쓰고, 카테고리별로 네이버에 올린다.**
+
 서버가 없다. 브라우저와 로컬에서만 돈다.
 
 ---
 
 ## 절대 지키는 것
 
-**1. 감사 데이터는 커밋하지 않는다.**
+**1. 고객 자료는 커밋하지 않는다.**
 `work/` 아래는 과세정보·개인정보가 들어가는 자리다. `.gitignore`가 `work/*`로 막고
 `work/README.md` 하나만 예외로 둔다. 이 규칙은 바꾸지 않는다.
 
 **2. 비밀값은 환경변수로만 쓴다.**
-`NOTION_TOKEN`, 각종 API 키를 파일에 적지 않는다. `.env`는 `.gitignore`에 있다.
+`NOTION_TOKEN` 등 API 키를 파일에 적지 않는다. `.env`는 `.gitignore`에 있다.
 
-**3. `config/ad-rules.json`은 공개 배포된다.**
-정적 사이트에 함께 올라가므로 주소를 아는 사람이 볼 수 있다.
-대외비를 노션 광고 KB에 두지 않는다.
-
-**4. 이 저장소는 공개(public)다.**
-실명·소속·연락처·고객 정보를 코드나 문서에 적지 않는다.
+**3. 이 저장소는 공개(public)다.**
+실명·소속 법인·연락처·고객 정보를 코드나 문서에 적지 않는다.
+정적 사이트로 함께 배포되므로 주소를 아는 사람은 파일을 열어 볼 수 있다.
 
 ---
 
@@ -31,20 +29,11 @@
 
 | 이름 | 하는 일 | 누가 부르나 |
 |---|---|---|
-| `office-agent` | 월 마감 자료 요청 문구 · 신고 브리핑 | 사무소 탭 카드 |
-| `doc-reader-agent` | 세무 서류 판독 — 항목·금액을 그대로 옮긴다 | `/from-docs` |
 | `blog-agent` | 시리즈 기획 · 글 초안 · 네이버 발행용 변환 | `/naver-ready`, 블로그 탭 카드 |
-| `ad-agent` | 캠페인 기획 · 성과 분석 · 소재 규정 점검 | 광고마케팅 탭 카드 |
-| `audit-fs-analyzer` | 중요성 초과 계정의 증감사유 초안 | 감사도구 탭1 5단계 |
-| `bookkeeping-agent` | 월 마감 분개 정리 | 기장 탭 카드 (카드는 placeholder) |
-| `tax-adjustment-agent` | 세무조정 항목 점검 | 세무조정 탭 카드 (카드는 placeholder) |
+| `ad-agent` | 준법 점검 · 키워드 효과 분석 | `/naver-ready`, 광고 탭 카드 |
+| `doc-reader-agent` | 세무 서류 판독 — 항목·금액을 그대로 옮긴다 | `/from-docs` |
 
-일곱 개 다 `.claude/agents/` 에 있다.
-
-`bookkeeping-agent` · `tax-adjustment-agent` 는 부르는 카드가 아직 placeholder라
-**작업 절차가 확정되지 않았다.** 그래서 이 둘은 구체적 절차 대신 이 문서의 공통 원칙
-(추정으로 채우지 않는다 · 단정하지 않는다 · 없는 숫자를 만들지 않는다)을 담고 있다.
-실제로 쓰면서 절차가 잡히면 에이전트 문서를 같이 고친다.
+셋 다 `.claude/agents/` 에 있다.
 
 새로 만들 때 지킬 것:
 
@@ -64,6 +53,16 @@
 `content/categories.json` 이 원본이다. **네이버 블로그 메뉴와 1:1로 맞춰 둔 것**이라
 여기서 마음대로 늘리거나 이름을 바꾸면 블로그와 어긋난다.
 
+```
+공지사항
+회계감사        감사인 선임·감사보고서 / 표준감사시간 / K-IFRS vs K-GAAP /
+                회계감리·회계기준·회계처리 / 회계감리 지적사례 /
+                내부회계관리제도 / 회계감사 FAQ / IFRS vs US-GAAP
+상속세·증여세   비상장주식 평가(상증세) / 상속세 / 증여세
+부가·종소·양도  부가가치세 / 종합소득세 / 양도소득세
+공정가치평가    RCPS·전환사채 / 주식선택권 / PPA / 비상장주식 평가(공정가치)
+```
+
 원고 프론트매터의 `category` 에는 `items[].id` 를 적는다. `build_posts.py` 가
 `src/data/categories.js` 로 구워 주고, 모르는 값이 있으면 경고를 찍는다
 (글 굽기를 막지는 않는다 — 한 글 때문에 전체가 안 나오면 안 된다).
@@ -82,10 +81,12 @@
 ```
 
 **사이의 두 지점이 사람 차례다.** 초안을 읽고 넘기는 지점, 원고를 붙여넣는 지점.
-특히 앞쪽이 중요하다 — 거래처 정보가 새는지 보는 마지막 자리다.
+특히 앞쪽이 중요하다 — 고객 정보가 새는지 보는 마지막 자리다.
 
-`pipeline/` 은 예전에 이 일을 CrewAI 로 하던 코드다. 시크릿이 등록된 적이 없어
-한 번도 돈 적이 없고, 지금은 자동 실행을 껐다. 코드는 남겨 뒀다.
+서류 없이 주제만으로 쓸 때는 `/from-docs` 를 건너뛰고 블로그 탭의
+`블로그 초안 작성` 카드로 바로 초안을 만든다.
+
+발행을 마치면 `/naver-done` 으로 `published/` 에 옮기고 URL·일시를 기록한다.
 
 ### 글쓰기와 준법 점검은 병렬로 돈다
 
@@ -138,6 +139,9 @@
 - **근거 조문을 확실히 모르면 아예 쓰지 않는다.** 지어내지 않는다
 - 사안별 차이가 있는 대목에는 "개별 검토가 필요합니다"를 덧붙인다
 
+1차 출처는 블로그 탭 `참고·공부` 에 모아 뒀다 (`src/data/refs.js`).
+국세법령정보시스템이 1순위다. 남의 블로그를 근거로 삼지 않는다.
+
 ### 광고 규정 (공인회계사법 제15조의2 · 한국공인회계사회 광고규정)
 
 아래는 금지된다.
@@ -165,16 +169,18 @@
 ## 코드를 고친 뒤
 
 ```bash
-python3 build_web.py && cp web/tool.html .   # 파이썬을 고쳤으면 tool.html 재생성
-python3 build_posts.py                       # 글을 추가·발행했으면 posts.js 재생성
+python3 build_posts.py    # 글이나 카테고리를 고쳤으면 반드시
 ```
+
+`src/data/posts.js` 와 `src/data/categories.js` 가 여기서 구워진다.
+자동 생성 파일이므로 직접 고치지 않는다.
 
 | 하고 싶은 것 | 고칠 곳 |
 |---|---|
-| 새 모듈 (Streamlit 화면) | `modules/새기능.py` + `core/registry.py` 한 줄 |
+| 블로그 카테고리 | `content/categories.json` → `build_posts.py` |
 | 홈페이지 기능 카드 | `src/data/cards.js` 의 `CARDS` 배열에 객체 하나 |
-| 블로그 카테고리 | `content/categories.json` → `python3 build_posts.py` |
-| 감사도구 세부탭 | `src/audit/tabs.js` (탭2~5는 아직 잠금 placeholder) |
+| 홈 타일 | `src/data/home.js` 의 `HOME_GROUPS` |
+| 참고 사이트 목록 | `src/data/refs.js` |
 
 `index.html`·`src/app.js`는 카드를 추가할 때 건드릴 필요가 없다.
 
@@ -191,11 +197,9 @@ python3 build_posts.py                       # 글을 추가·발행했으면 po
 ## 테스트
 
 ```bash
-pytest                              # core/journal.py · core/ledger.py 회귀 테스트
-node scripts/worksheet.test.js      # 정산표 계산 엔진
-node scripts/coa.test.js            # 표준 COA 매핑·유사도
-node scripts/sync-ad-rules.test.js  # 노션 동기화 (타입 변환·페이지네이션·오류)
-node scripts/verify-live-xlsx.js <xlsx>   # 산출물이 값이 아니라 수식인지 확인
+node --check src/app.js                   # 문법
+node scripts/sync-ad-rules.test.js        # 노션 동기화 (타입 변환·페이지네이션·오류)
+python3 build_posts.py                    # 카테고리 검증까지 같이 돈다
 ```
 
 ---
@@ -204,10 +208,10 @@ node scripts/verify-live-xlsx.js <xlsx>   # 산출물이 값이 아니라 수식
 
 **속성·옵션을 늘리지 않는다.** 채울 칸이 많으면 안 쓰게 되고, 안 쓰면 죽은 기능이 된다.
 
-**노션 속성명을 코드에 하드코딩하지 않는다.** `scripts/sync-ad-rules.js`는 스키마를
-실행 시점에 읽는다. 노션에서 속성을 바꾸면 다시 동기화하는 것만으로 반영된다.
-
 **자동 발행은 하지 않는다.** 붙여넣기 직전까지만 자동화하고, 사람이 확인하고 올린다.
 
 **추정으로 채우지 않는다.** 읽히지 않은 값은 `판독불가`로 남기고, 모델이 세야 할 숫자는
-코드가 센다 (글자수·키워드 횟수는 `blog_out.py`가 직접 계산한다).
+코드가 센다 (글자수·키워드 횟수는 `build_posts.py`가 직접 계산한다).
+
+**죽은 코드는 지운다.** 한 번도 돌지 않은 채 남아 있는 코드는 읽는 사람을 속인다.
+(2026-09, CrewAI 파이프라인과 Streamlit 감사도구 일습을 걷어냈다. 이력에 남아 있다.)
